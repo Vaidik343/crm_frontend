@@ -1,32 +1,34 @@
 const Button = ({
-  children,
+  children, 
   variant = "primary",
   size,
   loading = false,
-  disabled = false,
+  disable = false,
   onClick,
   type = "button",
-  className = "",
+  className = ""
 }) => {
-  const sizeClass = size === "sm" ? "btn-sm" : size === "lg" ? "btn-lg" : "";
+  const sizeClass = size === 'sm' ? "btn-sm" : size === 'lg' ? "btn-lg" : "";
 
-  return (
+  return(
     <button
-      type={type}
-      onClick={onClick}
-      disabled={disabled || loading}
-      className={`btn btn-${variant} ${sizeClass} ${className}`}
+     type={type}
+     onClick={onClick}
+     disabled={disable || loading}
+     className={`btn btn-${variant} ${sizeClass} ${className}`}
     >
       {loading ? (
         <>
-          <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
-          Loading...
+        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
+        Loading...
         </>
       ) : (
+        <>
         children
+        </>
       )}
     </button>
-  );
-};
+  )
+}
 
 export default Button;
