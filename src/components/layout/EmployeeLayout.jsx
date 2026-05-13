@@ -2,11 +2,13 @@ import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from '../../context/AuthContext';
 import Button from "../ui/Button";
 
+import { MdLogout, MdTask, MdPhone, MdBook, MdLock } from "react-icons/md";
+
 const navItems = [
-    {to: "/employee/tasks", labe: "My Tasks"},
-    {to: "/employee/calls", labe: "My Calls"},
-    {to: "/employee/work-logs", labe: "Work log"},
-    {to: "/employee/tasks", labe: "Password"},
+  { to: "/employee/tasks",     label: "My Tasks",  icon: <MdTask size={18} /> },
+  { to: "/employee/calls",     label: "My Calls",  icon: <MdPhone size={18} /> },
+  { to: "/employee/work-logs", label: "Work Log",  icon: <MdBook size={18} /> },
+  { to: "/employee/password",  label: "Password",  icon: <MdLock size={18} /> },
 ];
 
 const EmployeeLayout = () => {
@@ -46,7 +48,11 @@ const EmployeeLayout = () => {
                         <span className="text-white-50 small">{user?.name}</span>
                         <span className="badge bg-secondary">{user?.role || "Employee"}</span>
 
-                        <Button variant="outline-danger" size="sm" onClick={logout}>Logout</Button>
+
+<Button variant="outline-danger" size="sm" onClick={logout}>
+  <MdLogout size={16} className="me-1" /> Logout
+</Button>
+                        {/* <Button variant="outline-danger" size="sm" onClick={logout}>Logout</Button> */}
                         {/* change it to just role or just employee */}
 
                     </div>

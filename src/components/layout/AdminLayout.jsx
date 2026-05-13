@@ -3,16 +3,27 @@ import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import Button from "../ui/Button";
 
-const navItems = [
-    {to: "/admin/dashboard", label: "Dashboard", icon:""},
-    {to: "/admin/employees", label: "Employees", icon:""},
-    {to: "/admin/roles",     label: "Roles", icon:""},
-    {to: "/admin/projects",  label: "Projects", icon:""},
-    {to: "/admin/tasks",     label: "Tasks", icon:""},
-    {to: "/admin/calls", label: "Calls", icon:""},
-    {to: "/admin/permissions", label: "permissions", icon:""},
-];
+import {
+  MdDashboard,
+  MdPeople,
+  MdLabel,
+  MdFolder,
+  MdCheckCircle,
+  MdPhone,
+  MdLock,
+  MdFileDownload,
+} from "react-icons/md";
 
+const navItems = [
+  { to: "/admin/dashboard",   label: "Dashboard",   icon: <MdDashboard size={20} /> },
+  { to: "/admin/employees",   label: "Employees",   icon: <MdPeople size={20} /> },
+  { to: "/admin/roles",       label: "Roles",       icon: <MdLabel size={20} /> },
+  { to: "/admin/projects",    label: "Projects",    icon: <MdFolder size={20} /> },
+  { to: "/admin/tasks",       label: "Tasks",       icon: <MdCheckCircle size={20} /> },
+  { to: "/admin/calls",       label: "Calls",       icon: <MdPhone size={20} /> },
+  { to: "/admin/permissions", label: "Permissions", icon: <MdLock size={20} /> },
+  { to: "/admin/export",      label: "Export",      icon: <MdFileDownload size={20} /> },
+];
 const AdminLayout = () => {
     const [collapsed, setCollapsed] = useState(false);
     const {user, logout} = useAuth();

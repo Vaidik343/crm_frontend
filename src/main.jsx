@@ -21,6 +21,7 @@ createRoot(document.getElementById('root')).render(
      <AuthProvider>
       <UserProvider>
         <RoleProvider>
+          <ProjectProvider>
           <TaskProvider>
             <CallProvider>
               <WorkLogProvider>
@@ -32,6 +33,7 @@ createRoot(document.getElementById('root')).render(
               </WorkLogProvider>
             </CallProvider>
           </TaskProvider>
+          </ProjectProvider>
         </RoleProvider>
       </UserProvider>
      </AuthProvider>

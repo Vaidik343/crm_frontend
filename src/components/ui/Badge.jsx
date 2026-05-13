@@ -31,7 +31,7 @@ const Badge = ({value, overrideColor}) => {
   );
 }
 
-export const DueDataBadge = ({dueDate}) => {
+export const DueDateBadge = ({dueDate}) => {
   if(!dueDate) return <span className="text-muted small"> No due date</span>;
 
 

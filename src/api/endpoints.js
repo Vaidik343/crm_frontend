@@ -2,17 +2,21 @@ export const ENDPOINTS = {
     AUTH: {
         LOGIN:"/auth/login"
     },
-    CALLs: {
+    CALLS: {
         CREATE: "/calls",
         ALL: "/calls",
         GET_BY_ID: (id) => `/calls/${id}`,
         PATCH: (id) => `/calls/${id}`,
         DELETE: (id) => `/calls/${id}`
     },
+
+    DASHBOARD: {
+        ALL: "/dashboard"
+    },
     EXPORT: {
         ALL: "/export"
     },
-    PERMISSION: {
+    PERMISSIONS: {
         ALL: '/permissions',
         GET_BY_ID: (id) => `/permissions/${user_id}`,
         UPDATE: (id) => `/permissions/${user_id}`,  // patch

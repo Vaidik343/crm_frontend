@@ -14,10 +14,13 @@ const Select = ({label, options = [], value, onChange, error, required, disabled
         disabled={disabled}
         className={`form-select ${error ? "is-invalid" : ""}`}
       >
-        {placeholder && <options value="">{placeholder}</options>}
-        {options.map((opt) => {
+        {placeholder && <option value="">{placeholder}</option>}
+         
+        {options.map((opt) => (
           <option key={opt.value} value={opt.value}>{opt.label}</option>
-        })}
+        ))}
+
+
       </select>
       {error && <div>{error}</div>}
     </div>

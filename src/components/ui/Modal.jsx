@@ -9,13 +9,16 @@ const Modal = ({ show, onClose, title, children, size = "" }) => {
   return (
     <>
       <div className="modal fade show d-block" tabIndex="-1" role="dialog">
-        <div className={`modal-dialog modal-dialog-centered ${sizeClass}`} role="document">
-          <div className="modal-content border-0 shadow">
+        <div className={`modal-dialog modal-dialog-centered modal-dialog-scrollable ${sizeClass} ${sizeClass}`} role="document">
+          <div className="modal-content border-0 shadow" style={{ overflow: "visible" }}>
             <div className="modal-header border-bottom">
               <h5 className="modal-title fw-semibold">{title}</h5>
               <button type="button" className="btn-close" onClick={onClose} />
             </div>
-            <div className="modal-body">{children}</div>
+            
+<div className="modal-body" style={{ maxHeight: "70vh", overflowY: "auto" }}>
+  {children}
+</div>
           </div>
         </div>
       </div>

@@ -4,6 +4,13 @@ import Input from './../components/ui/Input';
 import Button from '../components/ui/Button';
 import Alert from './../components/ui/Alert';
 
+import {
+  MdPeople,
+  MdPhone,
+  MdCheckCircle,
+  MdBook,
+  MdAdminPanelSettings,
+} from "react-icons/md";
 
 const Login = () => {
   const {login, loading } = useAuth();
@@ -61,7 +68,7 @@ const Login = () => {
              className='d-inline-flex align-items-center justify-content-center bg-opacity-10 rounded-3 mb-3'
              style={{width: 56, height: 56, fontSize: 26}}
             >
-                icon
+                <MdAdminPanelSettings size={32} className="text-primary" />icon
             </div>
              <h4 className="fw-bold mb-1">CRM Login</h4>
             <p className="text-muted small mb-0">Sign in with your employee credentials</p>
