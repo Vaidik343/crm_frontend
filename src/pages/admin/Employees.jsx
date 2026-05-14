@@ -31,13 +31,14 @@ const Employees = () => {
   const [resetting, setResetting]       = useState(null);
   const [credentials, setCredentials]   = useState(null);
 
+
   useEffect(() => {
     getAllUsers();
     getAllRoles();
   }, []);
 
   const roleOptions = roles.map((r) => ({ value: r.id, label: r.name }));
-  console.log("🚀 ~ Employees ~ roleOptions:", roleOptions)
+  // console.log("🚀 ~ Employees ~ roleOptions:", roleOptions)
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -129,6 +130,7 @@ const Employees = () => {
     try {
       setResetting(user.id);
       const res = await resetPassword(user.id);
+      console.log("🚀 ~ handleResetPassword ~ res:", res)
       setCredentials(res.credentials);
       setShowModal(true);
     } catch (err) {
@@ -201,7 +203,7 @@ const Employees = () => {
                     <td>
                       <div className="d-flex gap-2">
                         <Button size="sm" variant="outline-primary" onClick={() => openEdit(user)}>
-                            <MdEdit size={14} className="me-1" /> EditEdit
+                            <MdEdit size={14} className="me-1" /> Edit
                         </Button>
                         <Button
                           size="sm"
@@ -238,24 +240,60 @@ const Employees = () => {
         {/* Show credentials after create or reset */}
         {credentials ? (
           <div>
-            <Alert type="success" message="Employee created successfully. Share these credentials." />
-            <div className="bg-light rounded p-4 mb-3">
-              <div className="mb-3">
-                <p className="text-muted small mb-1">Employee ID</p>
-                <h5 className="fw-bold mb-0">{credentials.employee_id}</h5>
-              </div>
-              <div>
-                <p className="text-muted small mb-1">Temporary Password</p>
-                <h5 className="fw-bold mb-0 text-danger">{credentials.password}</h5>
-              </div>
-            </div>
-            <p className="text-muted small">
-              Please share these credentials with the employee. They can change their password after login.
-            </p>
-            <div className="d-flex justify-content-end">
-              <Button variant="primary" onClick={closeModal}>Done</Button>
-            </div>
-          </div>
+    <Alert type="success" message="Employee created. Share these credentials." />
+    <div className="bg-light rounded p-4 mb-3">
+
+      <div className="mb-3">
+        <p className="text-muted small mb-1">Employee ID</p>
+        <div className="d-flex align-items-center gap-2">
+          <h5 className="fw-bold mb-0">{credentials.employee_id}</h5>
+          <button
+            className="btn btn-sm btn-outline-secondary"
+            onClick={() => {
+              navigator.clipboard.writeText(credentials.employee_id);
+            }}
+          >
+            Copy
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <p className="text-muted small mb-1">Temporary Password</p>
+        <div className="d-flex align-items-center gap-2">
+          <h5 className="fw-bold mb-0 text-danger">{credentials.password}</h5>
+          <button
+            className="btn btn-sm btn-outline-secondary"
+            onClick={() => {
+              navigator.clipboard.writeText(credentials.password);
+            }}
+          >
+            Copy
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    {/* Copy both at once */}
+    <button
+      className="btn btn-outline-primary w-100 mb-3"
+      onClick={() => {
+        navigator.clipboard.writeText(
+          `Employee ID: ${credentials.employee_id}\nPassword: ${credentials.password}`
+        );
+      }}
+    >
+      Copy All Credentials
+    </button>
+
+    <p className="text-muted small">
+      Share these with the employee. They can change their password after login.
+    </p>
+    <div className="d-flex justify-content-end">
+      <Button variant="primary" onClick={closeModal}>Done</Button>
+    </div>
+  </div>
         ) : (
           <form onSubmit={handleSubmit} noValidate>
             <div className="row g-3">
@@ -279,6 +317,7 @@ const Employees = () => {
                   onChange={handleChange}
                   error={fieldErrors.email}
                   placeholder="e.g. john@company.com"
+                  required
                 />
               </div>
               <div className="col-md-6">

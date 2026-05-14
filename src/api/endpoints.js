@@ -18,9 +18,9 @@ export const ENDPOINTS = {
     },
     PERMISSIONS: {
         ALL: '/permissions',
-        GET_BY_ID: (id) => `/permissions/${user_id}`,
-        UPDATE: (id) => `/permissions/${user_id}`,  // patch
-        DELETE: (id) => `/permissions/${user_id}/reset`,
+        GET_BY_ID: (user_id) => `/permissions/${user_id}`,
+        UPDATE: (user_id) => `/permissions/${user_id}`,  // patch
+        RESET: (user_id) => `/permissions/${user_id}/reset`,
     },
     PROJECTS: {
         CREATE: "/projects",
@@ -32,7 +32,7 @@ export const ENDPOINTS = {
     },
     PASSWORD: {
         CHANGE: (id) => '/password/change', //PATCH
-        RESET: (id) => `/projects/reset/${id}`     // PATCH
+        RESET: (id) => `/password/reset/${id}`     // PATCH
     },
     ROLES: {
         CREATE: "/roles",

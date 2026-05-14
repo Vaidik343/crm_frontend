@@ -29,20 +29,19 @@ const Permissions = () => {
 
   // merge permissions with user info for display
   const rows = permissions.map((perm) => {
-    const user = users.find((u) => u.id === perm.user_id);
-    return { ...perm, user };
-    console.log("row", rows);
-    // console.log("us", users);
-
-  });
+  const user = users.find((u) => u.id === perm.user_id);
+  return { ...perm, user };
+});
 
   const handleToggle = async (perm, flag) => {
     try {
       setSaving(`${perm.user_id}-${flag}`);
-    const tg = await updatePermission(perm.user_id, { [flag]: !perm[flag] });
-    console.log("tg", tg)
+     await updatePermission(perm.user_id, { [flag]: !perm[flag] });
+
+
       setAlert({ type: "success", message: "Permission updated" });
     } catch (err) {
+       console.log("update error:", err.response); 
       setAlert({ type: "danger", message: err?.response?.data?.message || "Update failed" });
     } finally {
       setSaving(null);
@@ -53,7 +52,7 @@ const Permissions = () => {
     if (!confirmReset) return;
     try {
       setResetting(true);
-      await resetPermission(confirmReset.user_id);
+      const res = await resetPermission(confirmReset.user_id);
       setAlert({ type: "success", message: "Permissions reset to default" });
     } catch (err) {
       setAlert({ type: "danger", message: err?.response?.data?.message || "Reset failed" });

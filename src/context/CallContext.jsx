@@ -42,7 +42,8 @@ export const CallProvider = ({ children }) => {
 
   const updateCall = useCallback(async (id, payload) => {
     try {
-      const { data } = await api.patch(ENDPOINTS.CALLS.UPDATE(id), payload); // was missing payload
+      const { data } = await api.patch(ENDPOINTS.CALLS.PATCH(id), payload); // was missing payload
+      console.log("🚀 ~ CallProvider ~ data:", data)
       setCalls((prev) => prev.map((c) => (c.id === id ? data : c)));
       return data;
     } catch (error) {

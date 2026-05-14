@@ -12,6 +12,7 @@ export const PermissionProvider = ({ children }) => {
     try {
       setLoading(true);
       const { data } = await api.get(ENDPOINTS.PERMISSIONS.ALL);
+      console.log("🚀 ~ PermissionProvider ~ data:", data)
       setPermissions(data.permissions);
       return data;
     } catch (error) {
@@ -30,14 +31,17 @@ export const PermissionProvider = ({ children }) => {
     }
   }, []);
 
+
   const updatePermission = useCallback(async (user_id, payload) => {
     try {
       const { data } = await api.patch(ENDPOINTS.PERMISSIONS.UPDATE(user_id), payload);
+      console.log("🚀 ~ PermissionProvider ~ data:", data)
       setPermissions((prev) =>
         prev.map((p) => (p.user_id === user_id ? data.permission : p))
       );
       return data;
     } catch (error) {
+          console.log("🚀 ~ PermissionProvider ~ error:", error)
       throw error;
     }
   }, []);
@@ -45,6 +49,7 @@ export const PermissionProvider = ({ children }) => {
   const resetPermission = useCallback(async (user_id) => {
     try {
       const { data } = await api.patch(ENDPOINTS.PERMISSIONS.RESET(user_id));
+      
       setPermissions((prev) =>
         prev.map((p) => (p.user_id === user_id ? data.permission : p))
       );

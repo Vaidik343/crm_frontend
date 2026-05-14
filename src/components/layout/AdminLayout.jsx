@@ -12,7 +12,12 @@ import {
   MdPhone,
   MdLock,
   MdFileDownload,
+  MdMenuOpen
 } from "react-icons/md";
+
+import { CgLogOut } from "react-icons/cg";
+import { BsFillCaretLeftSquareFill } from "react-icons/bs"
+import { BsFillCaretRightSquareFill } from "react-icons/bs";
 
 const navItems = [
   { to: "/admin/dashboard",   label: "Dashboard",   icon: <MdDashboard size={20} /> },
@@ -55,7 +60,7 @@ const AdminLayout = () => {
                       title={collapsed ? "Expand" : "Collapse"}
                       
                     >
-                        {collapsed ? "->" : "<-"}
+                        {collapsed ? <BsFillCaretRightSquareFill /> : <BsFillCaretLeftSquareFill />}
                     </button>
                   </div>
 
@@ -85,11 +90,12 @@ const AdminLayout = () => {
                             </>
                         )}
                         <Button
-                         className="btn btn-sm btn-outline-danger w-100"
+                         className="btn btn-sm btn-outline w-100"
                          onClick={logout}
                          title="Logout"
                         >
-                            collapsed ? "" : "Logout"
+                            
+                            <CgLogOut /> {collapsed ? "" : "Logout"}
                         </Button>
                     </div>
             </div>
