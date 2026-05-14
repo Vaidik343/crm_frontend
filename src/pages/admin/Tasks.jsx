@@ -51,6 +51,8 @@ const Tasks = () => {
     getAllUsers();
   }, []);
 
+  
+
   const employeeOptions = users.map((u) => ({
     value: u.id,
     label: `${u.name} (${u.employee_id})`,
@@ -125,6 +127,7 @@ const Tasks = () => {
         setAlert({ type: "success", message: "Task assigned successfully" });
       }
       closeModal();
+          // getAllTasks();
     } catch (err) {
       setAlert({ type: "danger", message: err?.response?.data?.message || "Something went wrong" });
     } finally {

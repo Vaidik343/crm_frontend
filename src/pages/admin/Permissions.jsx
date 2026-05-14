@@ -84,8 +84,8 @@ const Permissions = () => {
       <div className="card border-0 shadow-sm mb-4">
         <div className="card-body py-3">
           <div className="row g-3">
-            {FLAGS.map((f) => (
-              <div key={f.key} className="col-6 col-md-3">
+            {FLAGS.map((f) => ( 
+              <div key={f.key} className="col-6 col-md-3 ">
                 <div className="d-flex align-items-center gap-2">
                   <span className="badge bg-primary bg-opacity-10 text-primary fw-semibold px-2">
                     {f.label}
@@ -108,7 +108,7 @@ const Permissions = () => {
                   <th className="px-3 text-muted small text-uppercase fw-semibold">Employee</th>
                   <th className="text-muted small text-uppercase fw-semibold">Role</th>
                   {FLAGS.map((f) => (
-                    <th key={f.key} className="text-muted small text-uppercase fw-semibold text-center">
+                    <th key={f.key} className="text-muted small text-uppercase fw-semibold text-center ">
                       {f.label}
                     </th>
                   ))}

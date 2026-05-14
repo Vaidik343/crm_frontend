@@ -147,7 +147,7 @@ const Employees = () => {
       {/* Header */}
       <div className="d-flex align-items-center justify-content-between mb-4">
         <div>
-          <h4 className="fw-bold mb-1">Employees</h4>
+          <h4 className="fw-bold mb-1 valorant-text">Employees</h4>
           <p className="text-muted small mb-0">{users.length} total employees</p>
         </div>
         <Button variant="primary" onClick={openCreate}>
@@ -259,7 +259,7 @@ const Employees = () => {
       </div>
 
       <div>
-        <p className="text-muted small mb-1">Temporary Password</p>
+        <p className="text-muted small mb-1">Password</p>
         <div className="d-flex align-items-center gap-2">
           <h5 className="fw-bold mb-0 text-danger">{credentials.password}</h5>
           <button

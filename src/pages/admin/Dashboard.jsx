@@ -51,7 +51,7 @@ const Dashboard = () => {
           { label: "Total Employees", value: data?.totals?.employees, icon: <MdPeople size={24} />,      color: "primary" },
           { label: "Total Calls",     value: data?.totals?.calls,     icon: <MdPhone size={24} />,       color: "info"    },
           { label: "Total Tasks",     value: data?.totals?.tasks,     icon: <MdCheckCircle size={24} />, color: "success" },
-          // { label: "Total Work Logs", value: data?.totals?.work_logs, icon: <MdBook size={24} />,        color: "warning" },
+          { label: "Total Work Logs", value: data?.totals?.work_logs, icon: <MdBook size={24} />,        color: "warning" },
         ].map((stat) => (
           <div key={stat.label} className="col-6 col-xl-3">
             <div className="card border-0 shadow-sm h-100">
@@ -86,7 +86,7 @@ const Dashboard = () => {
               <h4 className="fw-bold text-success mb-0">{data?.last_7_days?.tasks ?? 0}</h4>
             </div>
             <div className="col-4">
-              {/* <p className="text-muted small mb-1">Work Logs</p> */}
+              <p className="text-muted small mb-1">Work Logs</p>
               <h4 className="fw-bold text-warning mb-0">{data?.last_7_days?.work_logs ?? 0}</h4>
             </div>
           </div>
@@ -150,7 +150,7 @@ const Dashboard = () => {
                   <th className="fw-semibold text-muted small text-uppercase">Role</th>
                   <th className="fw-semibold text-muted small text-uppercase text-center">Calls</th>
                   <th className="fw-semibold text-muted small text-uppercase text-center">Tasks</th>
-                  {/* <th className="fw-semibold text-muted small text-uppercase text-center">Work Logs</th> */}
+                  <th className="fw-semibold text-muted small text-uppercase text-center">Work Logs</th>
                 </tr>
               </thead>
               <tbody>
@@ -177,7 +177,7 @@ const Dashboard = () => {
                       <span className="badge bg-success bg-opacity-10 text-success fw-bold">{emp.tasks}</span>
                     </td>
                     <td className="text-center">
-                      {/* <span className="badge bg-warning bg-opacity-10 text-warning fw-bold">{emp.work_logs}</span> */}
+                      <span className="badge bg-warning bg-opacity-10 text-warning fw-bold">{emp.work_logs}</span>
                     </td>
                   </tr>
                 ))}
