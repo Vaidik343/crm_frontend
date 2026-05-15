@@ -15,6 +15,8 @@ import Projects        from "./pages/admin/Projects";
 import Tasks           from "./pages/admin/Tasks";
 import AdminCalls      from "./pages/admin/Calls";
 import Permissions     from "./pages/admin/Permissions";
+import AdminWorkLogs from "./pages/admin/WorkLogs";
+
 import MyTasks         from "./pages/employee/MyTasks";
 import MyCalls         from "./pages/employee/MyCalls";
 import WorkLog         from "./pages/employee/WorkLog";
@@ -48,6 +50,7 @@ const App = () => {
         <Route path='tasks' element={<Tasks />}/>
         <Route path='calls' element={<Calls />} />
         <Route path='permissions' element={<Permissions />}/>
+        <Route path="work-logs" element={<AdminWorkLogs />} />
         <Route index  element={<Navigate to="dashboard" replace />} />
       </Route>
      

@@ -4,8 +4,10 @@ import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
 import Alert from "../../components/ui/Alert";
-import ConfirmDialog from "../../components/ui/ConfirmDialog";
 import Spinner from "../../components/ui/Spinner";
+import ConfirmDialog from "../../components/ui/ConfirmDialog";
+
+import { MdAdd, MdSecurity, MdEdit, MdDelete, MdShield } from "react-icons/md";
 
 const initialForm = { name: "" };
 
@@ -33,7 +35,7 @@ const Roles = () => {
 
   const validate = () => {
     const errors = {};
-    if (!form.name.trim()) errors.name = "Role name is required";
+    if (!form.name.trim()) errors.name = "Authority level name is required";
     return errors;
   };
 
@@ -66,16 +68,15 @@ const Roles = () => {
     try {
       setSubmitting(true);
       if (editTarget) {
-        await updateRole(editTarget.id, { name: form.name });
-        setAlert({ type: "success", message: "Role updated successfully" });
+        await updateRole(editTarget.id, form);
+        setAlert({ type: "success", message: "Authority clearance updated" });
       } else {
-        await createRole({ name: form.name });
-        setAlert({ type: "success", message: "Role created successfully" });
+        await createRole(form);
+        setAlert({ type: "success", message: "New security tier established" });
       }
       closeModal();
     } catch (err) {
-      const msg = err?.response?.data?.message || "Something went wrong";
-      setAlert({ type: "danger", message: msg });
+      setAlert({ type: "danger", message: err?.response?.data?.message || "Operation failed" });
     } finally {
       setSubmitting(false);
     }
@@ -86,27 +87,35 @@ const Roles = () => {
     try {
       setDeleting(true);
       await deleteRole(confirmDelete.id);
-      setAlert({ type: "success", message: "Role deleted successfully" });
+      setAlert({ type: "success", message: "Authority tier purged" });
     } catch (err) {
-      setAlert({ type: "danger", message: err?.response?.data?.message || "Delete failed. Role may be assigned to employees." });
+      setAlert({ type: "danger", message: err?.response?.data?.message || "Purge failed" });
     } finally {
       setDeleting(false);
       setConfirmDelete(null);
     }
   };
 
-  if (loading && !roles.length) return <Spinner />;
+  if (loading && !roles.length) return (
+    <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+      <Spinner size="lg" />
+      <p className="text-slate-400 font-medium animate-pulse">Syncing authority levels...</p>
+    </div>
+  );
 
   return (
-    <div>
+    <div className="space-y-8 animate-in fade-in duration-700">
       {/* Header */}
-      <div className="d-flex align-items-center justify-content-between mb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h4 className="fw-bold mb-1">Roles</h4>
-          <p className="text-muted small mb-0">{roles.length} total roles</p>
+          <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-2 uppercase">
+            Security <span className="text-[#132ea7]">Tiers</span>
+          </h2>
+          <p className="text-slate-500 font-bold text-base">Define authority levels and baseline clearances ({roles.length} tiers)</p>
         </div>
-        <Button variant="primary" onClick={openCreate}>
-          + Add Role
+        <Button variant="primary" className="shadow-lg shadow-[#132ea7]/20 py-3 px-8 rounded-2xl h-[52px] font-black uppercase tracking-widest text-sm" onClick={openCreate}>
+          <MdAdd size={22} />
+          Create New Tier
         </Button>
       </div>
 
@@ -114,34 +123,33 @@ const Roles = () => {
 
       {/* Roles grid */}
       {roles.length === 0 ? (
-        <div className="text-center py-5 text-muted">
-          <p className="mb-0">No roles found. Create one to get started.</p>
+        <div className="bg-white rounded-[2.5rem] p-16 text-center border border-dashed border-slate-200">
+          <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+             <MdSecurity size={32} />
+          </div>
+          <h4 className="text-lg font-bold text-slate-800">No Security Tiers Defined</h4>
+          <p className="text-slate-400 font-medium">Establish a role to begin assigning permissions.</p>
         </div>
       ) : (
-        <div className="row g-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
           {roles.map((role) => (
-            <div key={role.id} className="col-md-4 col-lg-3">
-              <div className="card border-0 shadow-sm h-100">
-                <div className="card-body d-flex align-items-center justify-content-between">
-                  <div className="d-flex align-items-center gap-2">
-                    <div
-                      className="d-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-2"
-                      style={{ width: 36, height: 36, fontSize: 16 }}
-                    >
-                      🏷️
-                    </div>
-                    <span className="fw-semibold">{role.name}</span>
+            <div key={role.id} className="bg-white rounded-[1.5rem] p-6 border border-slate-100 shadow-xl shadow-slate-200/40 transition-all">
+               <div className="flex items-start justify-between mb-6">
+                  <div className="w-14 h-14 rounded-xl bg-slate-50 text-[#132ea7] flex items-center justify-center shadow-sm">
+                     <MdShield size={28} />
                   </div>
-                  <div className="d-flex gap-1">
-                    <Button size="sm" variant="outline-primary" onClick={() => openEdit(role)}>
-                      Edit
-                    </Button>
-                    <Button size="sm" variant="outline-danger" onClick={() => setConfirmDelete(role)}>
-                      Del
-                    </Button>
+                  <div className="flex items-center gap-2">
+                     <button onClick={() => openEdit(role)} className="p-2 rounded-lg bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all"><MdEdit size={18} /></button>
+                     <button onClick={() => setConfirmDelete(role)} className="p-2 rounded-lg bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"><MdDelete size={18} /></button>
                   </div>
-                </div>
-              </div>
+               </div>
+
+               <div className="space-y-1">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Authority Level</p>
+                  <h3 className="text-xl font-black text-slate-800 leading-tight uppercase tracking-tight">{role.name}</h3>
+               </div>
+
+
             </div>
           ))}
         </div>
@@ -151,25 +159,26 @@ const Roles = () => {
       <Modal
         show={showModal}
         onClose={closeModal}
-        title={editTarget ? "Edit Role" : "Add Role"}
-        size="sm"
+        title={editTarget ? "Modify Security Tier" : "Establish New Authority"}
+        size="md"
       >
-        <form onSubmit={handleSubmit} noValidate>
+        <form onSubmit={handleSubmit} noValidate className="space-y-6">
           <Input
-            label="Role Name"
+            label="Authority Level Designation"
             name="name"
             value={form.name}
             onChange={handleChange}
             error={fieldErrors.name}
-            placeholder="e.g. Project Manager"
+            placeholder="e.g. Senior Field Employee"
             required
           />
-          <div className="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
-            <Button variant="secondary" onClick={closeModal} disabled={submitting}>
-              Cancel
-            </Button>
-            <Button type="submit" variant="primary" loading={submitting}>
-              {editTarget ? "Update Role" : "Create Role"}
+          <div className="p-5 bg-slate-50 rounded-[1.5rem] border border-slate-100">
+             <p className="text-xs font-bold text-slate-500 italic">"Once established, you can fine-tune this tier's authorities in the Permissions Matrix module."</p>
+          </div>
+          <div className="flex gap-4 pt-6 border-t border-slate-50">
+            <Button variant="ghost" className="flex-1 font-black uppercase tracking-widest text-sm" onClick={closeModal} disabled={submitting}>Abort</Button>
+            <Button type="submit" variant="primary" className="flex-[2] h-14 shadow-xl shadow-[#132ea7]/20 font-black uppercase tracking-widest text-sm" loading={submitting}>
+              {editTarget ? "Authorize Update" : "Deploy Tier"}
             </Button>
           </div>
         </form>
@@ -178,7 +187,7 @@ const Roles = () => {
       {/* Delete confirm */}
       <ConfirmDialog
         show={!!confirmDelete}
-        message={`Are you sure you want to delete "${confirmDelete?.name}"? This will fail if employees are assigned to this role.`}
+        message={`This action will permanently purge the Security Tier "${confirmDelete?.name}" from the authorization system.`}
         onConfirm={handleDelete}
         onCancel={() => setConfirmDelete(null)}
         loading={deleting}

@@ -3,123 +3,131 @@ import { usePassword } from "../../context/PasswordContext";
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
 import Alert from "../../components/ui/Alert";
-
-const initialForm = {
-  current_password: "",
-  new_password:     "",
-  confirm_password: "",
-};
+import { MdLock, MdVpnKey, MdShield, MdCheckCircle, MdInfoOutline } from "react-icons/md";
 
 const ChangePassword = () => {
-  const { changeOwnPassword, loading } = usePassword();
-
-  const [form, setForm]               = useState(initialForm);
-  console.log("🚀 ~ ChangePassword ~ form:", form)
-  const [fieldErrors, setFieldErrors] = useState({});
-  const [alert, setAlert]             = useState({ type: "", message: "" });
+  const { changePassword } = usePassword();
+  const [form, setForm]     = useState({ oldPassword: "", newPassword: "", confirmPassword: "" });
+  const [error, setError]   = useState("");
+  const [success, setSuccess] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-    if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: "" }));
+    setForm({ ...form, [e.target.name]: e.target.value });
+    setError("");
   };
-
-  const validate = () => {
-    const errors = {};
-    if (!form.current_password)           errors.current_password = "Current password is required";
-    if (!form.new_password)               errors.new_password     = "New password is required";
-    if (form.new_password.length < 6)     errors.new_password     = "Minimum 6 characters";
-    if (form.new_password === form.current_password) {
-      errors.new_password = "New password must be different from current";
-    }
-    if (!form.confirm_password)           errors.confirm_password = "Please confirm your password";
-    if (form.new_password !== form.confirm_password) {
-      errors.confirm_password = "Passwords do not match";
-    }
-    return errors;
-  };
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setAlert({ type: "", message: "" });
-
-    const errors = validate();
-    if (Object.keys(errors).length) { setFieldErrors(errors); return; }
-
+    if (form.newPassword !== form.confirmPassword) {
+      setError("Authorization confirmation mismatch. Please verify access codes.");
+      return;
+    }
     try {
-      await changeOwnPassword({
-        current_password: form.current_password,
-        new_password:     form.new_password,
-      });
-      setAlert({ type: "success", message: "Password changed successfully" });
-      setForm(initialForm);
+      setLoading(true);
+      await changePassword({ oldPassword: form.oldPassword, newPassword: form.newPassword });
+      setSuccess("Operational access code updated successfully.");
+      setForm({ oldPassword: "", newPassword: "", confirmPassword: "" });
     } catch (err) {
-          console.log("🚀 ~ handleSubmit ~ err:", err)
-      const msg = err?.response?.data?.message || "Failed to change password";
-      setAlert({ type: "danger", message: msg });
+      setError(err?.response?.data?.message || "Protocol update failed.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="row justify-content-center">
-      <div className="col-md-6 col-lg-5">
-        <div className="card border-0 shadow-sm">
-          <div className="card-body p-4">
+    <div className="flex items-center justify-center min-h-[70vh] p-4 animate-in fade-in duration-700">
+      <div className="w-full max-w-xl">
+        
+        {/* Security Shield Header */}
+        <div className="text-center mb-10">
+           <div className="w-24 h-24 bg-[#132ea7] text-white rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-[#132ea7]/30 border-4 border-white">
+              <MdShield size={48} />
+           </div>
+           <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-2 uppercase">Security <span className="text-[#132ea7]">Center</span></h2>
+           <p className="text-slate-500 font-bold text-base uppercase tracking-widest">Update your operational access credentials</p>
+        </div>
 
-            <h5 className="fw-bold mb-1">Change Password</h5>
-            <p className="text-muted small mb-4">
-              Update your password. You'll need your current password to continue.
-            </p>
+        <Alert type="danger" message={error} onClose={() => setError("")} />
+        <Alert type="success" message={success} onClose={() => setSuccess("")} />
 
-            <Alert
-              type={alert.type}
-              message={alert.message}
-              onClose={() => setAlert({ type: "", message: "" })}
-            />
+        <div className="bg-white rounded-[3rem] p-10 md:p-14 border border-slate-100 shadow-2xl shadow-slate-200/50 relative overflow-hidden">
+          <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
+            
+            <div className="space-y-6">
+               <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-1 pt-6 text-[#132ea7]">
+                     <MdVpnKey size={20} className="opacity-40" />
+                  </div>
+                  <Input
+                    label="Current Access Code"
+                    name="oldPassword"
+                    type="password"
+                    value={form.oldPassword}
+                    onChange={handleChange}
+                    placeholder="Enter current password"
+                    required
+                    className="pl-8"
+                  />
+               </div>
 
-            <form onSubmit={handleSubmit} noValidate>
-              <Input
-                label="Current Password"
-                name="current_password"
-                type="password"
-                value={form.current_password}
-                onChange={handleChange}
-                error={fieldErrors.current_password}
-                placeholder="Enter current password"
-                required
-              />
-              <Input
-                label="New Password"
-                name="new_password"
-                type="password"
-                value={form.new_password}
-                onChange={handleChange}
-                error={fieldErrors.new_password}
-                placeholder="Minimum 6 characters"
-                required
-              />
-              <Input
-                label="Confirm New Password"
-                name="confirm_password"
-                type="password"
-                value={form.confirm_password}
-                onChange={handleChange}
-                error={fieldErrors.confirm_password}
-                placeholder="Re-enter new password"
-                required
-              />
-              <Button
-                type="submit"
-                variant="primary"
-                className="w-100 mt-2"
-                loading={loading}
-              >
-                Change Password
-              </Button>
-            </form>
+               <div className="relative pt-4">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-1 pt-10 text-[#132ea7]">
+                     <MdLock size={20} className="opacity-40" />
+                  </div>
+                  <Input
+                    label="New Secure Code"
+                    name="newPassword"
+                    type="password"
+                    value={form.newPassword}
+                    onChange={handleChange}
+                    placeholder="Enter new password"
+                    required
+                    className="pl-8"
+                  />
+               </div>
 
-          </div>
+               <div className="relative">
+                  <div className="absolute inset-y-0 left-0 flex items-center pl-1 pt-6 text-[#132ea7]">
+                     <MdCheckCircle size={20} className="opacity-40" />
+                  </div>
+                  <Input
+                    label="Confirm New Code"
+                    name="confirmPassword"
+                    type="password"
+                    value={form.confirmPassword}
+                    onChange={handleChange}
+                    placeholder="Verify new password"
+                    required
+                    className="pl-8"
+                  />
+               </div>
+            </div>
+
+            <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 flex items-start gap-4">
+               <MdInfoOutline className="text-[#132ea7] mt-0.5" size={20} />
+               <p className="text-xs font-bold text-slate-500 uppercase tracking-wider leading-relaxed">
+                  "Use a combination of alphanumeric characters and special symbols for maximum security clearance strength."
+               </p>
+            </div>
+
+            <Button 
+              type="submit" 
+              variant="primary" 
+              className="w-full h-16 text-lg font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-[#132ea7]/20" 
+              loading={loading}
+            >
+              Update Security Protocol
+            </Button>
+          </form>
+
+          {/* Decorative accents */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-slate-50 rounded-full -mr-32 -mt-32 opacity-50" />
+          <div className="absolute bottom-0 left-0 w-48 h-48 bg-slate-50 rounded-full -ml-24 -mb-24 opacity-50" />
+        </div>
+
+        <div className="mt-10 text-center">
+           <p className="text-xs font-black text-slate-400 uppercase tracking-[0.3em]">Authorized Access Only</p>
         </div>
       </div>
     </div>

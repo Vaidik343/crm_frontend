@@ -1,0 +1,172 @@
+import { useEffect, useState } from "react";
+import { useWorkLog } from "../../context/WorkLogContext";
+import Spinner from "../../components/ui/Spinner";
+import Alert from "../../components/ui/Alert";
+import Modal from "../../components/ui/Modal";
+import Button from "../../components/ui/Button";
+import Input from "../../components/ui/Input";
+import { MdBook, MdVisibility, MdCalendarToday, MdPerson, MdAccessTime, MdOutlineSpeakerNotes, MdSearch } from "react-icons/md";
+
+const AdminWorkLogs = () => {
+  const { workLogs, loading, getAllWorkLogs } = useWorkLog();
+
+  const [viewTarget, setViewTarget] = useState(null);
+  const [error, setError] = useState("");
+  const [filter, setFilter] = useState("");
+
+  useEffect(() => {
+    getAllWorkLogs();
+  }, []);
+
+  // filter by employee name
+  const filtered = filter.trim()
+    ? workLogs.filter((w) =>
+      w.User?.name?.toLowerCase().includes(filter.toLowerCase()) ||
+      w.User?.employee_id?.toLowerCase().includes(filter.toLowerCase())
+    )
+    : workLogs;
+
+  if (loading && !workLogs.length) return (
+    <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+      <Spinner size="lg" />
+      <p className="text-slate-400 font-bold animate-pulse uppercase tracking-[0.2em] text-sm">Accessing historical archives...</p>
+    </div>
+  );
+
+  return (
+    <div className="space-y-8 animate-in fade-in duration-700">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-2 uppercase">
+            Work <span className="text-[#132ea7]">Logs</span>
+          </h2>
+          <p className="text-slate-500 font-bold text-base">Comprehensive stream of agent daily activity and mission status updates ({workLogs.length} total)</p>
+        </div>
+        
+        <div className="relative w-full md:w-72">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+            <MdSearch size={20} />
+          </div>
+          <input
+            type="text"
+            className="w-full bg-white border border-slate-200 rounded-2xl pl-12 pr-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/10 focus:border-[#132ea7] transition-all shadow-sm"
+            placeholder="Search by Employee identity..."
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <Alert type="danger" message={error} onClose={() => setError("")} />
+
+      {/* Table Container */}
+      <div className="bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
+        <div className="overflow-x-auto custom-scrollbar">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50/50">
+                <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Employee Identity</th>
+                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Operational Date</th>
+                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Work Briefing</th>
+                <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {filtered.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="text-center text-slate-400 py-16 font-medium italic text-lg uppercase tracking-widest">No operational logs found in current archive.</td>
+                </tr>
+              )}
+              {filtered.map((log) => (
+                <tr key={log.id} className="hover:bg-slate-50/80 transition-colors group">
+                  <td className="px-10 py-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-[#132ea7] text-white flex items-center justify-center font-black text-lg shadow-lg shadow-[#132ea7]/20 transition-all group-hover:scale-110">
+                        {log.User?.name?.charAt(0) || <MdPerson size={20} />}
+                      </div>
+                      <div>
+                        <div className="font-black text-slate-800 text-lg leading-tight">{log.User?.name || "—"}</div>
+                        <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">{log.User?.employee_id || "Unknown ID"}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-8 py-6">
+                    <div className="flex items-center gap-3">
+                       <div className="w-10 h-10 rounded-xl bg-slate-50 text-[#132ea7] flex items-center justify-center shadow-inner">
+                          <MdCalendarToday size={18} />
+                       </div>
+                       <span className="text-sm font-black text-slate-700 uppercase tracking-wider">{new Date(log.date).toLocaleDateString("default", { month: "short", day: "numeric", year: "numeric" })}</span>
+                    </div>
+                  </td>
+                  <td className="px-8 py-6">
+                    <p className="text-sm font-bold text-slate-500 truncate max-w-[400px]">
+                      {log.description}
+                    </p>
+                  </td>
+                  <td className="px-10 py-6 text-right">
+                    <button
+                      className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all shadow-sm"
+                      onClick={() => setViewTarget(log)}
+                      title="View Full Log"
+                    >
+                      <MdVisibility size={22} />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Log Detail Modal */}
+      <Modal
+        show={!!viewTarget}
+        onClose={() => setViewTarget(null)}
+        title="Operational Report Details"
+        size="lg"
+      >
+        {viewTarget && (
+          <div className="space-y-8 py-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 pb-8 border-b border-slate-50">
+               <div className="flex items-center gap-5">
+                  <div className="w-20 h-20 rounded-[2rem] bg-[#132ea7] text-white flex items-center justify-center font-black text-3xl shadow-2xl shadow-[#132ea7]/20">
+                     {viewTarget.User?.name?.charAt(0) || <MdPerson size={32} />}
+                  </div>
+                  <div>
+                     <h3 className="text-2xl font-black text-slate-800 leading-tight">{viewTarget.User?.name || "—"}</h3>
+                     <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-xs mt-1">Employee Identification: {viewTarget.User?.employee_id || "N/A"}</p>
+                  </div>
+               </div>
+               <div className="flex items-center gap-4 bg-slate-50 p-4 px-6 rounded-[1.5rem] border border-slate-100 shadow-sm">
+                  <MdAccessTime size={24} className="text-[#132ea7]" />
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-1">Operational Date</p>
+                    <p className="text-base font-black text-slate-800 uppercase tracking-widest">{new Date(viewTarget.date).toLocaleDateString("default", { month: "long", day: "numeric", year: "numeric" })}</p>
+                  </div>
+               </div>
+            </div>
+
+            <div className="p-10 bg-[#132ea7] rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden">
+               <div className="relative z-10">
+                 <p className="text-[11px] font-black text-white/50 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                   <MdOutlineSpeakerNotes size={20} className="text-white/30" /> Mission Activity Briefing
+                 </p>
+                 <p className="text-xl font-medium leading-relaxed opacity-95 italic whitespace-pre-wrap">
+                    "{viewTarget.description}"
+                 </p>
+               </div>
+            </div>
+
+            <div className="flex items-center justify-end pt-4">
+               <Button variant="ghost" onClick={() => setViewTarget(null)} className="text-slate-400 font-black uppercase tracking-[0.2em] text-xs">Close Archives</Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+    </div>
+  );
+};
+
+export default AdminWorkLogs;

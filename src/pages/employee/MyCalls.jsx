@@ -1,120 +1,39 @@
 import { useEffect, useState } from "react";
 import { useCall } from "../../context/CallContext";
 import { useProject } from "../../context/ProjectContext";
-import Badge from "../../components/ui/Badge";
+import Spinner from "../../components/ui/Spinner";
 import Button from "../../components/ui/Button";
-import Alert from "../../components/ui/Alert";
 import Modal from "../../components/ui/Modal";
 import Input from "../../components/ui/Input";
-import Select from "../../components/ui/Select";
 import Textarea from "../../components/ui/Textarea";
-import ConfirmDialog from "../../components/ui/ConfirmDialog";
-import Spinner from "../../components/ui/Spinner";
-import { useAuth } from "../../context/AuthContext";
-
-const CALL_TYPES = {
-  inquiry:   ["inquiry", "follow-back"],
-  request:   ["other", "update", "new development"],
-  complaint: ["bug", "error solve"],
-};
-
-const RECEIVE_OPTIONS = [
-  { value: "call",    label: "Call" },
-  { value: "msg",     label: "Message" },
-  { value: "email",   label: "Email" },
-  { value: "meeting", label: "Meeting" },
-];
-
-const initialForm = {
-  caller_name:  "",
-  caller_number: "",
-  project_id:   "",
-  call_type:    "",
-  call_subtype: "",
-  receive_type: "",
-  call_summary: "",
-  remarks:      "",
-};
+import Badge from "../../components/ui/Badge";
+import Alert from "../../components/ui/Alert";
+import { MdPhone, MdAdd, MdCalendarToday, MdFolder, MdInfoOutline, MdHistory } from "react-icons/md";
 
 const MyCalls = () => {
-  const { calls, loading, getAllCalls, createCall, updateCall, deleteCall } = useCall();
+  const { calls, loading, getMyCalls, createCall } = useCall();
   const { projects, getAllProjects } = useProject();
-  const { can } = useAuth();
 
-  const [showModal, setShowModal]         = useState(false);
-  const [editTarget, setEditTarget]       = useState(null);
-  const [form, setForm]                   = useState(initialForm);
-  const [fieldErrors, setFieldErrors]     = useState({});
-  const [submitting, setSubmitting]       = useState(false);
-  const [alert, setAlert]                 = useState({ type: "", message: "" });
-  const [confirmDelete, setConfirmDelete] = useState(null);
-  const [deleting, setDeleting]           = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [form, setForm] = useState({ project_id: "", call_type: "inbound", call_subtype: "", medium: "phone", summary: "" });
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+  const [alert, setAlert] = useState({ type: "", message: "" });
 
   useEffect(() => {
-    getAllCalls();
+    getMyCalls();
     getAllProjects();
-      // getAllUsers();
   }, []);
 
-  const projectOptions = projects.map((p) => ({ value: p.id, label: p.name }));
-
-  const callTypeOptions = Object.keys(CALL_TYPES).map((t) => ({
-    value: t, label: t.charAt(0).toUpperCase() + t.slice(1),
-  }));
-
-  const subtypeOptions = form.call_type
-    ? CALL_TYPES[form.call_type].map((s) => ({ value: s, label: s }))
-    : [];
-
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    // reset subtype when type changes
-    if (name === "call_type") {
-      setForm((prev) => ({ ...prev, call_type: value, call_subtype: "" }));
-    } else {
-      setForm((prev) => ({ ...prev, [name]: value }));
-    }
-    if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: "" }));
+    setForm({ ...form, [e.target.name]: e.target.value });
+    if (fieldErrors[e.target.name]) setFieldErrors({ ...fieldErrors, [e.target.name]: "" });
   };
 
   const validate = () => {
     const errors = {};
-    if (!form.caller_name.trim()) errors.caller_name  = "Caller name is required";
-    if (!form.project_id)         errors.project_id   = "Project is required";
-    if (!form.call_type)          errors.call_type    = "Call type is required";
-    if (!form.call_subtype)       errors.call_subtype = "Call subtype is required";
-    if (!form.receive_type)       errors.receive_type = "Receive type is required";
+    if (!form.summary.trim()) errors.summary = "Communication summary is required";
     return errors;
-  };
-
-  const openCreate = () => {
-    setEditTarget(null);
-    setForm(initialForm);
-    setFieldErrors({});
-    setShowModal(true);
-  };
-
-  const openEdit = (call) => {
-    setEditTarget(call);
-    setForm({
-      caller_name:   call.caller_name   || "",
-      caller_number: call.caller_number || "",
-      project_id:    call.project_id    || "",
-      call_type:     call.call_type     || "",
-      call_subtype:  call.call_subtype  || "",
-      receive_type:  call.receive_type  || "",
-      call_summary:  call.call_summary  || "",
-      remarks:       call.remarks       || "",
-    });
-    setFieldErrors({});
-    setShowModal(true);
-  };
-
-  const closeModal = () => {
-    setShowModal(false);
-    setEditTarget(null);
-    setForm(initialForm);
-    setFieldErrors({});
   };
 
   const handleSubmit = async (e) => {
@@ -124,257 +43,215 @@ const MyCalls = () => {
 
     try {
       setSubmitting(true);
-      if (editTarget) {
-        await updateCall(editTarget.id, form);
-        setAlert({ type: "success", message: "Call updated successfully" });
-      } else {
-        await createCall(form);
-        setAlert({ type: "success", message: "Call logged successfully" });
-      }
-      closeModal();
+      await createCall(form);
+      setAlert({ type: "success", message: "Intelligence log submitted successfully" });
+      setShowModal(false);
+      setForm({ project_id: "", call_type: "inbound", call_subtype: "", medium: "phone", summary: "" });
+      getMyCalls();
     } catch (err) {
-      setAlert({ type: "danger", message: err?.response?.data?.message || "Something went wrong" });
+      setAlert({ type: "danger", message: "Failed to log communication" });
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDelete = async () => {
-    if (!confirmDelete) return;
-    try {
-      setDeleting(true);
-      await deleteCall(confirmDelete.id);
-      setAlert({ type: "success", message: "Call deleted" });
-    } catch (err) {
-      setAlert({ type: "danger", message: err?.response?.data?.message || "Delete failed" });
-    } finally {
-      setDeleting(false);
-      setConfirmDelete(null);
-    }
-  };
-
-  if (loading && !calls.length) return <Spinner />;
+  if (loading && !calls.length) return (
+    <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+      <Spinner size="lg" />
+      <p className="text-slate-400 font-bold animate-pulse uppercase tracking-[0.2em] text-sm">Accessing comms archives...</p>
+    </div>
+  );
 
   return (
-    <div>
+    <div className="space-y-10 animate-in fade-in duration-700">
       {/* Header */}
-      <div className="d-flex align-items-center justify-content-between mb-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h4 className="fw-bold mb-1">My Calls</h4>
-          <p className="text-muted small mb-0">{calls.length} total calls logged</p>
+          <h2 className="text-3xl md:text-4xl font-black text-slate-800 tracking-tight mb-2 uppercase">
+            Communication <span className="text-[#132ea7]">Logs</span>
+          </h2>
+          <p className="text-slate-500 font-bold text-base">Archive and track all mission-related intelligence and contacts</p>
         </div>
-        {can("can_write") && (
-          <Button variant="primary" onClick={openCreate}>
-            + Log Call
-          </Button>
-        )}
+        <Button variant="primary" className="shadow-lg shadow-[#132ea7]/20 py-3 px-8 rounded-2xl h-[52px] font-black uppercase tracking-widest text-sm" onClick={() => setShowModal(true)}>
+          <MdAdd size={22} />
+          Log New Contact
+        </Button>
       </div>
 
-      <Alert
-        type={alert.type}
-        message={alert.message}
-        onClose={() => setAlert({ type: "", message: "" })}
-      />
+      <Alert type={alert.type} message={alert.message} onClose={() => setAlert({ type: "", message: "" })} />
 
-      {/* Calls list */}
-      {calls.length === 0 ? (
-        <div className="text-center py-5 text-muted">
-          <p className="mb-0">No calls logged yet</p>
+      {/* Stats Quick View */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/30 flex items-center gap-6">
+          <div className="w-16 h-16 rounded-2xl bg-sky-50 text-sky-500 flex items-center justify-center">
+            <MdPhone size={32} />
+          </div>
+          <div>
+            <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Total Logs</p>
+            <p className="text-3xl font-black text-slate-800">{calls.length}</p>
+          </div>
         </div>
-      ) : (
-        <div className="row g-3">
-          {calls.map((call) => (
-            <div key={call.id} className="col-md-6 col-lg-4">
-              <div className="card border-0 shadow-sm h-100">
-                <div className="card-body">
-
-                  {/* Type badges */}
-                  <div className="d-flex gap-2 mb-2 flex-wrap">
-                    <Badge value={call.call_type} />
-                    <Badge value={call.receive_type} />
-                  </div>
-
-                  {/* Caller */}
-                  <h6 className="fw-semibold mb-1">{call.caller_name}</h6>
-                  {call.caller_number && (
-                    <p className="text-muted small mb-1">{call.caller_number}</p>
-                  )}
-
-                  {/* Subtype */}
-                  <p className="text-muted small mb-1">
-                    Subtype: <span className="fw-medium text-dark">{call.call_subtype}</span>
-                  </p>
-
-                  {/* Project */}
-                  <p className="text-muted small mb-1">
-                    Project:{" "}
-                    <span className="fw-medium text-dark">
-                      {call.Project?.name || "—"}
-                    </span>
-                  </p>
-
-                  {/* Summary */}
-                  {call.call_summary && (
-                    <p className="text-muted small mb-1 mt-2">{call.call_summary}</p>
-                  )}
-
-                  {/* Date */}
-                  <p className="text-muted small mb-0 mt-2">
-                    {new Date(call.createdAt).toLocaleString()}
-                  </p>
-
-                </div>
-
-                {/* Actions */}
-                {(can("can_update") || can("can_delete")) && (
-                  <div className="card-footer bg-white border-top d-flex gap-2">
-                    {can("can_update") && (
-                      <Button
-                        size="sm"
-                        variant="outline-primary"
-                        className="flex-grow-1"
-                        onClick={() => openEdit(call)}
-                      >
-                        Edit
-                      </Button>
-                    )}
-                    {can("can_delete") && (
-                      <Button
-                        size="sm"
-                        variant="outline-danger"
-                        className="flex-grow-1"
-                        onClick={() => setConfirmDelete(call)}
-                      >
-                        Delete
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
+        <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/30 flex items-center gap-6">
+          <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center">
+            <MdHistory size={32} />
+          </div>
+          <div>
+            <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Today's Contacts</p>
+            <p className="text-3xl font-black text-slate-800">
+              {calls.filter(c => new Date(c.createdAt).toDateString() === new Date().toDateString()).length}
+            </p>
+          </div>
         </div>
-      )}
+        <div className="bg-[#132ea7] p-8 rounded-[2rem] shadow-2xl shadow-[#132ea7]/20 flex items-center gap-6 text-white relative overflow-hidden">
+          <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center relative z-10">
+            <MdInfoOutline size={32} />
+          </div>
+          <div className="relative z-10">
+            <p className="text-[11px] font-black text-white/50 uppercase tracking-[0.2em] mb-1">Last Submission</p>
+            <p className="text-lg font-black">{calls[0] ? new Date(calls[0].createdAt).toLocaleDateString() : "No Records"}</p>
+          </div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl" />
+        </div>
+      </div>
 
-      {/* Create / Edit Modal */}
+      {/* Logs Table */}
+      <div className="bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
+        <div className="overflow-x-auto custom-scrollbar">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50/50">
+                <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Timestamp</th>
+                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Operation</th>
+                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Contact Method</th>
+                <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Executive Summary</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {calls.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="text-center text-slate-400 py-16 font-bold italic text-lg uppercase tracking-widest">No intelligence logs archived yet.</td>
+                </tr>
+              )}
+              {calls.map((call) => (
+                <tr key={call.id} className="hover:bg-slate-50/80 transition-colors group">
+                  <td className="px-10 py-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-slate-50 text-[#132ea7] flex items-center justify-center shadow-inner group-hover:bg-[#132ea7] group-hover:text-white transition-all">
+                        <MdCalendarToday size={18} />
+                      </div>
+                      <div>
+                        <div className="font-black text-slate-800 text-base">{new Date(call.createdAt).toLocaleDateString()}</div>
+                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{new Date(call.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-8 py-6">
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-2 text-sm font-black text-slate-700">
+                        <MdFolder className="text-[#132ea7]" size={16} />
+                        {call.Project?.name || "Global Operation"}
+                      </div>
+                      <Badge value={call.call_type} />
+                    </div>
+                  </td>
+                  <td className="px-8 py-6">
+                    <span className="text-xs font-black text-slate-500 uppercase tracking-[0.2em] bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">{call.medium}</span>
+                  </td>
+                  <td className="px-10 py-6">
+                    <p className="text-base font-medium text-slate-600 italic truncate max-w-[400px]">
+                      "{call.summary}"
+                    </p>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Log Modal */}
       <Modal
         show={showModal}
-        onClose={closeModal}
-        title={editTarget ? "Edit Call" : "Log a Call"}
+        onClose={() => setShowModal(false)}
+        title="Archive New Intelligence Log"
         size="lg"
       >
-        <form onSubmit={handleSubmit} noValidate>
-          <div className="row g-3">
-            <div className="col-md-6">
-              <Input
-                label="Caller Name"
-                name="caller_name"
-                value={form.caller_name}
-                onChange={handleChange}
-                error={fieldErrors.caller_name}
-                placeholder="e.g. Rahul Shah"
-                required
-              />
-            </div>
-            <div className="col-md-6">
-              <Input
-                label="Caller Number"
-                name="caller_number"
-                value={form.caller_number}
-                onChange={handleChange}
-                placeholder="e.g. +91 98765 43210"
-              />
-            </div>
-            <div className="col-md-12">
-              <Select
-                label="Project"
+        <form onSubmit={handleSubmit} noValidate className="space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-2">
+              <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] block ml-1">Parent Operation</label>
+              <select
                 name="project_id"
                 value={form.project_id}
                 onChange={handleChange}
-                options={projectOptions}
-                error={fieldErrors.project_id}
-                placeholder="Select a project"
-                required
-              />
+                className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-base font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all outline-none"
+              >
+                <option value="">No Associated Project</option>
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
             </div>
-            <div className="col-md-6">
-              <Select
-                label="Call Type"
-                name="call_type"
-                value={form.call_type}
-                onChange={handleChange}
-                options={callTypeOptions}
-                error={fieldErrors.call_type}
-                placeholder="Select type"
-                required
-              />
+
+            <div className="space-y-2">
+              <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] block ml-1">Call Classification</label>
+              <div className="flex gap-4">
+                {["inbound", "outbound"].map(t => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => setForm({ ...form, call_type: t })}
+                    className={`flex-1 py-3.5 rounded-xl text-xs font-black uppercase tracking-widest border transition-all ${form.call_type === t ? 'bg-[#132ea7] text-white border-[#132ea7] shadow-lg shadow-[#132ea7]/20' : 'bg-white text-slate-400 border-slate-100 hover:bg-slate-50'}`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="col-md-6">
-              <Select
-                label="Call Subtype"
-                name="call_subtype"
-                value={form.call_subtype}
+
+            <Input
+              label="Intelligence Classification (Subtype)"
+              name="call_subtype"
+              value={form.call_subtype}
+              onChange={handleChange}
+              placeholder="e.g. Technical Support, Follow-up"
+            />
+
+            <div className="space-y-2">
+              <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] block ml-1">Communication Medium</label>
+              <select
+                name="medium"
+                value={form.medium}
                 onChange={handleChange}
-                options={subtypeOptions}
-                error={fieldErrors.call_subtype}
-                placeholder={form.call_type ? "Select subtype" : "Select type first"}
-                disabled={!form.call_type}
-                required
-              />
-            </div>
-            <div className="col-md-6">
-              <Select
-                label="Receive Type"
-                name="receive_type"
-                value={form.receive_type}
-                onChange={handleChange}
-                options={RECEIVE_OPTIONS}
-                error={fieldErrors.receive_type}
-                placeholder="Select receive type"
-                required
-              />
-            </div>
-            <div className="col-md-12">
-              <Textarea
-                label="Call Summary"
-                name="call_summary"
-                value={form.call_summary}
-                onChange={handleChange}
-                placeholder="Brief summary of the call..."
-                rows={3}
-              />
-            </div>
-            <div className="col-md-12">
-              <Textarea
-                label="Remarks"
-                name="remarks"
-                value={form.remarks}
-                onChange={handleChange}
-                placeholder="Any additional remarks..."
-                rows={2}
-              />
+                className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-base font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all outline-none"
+              >
+                <option value="phone">Voice Call</option>
+                <option value="email">Electronic Mail</option>
+                <option value="meeting">Direct Meeting</option>
+                <option value="other">Alternative Medium</option>
+              </select>
             </div>
           </div>
 
-          <div className="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
-            <Button variant="secondary" onClick={closeModal} disabled={submitting}>
-              Cancel
-            </Button>
-            <Button type="submit" variant="primary" loading={submitting}>
-              {editTarget ? "Update Call" : "Log Call"}
+          <Textarea
+            label="Intelligence Executive Summary"
+            name="summary"
+            value={form.summary}
+            onChange={handleChange}
+            error={fieldErrors.summary}
+            placeholder="Detail the core objectives discussed and the outcomes achieved..."
+            rows={5}
+            required
+          />
+
+          <div className="flex gap-4 pt-8 border-t border-slate-50">
+            <Button variant="ghost" className="flex-1 font-black uppercase tracking-widest text-sm" onClick={() => setShowModal(false)} disabled={submitting}>Abort Submission</Button>
+            <Button type="submit" variant="primary" className="flex-[2] h-16 shadow-xl shadow-[#132ea7]/20 font-black uppercase tracking-[0.2em] text-sm" loading={submitting}>
+              Archive Intelligence Log
             </Button>
           </div>
         </form>
       </Modal>
-
-      {/* Delete confirm */}
-      <ConfirmDialog
-        show={!!confirmDelete}
-        message={`Delete call from "${confirmDelete?.caller_name}"? This cannot be undone.`}
-        onConfirm={handleDelete}
-        onCancel={() => setConfirmDelete(null)}
-        loading={deleting}
-      />
     </div>
   );
 };

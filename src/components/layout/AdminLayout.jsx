@@ -4,15 +4,16 @@ import { useAuth } from "../../context/AuthContext";
 import Button from "../ui/Button";
 
 import {
-  MdDashboard,
-  MdPeople,
-  MdLabel,
-  MdFolder,
-  MdCheckCircle,
-  MdPhone,
-  MdLock,
-  MdFileDownload,
-  MdMenuOpen
+    MdDashboard,
+    MdPeople,
+    MdLabel,
+    MdFolder,
+    MdCheckCircle,
+    MdPhone,
+    MdLock,
+    MdFileDownload,
+    MdMenuOpen,
+    MdBook
 } from "react-icons/md";
 
 import { CgLogOut } from "react-icons/cg";
@@ -20,110 +21,129 @@ import { BsFillCaretLeftSquareFill } from "react-icons/bs"
 import { BsFillCaretRightSquareFill } from "react-icons/bs";
 
 const navItems = [
-  { to: "/admin/dashboard",   label: "Dashboard",   icon: <MdDashboard size={20} /> },
-  { to: "/admin/employees",   label: "Employees",   icon: <MdPeople size={20} /> },
-  { to: "/admin/roles",       label: "Roles",       icon: <MdLabel size={20} /> },
-  { to: "/admin/projects",    label: "Projects",    icon: <MdFolder size={20} /> },
-  { to: "/admin/tasks",       label: "Tasks",       icon: <MdCheckCircle size={20} /> },
-  { to: "/admin/calls",       label: "Calls",       icon: <MdPhone size={20} /> },
-  { to: "/admin/permissions", label: "Permissions", icon: <MdLock size={20} /> },
-  { to: "/admin/export",      label: "Export",      icon: <MdFileDownload size={20} /> },
+    { to: "/admin/dashboard", label: "Dashboard", icon: <MdDashboard size={20} /> },
+    { to: "/admin/employees", label: "Employees", icon: <MdPeople size={20} /> },
+    { to: "/admin/roles", label: "Roles", icon: <MdLabel size={20} /> },
+    { to: "/admin/projects", label: "Projects", icon: <MdFolder size={20} /> },
+    { to: "/admin/tasks", label: "Tasks", icon: <MdCheckCircle size={20} /> },
+    { to: "/admin/calls", label: "Calls", icon: <MdPhone size={20} /> },
+    { to: "/admin/permissions", label: "Permissions", icon: <MdLock size={20} /> },
+    { to: "/admin/work-logs", label: "Work Logs", icon: <MdBook size={20} /> },
+    // { to: "/admin/export", label: "Export", icon: <MdFileDownload size={20} /> },
 ];
 const AdminLayout = () => {
     const [collapsed, setCollapsed] = useState(false);
-    const {user, logout} = useAuth();
+    const { user, logout } = useAuth();
 
-    return(
-        <div className="d-flex vh-100 overflow-hidden">
+    return (
+        <div className="flex h-screen overflow-hidden bg-slate-50">
             {/* sidebar */}
             <div
-             className="d-flex flex-column bg-dark text-white flex-shrink-0"
-             style={{
-                width: collapsed ? 64 : 240,
-                transition: "width 0.2 ease",
-                overflowX: "hidden",
-             }}            
+                className={`flex flex-col text-white shrink-0 transition-all duration-300 ease-in-out shadow-xl z-20`}
+                style={{
+                    width: collapsed ? "64px" : "260px",
+                    backgroundColor: "#132ea7"
+                }}
             >
-                  {/* logo + toggle */}
-                  <div
-                   className="d-flex align-items-center justify-content-between px-3 border-secondary"
-                   style={{height: 60, minWidth: 0}}
-                  >
-                    {
-                        !collapsed && (
-                            <span className="fw-bold fs-6 text-white text-truncate">CRM Panel</span>
-                        )
-                    }
+                {/* logo + toggle */}
+                <div className="flex items-center justify-between h-[70px] px-4 border-b border-white/10 shrink-0">
+                    {!collapsed && (
+                        <div className="flex items-center gap-2 overflow-hidden">
+                            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center shrink-0">
+                                <span className="text-white font-bold">C</span>
+                            </div>
+                            <span className="font-bold text-lg tracking-tight whitespace-nowrap valorant-text">CRM Panel</span>
+                        </div>
+                    )}
                     <button
-                      className="btn btn-sm btn-outline-secondary ms-auto"
-                      onClick={() => setCollapsed((prev) => !prev)}
-                      title={collapsed ? "Expand" : "Collapse"}
-                      
+                        className={`p-2 rounded-lg hover:bg-white/10 transition-colors ${collapsed ? "mx-auto" : ""}`}
+                        onClick={() => setCollapsed((prev) => !prev)}
+                        title={collapsed ? "Expand" : "Collapse"}
                     >
-                        {collapsed ? <BsFillCaretRightSquareFill /> : <BsFillCaretLeftSquareFill />}
+                        {collapsed ? <BsFillCaretRightSquareFill size={20} /> : <BsFillCaretLeftSquareFill size={20} />}
                     </button>
-                  </div>
+                </div>
 
-                  {/* Nav links */}
-                  <nav className="flex-grow-1 py-3 overflow-y-auto">
-                    {navItems.map((item) => ( 
-                        <NavLink
-                          key={item.to}
-                          to={item.to}
-                          className={({isActive}) =>
-                         `d-flex align-item-center gap-3 px-3 py-2 text-decoration-none text-white-50 ${isActive ? "bg-primary bg-opacity-25 text-white fw-semibold" : ""}      rounded mx-2 mb-1`
-                        }
-                        style={{whiteSpace: "nowrap", overflow:"hidden"}}
-                        >
-                            <span style={{fontSize:18, flexShrink: 0}}>{item.icon}</span>
-                                {!collapsed && <span className="small">{item.label}</span>}
-                        </NavLink>
-                    ))}
-                  </nav>
-
-                    {/* User info + logout */}
-                    <div className="border-top boarder-secondary px-3 py-3">
-                        {!collapsed && (
-                            <>
-                            <p className="small text-white-50 mb-0 text-truncate">{user?.name}</p>
-                            <p className="small text-white-50 mb-0 text-truncate">{user?.employee_id}</p>
-                            </>
-                        )}
-                        <Button
-                         className="btn btn-sm btn-outline w-100"
-                         onClick={logout}
-                         title="Logout"
-                        >
-                            
-                            <CgLogOut /> {collapsed ? "" : "Logout"}
-                        </Button>
+                {/* Nav links */}
+                <nav className="flex-1 py-6 overflow-y-auto custom-scrollbar">
+                    <div className="space-y-1 px-3">
+                        {navItems.map((item) => (
+                            <NavLink
+                                key={item.to}
+                                title={collapsed ? item.label : ""}
+                                to={item.to}
+                                className={({ isActive }) =>
+                                    `flex items-center gap-4 px-3 py-3 rounded-xl transition-all duration-200 group text-decoration-none ${isActive
+                                        ? "text-white font-bold shadow-lg shadow-orange-500/20 decoration-none"
+                                        : "text-white hover:bg-white/10 hover:text-white"
+                                    }`
+                                }
+                                style={({ isActive }) => ({
+                                    backgroundColor: isActive ? "#E98937" : "transparent"
+                                })}
+                            >
+                                <span className={`shrink-0 transition-transform duration-200 group-hover:scale-110`}>
+                                    {item.icon}
+                                </span>
+                                {!collapsed && (
+                                    <span className="text-sm tracking-wide transition-opacity duration-300">
+                                        {item.label}
+                                    </span>
+                                )}
+                            </NavLink>
+                        ))}
                     </div>
+                </nav>
+
+                {/* User info + logout */}
+                <div className="p-4 border-t border-white/10 bg-black/5">
+                    {!collapsed && (
+                        <div className="mb-4 px-2">
+                            <p className="text-sm font-semibold text-white truncate">{user?.name}</p>
+                            <p className="text-xs text-white/50 truncate uppercase tracking-wider">{user?.employee_id}</p>
+                        </div>
+                    )}
+                    <button
+                        className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-white/20 hover:bg-red-500 hover:border-red-500 transition-all duration-200 group text-white/80 hover:text-white"
+                        onClick={logout}
+                    >
+                        <CgLogOut className="group-hover:translate-x-0.5 transition-transform" />
+                        {!collapsed && <span className="text-sm font-medium">Logout</span>}
+                    </button>
+                </div>
             </div>
 
             {/* Main area */}
-            <div className="d-flex flex-column flex-grow-1 overflow-hidden">
-
+            <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
                 {/* top navbar */}
-
-                <div
-                 className="d-flex align-item-center justify-content-between px-4 bg-white border-bottom shadow-sm flex-shrink-0"
-                 style={{height:60}}
-                >
-                    <h6 className="mb-0 fw-semibold text-muted">Admin Dashboard</h6>
-                    <div className="d-flex align-items-center gap-2">
-                        <span className="badge bg-primary">{user?.role || "Admin"}</span>
-                        {/* later just display admin */}
-                        <span className="small text-muted">{user?.name}</span>
+                <header className="flex items-center justify-between h-[70px] px-8 bg-white border-b border-slate-200 shrink-0">
+                    <div className="flex items-center gap-3">
+                        <div className="lg:hidden">
+                            <MdMenuOpen size={24} className="text-slate-600" />
+                        </div>
+                        <h1 className="text-lg font-semibold text-slate-800">Admin Dashboard</h1>
                     </div>
-                </div>
+
+                    <div className="flex items-center gap-4">
+                        <div className="hidden sm:flex flex-col items-end mr-2">
+                            <span className="text-sm font-medium text-slate-700 leading-none">{user?.name}</span>
+                            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{user?.role || "Administrator"}</span>
+                        </div>
+                        <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md ring-2 ring-white" style={{ backgroundColor: "#132ea7" }}>
+                            {user?.name?.charAt(0) || "A"}
+                        </div>
+                    </div>
+                </header>
 
                 {/* Page content */}
-                <main className="flex-grow-1 overflow-auto p-4 bg-light">
-                    <Outlet />
+                <main className="flex-1 overflow-auto p-8">
+                    <div className="max-w-7xl mx-auto">
+                        <Outlet />
+                    </div>
                 </main>
             </div>
         </div>
-    )
-}
+    );
+};
 
 export default AdminLayout;

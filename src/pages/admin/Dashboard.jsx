@@ -8,6 +8,8 @@ import Alert from "../../components/ui/Alert";
 import { MdPeople, MdPhone, MdCheckCircle, MdBook } from "react-icons/md";
 import Export from "./Export";
 
+import StatCard from "../../components/ui/StatCard";
+
 const Dashboard = () => {
   const { user } = useAuth();
   const [data, setData]       = useState(null);
@@ -29,161 +31,175 @@ const Dashboard = () => {
     fetchDashboard();
   }, []);
 
-  if (loading) return <Spinner />;
+  if (loading) return (
+    <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+      <Spinner size="lg" />
+      <p className="text-slate-400 font-medium animate-pulse">Loading intelligence...</p>
+    </div>
+  );
 
   return (
-    <div>
+    <div className="space-y-8 animate-in fade-in duration-700">
       {/* Header */}
-      <div className="mb-4">
-        <h4 className="fw-bold mb-1">Welcome back, {user?.name} 👋</h4>
-        <p className="text-muted small mb-0">Here's what's happening in your CRM today.</p>
-        
-          
-        
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <h2 className="text-3xl md:text-4xl font-black text-slate-800 tracking-tight mb-2">
+            Welcome back, <span className="text-[#132ea7]">{user?.name}</span> 👋
+          </h2>
+          <p className="text-slate-500 font-bold text-base">System performance is optimal. Here's your daily summary.</p>
+        </div>
+        <div className="flex items-center gap-4 bg-white p-3 px-5 rounded-[1.5rem] border border-slate-100 shadow-xl shadow-slate-200/50">
+          <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-500">
+             <MdCheckCircle size={24} />
+          </div>
+          <div>
+            <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-1">System Status</p>
+            <p className="text-base font-black text-emerald-600 uppercase tracking-widest">Active & Secure</p>
+          </div>
+        </div>
       </div>
 
-{/*  */}
       <Alert type="danger" message={error} onClose={() => setError("")} />
 
       {/* ── Total counts ───────────────────────────────── */}
-      <div className="row g-3 mb-4">
-        {[
-          { label: "Total Employees", value: data?.totals?.employees, icon: <MdPeople size={24} />,      color: "primary" },
-          { label: "Total Calls",     value: data?.totals?.calls,     icon: <MdPhone size={24} />,       color: "info"    },
-          { label: "Total Tasks",     value: data?.totals?.tasks,     icon: <MdCheckCircle size={24} />, color: "success" },
-          { label: "Total Work Logs", value: data?.totals?.work_logs, icon: <MdBook size={24} />,        color: "warning" },
-        ].map((stat) => (
-          <div key={stat.label} className="col-6 col-xl-3">
-            <div className="card border-0 shadow-sm h-100">
-              <div className="card-body d-flex align-items-center gap-3">
-                <div className={`d-flex align-items-center justify-content-center rounded-3 bg-${stat.color} bg-opacity-10 text-${stat.color}`}
-                  style={{ width: 52, height: 52, flexShrink: 0 }}>
-                  {stat.icon}
-                </div>
-                <div>
-                  <p className="text-muted small mb-0">{stat.label}</p>
-                  <h3 className="fw-bold mb-0">{stat.value ?? 0}</h3>
-                </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard 
+          label="Total Team" 
+          value={data?.totals?.employees} 
+          icon={<MdPeople size={28} />} 
+          color="secondary"
+          description="Active Employees"
+        />
+        <StatCard 
+          label="Intelligence Logs" 
+          value={data?.totals?.calls} 
+          icon={<MdPhone size={28} />} 
+          color="info"
+          description="Calls & Meetings"
+        />
+        <StatCard 
+          label="Active Missions" 
+          value={data?.totals?.tasks} 
+          icon={<MdCheckCircle size={28} />} 
+          color="primary"
+          description="Tasks Assigned"
+        />
+        <StatCard 
+          label="Work Archives" 
+          value={data?.totals?.work_logs} 
+          icon={<MdBook size={28} />} 
+          color="warning"
+          description="Daily Submissions"
+        />
+      </div>
+
+      {/* ── Activity & Status ────────────────────────── */}
+      <div className="space-y-8">
+        {/* ── Task Breakdown (Simplified) ───────────────── */}
+        <div className="bg-white rounded-[2rem] p-6 px-10 border border-slate-100 shadow-xl shadow-slate-200/30 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <h3 className="text-xl font-black text-slate-800 flex items-center gap-3 whitespace-nowrap">
+            <span className="w-2 h-8 bg-[#132ea7] rounded-full" />
+            Task Status <span className="text-slate-300 font-bold text-xs tracking-widest uppercase ml-1">Real-time</span>
+          </h3>
+          <div className="flex flex-wrap items-center gap-4 md:gap-8">
+            {Object.entries(data?.task_status_breakdown || {}).map(([status, count]) => (
+              <div key={status} className="flex items-center gap-3">
+                <div className="w-2 h-2 rounded-full bg-[#132ea7]" />
+                <span className="text-xs font-black capitalize tracking-widest text-slate-400">{status}</span>
+                <span className="text-xl font-black text-[#132ea7]">{count}</span>
               </div>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* ── Last 7 days ────────────────────────────────── */}
-      <div className="card border-0 shadow-sm mb-4">
-        <div className="card-header bg-white border-bottom">
-          <h6 className="fw-semibold mb-0">Last 7 Days Activity</h6>
-        </div>
-        <div className="card-body">
-          <div className="row g-3 text-center">
-            <div className="col-4">
-              <p className="text-muted small mb-1">Calls</p>
-              <h4 className="fw-bold text-info mb-0">{data?.last_7_days?.calls ?? 0}</h4>
-            </div>
-            <div className="col-4 border-start border-end">
-              <p className="text-muted small mb-1">Tasks</p>
-              <h4 className="fw-bold text-success mb-0">{data?.last_7_days?.tasks ?? 0}</h4>
-            </div>
-            <div className="col-4">
-              <p className="text-muted small mb-1">Work Logs</p>
-              <h4 className="fw-bold text-warning mb-0">{data?.last_7_days?.work_logs ?? 0}</h4>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Breakdowns ─────────────────────────────────── */}
-      <div className="row g-3 mb-4">
-        <div className="col-md-6">
-          <div className="card border-0 shadow-sm h-100">
-            <div className="card-header bg-white border-bottom">
-              <h6 className="fw-semibold mb-0">Task Status Breakdown</h6>
-            </div>
-            <div className="card-body">
-              {Object.entries(data?.task_status_breakdown || {}).map(([status, count]) => (
-                <div key={status} className="d-flex align-items-center justify-content-between mb-3">
-                  <div className="d-flex align-items-center gap-2">
-                    <Badge value={status} />
-                    <span className="text-capitalize small">{status}</span>
-                  </div>
-                  <span className="fw-bold">{count}</span>
-                </div>
-              ))}
-            </div>
+            ))}
           </div>
         </div>
 
-        <div className="col-md-6">
-          <div className="card border-0 shadow-sm h-100">
-            <div className="card-header bg-white border-bottom">
-              <h6 className="fw-semibold mb-0">Call Type Breakdown</h6>
+        {/* ── Last 7 days Activity ─────────────────────── */}
+        <div className="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-2xl shadow-slate-200/40">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+            <h3 className="text-2xl font-black text-slate-800 flex items-center gap-3">
+              <span className="w-2.5 h-10 bg-[#132ea7] rounded-full" />
+              Operational Activity <span className="text-slate-300 font-bold text-sm ml-2 tracking-widest uppercase">(Last 7 Days)</span>
+            </h3>
+            <div className="px-5 py-2 bg-[#132ea7]/5 rounded-full text-[11px] font-black text-[#132ea7] uppercase tracking-[0.2em] w-fit">
+              Live Metrics
             </div>
-            <div className="card-body">
-              {Object.entries(data?.call_type_breakdown || {}).map(([type, count]) => (
-                <div key={type} className="d-flex align-items-center justify-content-between mb-3">
-                  <div className="d-flex align-items-center gap-2">
-                    <Badge value={type} />
-                    <span className="text-capitalize small">{type}</span>
-                  </div>
-                  <span className="fw-bold">{count}</span>
-                </div>
-              ))}
-            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {[
+              { label: "Calls", value: data?.last_7_days?.calls, color: "text-[#132ea7]", border: "border-slate-100", bg: "bg-slate-50/50" },
+              { label: "Tasks", value: data?.last_7_days?.tasks, color: "text-emerald-600", border: "border-slate-100", bg: "bg-slate-50/50" },
+              { label: "Logs", value: data?.last_7_days?.work_logs, color: "text-amber-600", border: "border-slate-100", bg: "bg-slate-50/50" },
+            ].map((item) => (
+              <div key={item.label} className={`${item.bg} border ${item.border} rounded-[2rem] p-8 transition-all hover:shadow-lg hover:-translate-y-1`}>
+                <p className="text-slate-400 text-[11px] font-black uppercase tracking-[0.2em] mb-3 text-center">{item.label}</p>
+                <p className={`text-4xl font-black text-center ${item.color}`}>{item.value ?? 0}</p>
+              </div>
+            ))}
+          </div>
+          
+          <div className="mt-10 pt-10 border-t border-slate-50">
+            <Export />
           </div>
         </div>
       </div>
 
-      <Export />
-
-      {/* ── Employee breakdown ─────────────────────────── */}
-      <div className="card border-0 shadow-sm">
-        <div className="card-header bg-white border-bottom">
-          <h6 className="fw-semibold mb-0">Employee Activity</h6>
+      {/* ── Employee activity table ────────────────────── */}
+      <div className="bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
+        <div className="p-10 border-b border-slate-50 flex items-center justify-between bg-slate-50/30">
+          <h3 className="text-2xl font-black text-slate-800">Employee Performance Board</h3>
+          <button className="text-[#132ea7] text-sm font-black uppercase tracking-widest hover:underline">Full Analytics</button>
         </div>
-        <div className="card-body p-0">
-          <div className="table-responsive">
-            <table className="table table-hover align-middle mb-0">
-              <thead className="table-light">
-                <tr>
-                  <th className="px-3 fw-semibold text-muted small text-uppercase">Employee</th>
-                  <th className="fw-semibold text-muted small text-uppercase">Role</th>
-                  <th className="fw-semibold text-muted small text-uppercase text-center">Calls</th>
-                  <th className="fw-semibold text-muted small text-uppercase text-center">Tasks</th>
-                  <th className="fw-semibold text-muted small text-uppercase text-center">Work Logs</th>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50/50">
+                <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Employee Identity</th>
+                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Designation</th>
+                <th className="px-6 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-center">Logs</th>
+                <th className="px-6 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-center">Missions</th>
+                <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-center">Efficiency</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {data?.employee_breakdown?.map((emp) => (
+                <tr key={emp.id} className="hover:bg-slate-50/80 transition-colors group">
+                  <td className="px-10 py-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-[#132ea7] text-white flex items-center justify-center font-black text-lg shadow-lg shadow-[#132ea7]/20">
+                        {emp.name.charAt(0)}
+                      </div>
+                      <div>
+                        <div className="font-black text-slate-800 text-lg leading-tight">{emp.name}</div>
+                        <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-0.5">{emp.employee_id}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="px-8 py-6">
+                    <span className="px-4 py-1.5 bg-slate-100 text-slate-500 rounded-xl text-[10px] font-black uppercase tracking-[0.2em]">
+                      {emp.role || "MEMBER"}
+                    </span>
+                  </td>
+                  <td className="px-6 py-6 text-center">
+                    <span className="text-base font-black text-[#132ea7] bg-[#132ea7]/5 px-4 py-2 rounded-xl border border-[#132ea7]/10">{emp.calls}</span>
+                  </td>
+                  <td className="px-6 py-6 text-center">
+                    <span className="text-base font-black text-emerald-600 bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-100">{emp.tasks}</span>
+                  </td>
+                  <td className="px-10 py-6">
+                    <div className="flex flex-col items-center gap-2">
+                       <div className="w-24 h-2 bg-slate-100 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-emerald-500 rounded-full shadow-[0_0_10px_#10b981]" 
+                            style={{ width: `${Math.min(((emp.calls + emp.tasks) / 10) * 100, 100)}%` }} 
+                          />
+                       </div>
+                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Tier One Status</span>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {!data?.employee_breakdown?.length && (
-                  <tr>
-                    <td colSpan={5} className="text-center text-muted py-4">No employees found</td>
-                  </tr>
-                )}
-                {data?.employee_breakdown?.map((emp) => (
-                  <tr key={emp.id}>
-                    <td className="px-3">
-                      <div className="fw-semibold">{emp.name}</div>
-                      <div className="text-muted small">{emp.employee_id}</div>
-                    </td>
-                    <td>
-                      <span className="badge bg-secondary bg-opacity-10 text-secondary">
-                        {emp.role || "—"}
-                      </span>
-                    </td>
-                    <td className="text-center">
-                      <span className="badge bg-info bg-opacity-10 text-info fw-bold">{emp.calls}</span>
-                    </td>
-                    <td className="text-center">
-                      <span className="badge bg-success bg-opacity-10 text-success fw-bold">{emp.tasks}</span>
-                    </td>
-                    <td className="text-center">
-                      <span className="badge bg-warning bg-opacity-10 text-warning fw-bold">{emp.work_logs}</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
