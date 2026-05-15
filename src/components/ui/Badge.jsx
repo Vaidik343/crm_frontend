@@ -31,36 +31,37 @@ const Badge = ({value, overrideColor}) => {
   );
 }
 
-export const DueDateBadge = ({dueDate}) => {
-  if(!dueDate) return <span className="text-muted small"> No due date</span>;
-
+export const DueDateBadge = ({ dueDate }) => {
+  if (!dueDate) return <span className="text-muted small">No due date</span>;
 
   const now = new Date();
-  const due = new Date(dueDate);
-  const diffMs = due - now;
+  // parse date as local midnight, not UTC
+  const [year, month, day] = dueDate.split("-").map(Number);
+  const due = new Date(year, month - 1, day, 23, 59, 59); // end of due day
+
+  const diffMs  = due - now;
   const diffHrs = diffMs / (1000 * 60 * 60);
-  const isUrgent = diffHrs <= 48 && diffHrs > 0;
-  const isOverdue = diffMs < 0;
 
-  if(isOverdue)
-  {
-    return(
-      <span className="badge bg-danger">Overdue</span>
-    );
+  if (diffMs < 0) {
+    // past due date
+    return <span className="badge bg-danger">Overdue</span>;
+  }
 
-    if(isUrgent)
-    {
-      return(
-        <span className="badge bg-danger">
-          Due in {Math.ceil(diffHrs)}h
-        </span>
-      );
-    }
-
-    return(
-      <span>{due.toLocaleDateString()}</span>
+  if (diffHrs <= 48) {
+    // within 48 hours
+    return (
+      <span className="badge bg-danger">
+        Due in {Math.ceil(diffHrs)}h
+      </span>
     );
   }
-}
+
+  // normal — show date
+  return (
+    <span className="badge bg-light text-dark border">
+      {new Date(year, month - 1, day).toLocaleDateString()}
+    </span>
+  );
+};
 
 export default Badge;

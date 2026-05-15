@@ -11,6 +11,7 @@ export const PasswordProvider = ({ children }) => {
     try {
       setLoading(true);
       const { data } = await api.patch(ENDPOINTS.PASSWORD.CHANGE, payload);
+      console.log("🚀 ~ PasswordProvider ~ data:", data)
       return data;
     } catch (error) {
       throw error;

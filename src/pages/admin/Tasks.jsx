@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTask } from "../../context/TaskContext";
 import { useUser } from "../../context/UserContext";
+import { useCall } from './../../context/CallContext';
 import Badge, { DueDateBadge } from "../../components/ui/Badge";
 import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
@@ -17,6 +18,7 @@ const initialForm = {
   assigned_to: "",
   due_date:    "",
     status:      "",
+    call_id: "",
 };
 
 const FILTER_OPTIONS = [
@@ -35,6 +37,8 @@ const STATUS_OPTIONS = [
 const Tasks = () => {
   const { tasks, loading, getAllTasks, createTask, updateTask, deleteTask } = useTask();
   const { users, getAllUsers } = useUser();
+  const { calls, getAllCalls} = useCall();
+  console.log("🚀 ~ Tasks ~ calls:", calls)
 
   const [showModal, setShowModal]         = useState(false);
   const [editTarget, setEditTarget]       = useState(null);
@@ -49,9 +53,16 @@ const Tasks = () => {
   useEffect(() => {
     getAllTasks();
     getAllUsers();
+    getAllCalls();
   }, []);
 
   
+
+const callOptions = calls.map((c) => ({
+  value: c.id,
+  label: `${c.caller_name} — ${c.call_type} (${new Date(c.createdAt).toLocaleDateString()})`,
+}));
+
 
   const employeeOptions = users.map((u) => ({
     value: u.id,
@@ -115,6 +126,8 @@ const Tasks = () => {
           description: form.description || null,
           due_date:    form.due_date    || null,
            status:      form.status      || undefined, 
+          //  call_id:     form.call_id     || null,
+           
         });
         setAlert({ type: "success", message: "Task updated successfully" });
       } else {
@@ -123,11 +136,12 @@ const Tasks = () => {
           description: form.description || null,
           assigned_to: form.assigned_to,
           due_date:    form.due_date    || null,
+          call_id:     form.call_id     || null,
         });
         setAlert({ type: "success", message: "Task assigned successfully" });
       }
       closeModal();
-          // getAllTasks();
+          // getAllTasks(); this maybe solve it but check the cause for larger data, why this no needed in medical frontend
     } catch (err) {
       setAlert({ type: "danger", message: err?.response?.data?.message || "Something went wrong" });
     } finally {
@@ -324,6 +338,18 @@ const Tasks = () => {
     onChange={handleChange}
   />
 </div>
+       {!editTarget && (
+  <div className="col-12">
+    <Select
+      label="Linked Call (optional)"
+      name="call_id"
+      value={form.call_id}
+      onChange={handleChange}
+      options={callOptions}
+      placeholder="Select a call to link (optional)"
+    />
+  </div>
+)}
           </div>
 
           <div className="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
@@ -334,6 +360,9 @@ const Tasks = () => {
               {editTarget ? "Update Task" : "Assign Task"}
             </Button>
           </div>
+
+  
+
         </form>
       </Modal>
 

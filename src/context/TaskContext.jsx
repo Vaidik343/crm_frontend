@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import api from "../api/axiosInstance";
 import { ENDPOINTS } from "../api/endpoints";
 
@@ -20,6 +20,10 @@ export const TaskProvider = ({ children }) => {
       setLoading(false);
     }
   }, []);
+   
+  // useEffect( ()=> {
+  //   getAllTasks();
+  // }, [])
 
   const getTaskById = useCallback(async (id) => {
     try {

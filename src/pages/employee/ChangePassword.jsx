@@ -14,6 +14,7 @@ const ChangePassword = () => {
   const { changeOwnPassword, loading } = usePassword();
 
   const [form, setForm]               = useState(initialForm);
+  console.log("🚀 ~ ChangePassword ~ form:", form)
   const [fieldErrors, setFieldErrors] = useState({});
   const [alert, setAlert]             = useState({ type: "", message: "" });
 
@@ -38,6 +39,7 @@ const ChangePassword = () => {
     return errors;
   };
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setAlert({ type: "", message: "" });
@@ -53,6 +55,7 @@ const ChangePassword = () => {
       setAlert({ type: "success", message: "Password changed successfully" });
       setForm(initialForm);
     } catch (err) {
+          console.log("🚀 ~ handleSubmit ~ err:", err)
       const msg = err?.response?.data?.message || "Failed to change password";
       setAlert({ type: "danger", message: msg });
     }

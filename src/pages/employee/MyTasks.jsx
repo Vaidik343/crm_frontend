@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTask } from "../../context/TaskContext";
 import { useUser } from "../../context/UserContext";
+import { useCall } from './../../context/CallContext';
 import Badge, { DueDateBadge } from "../../components/ui/Badge";
 import Button from "../../components/ui/Button";
 import Alert from "../../components/ui/Alert";
@@ -16,7 +17,8 @@ const initialForm = {
   description: "",
 
   due_date:    "",
-    status:      ""
+    status:      "",
+    call_id:     "", 
 };
 
 const STATUS_OPTIONS = [
@@ -34,6 +36,7 @@ const FILTER_OPTIONS = [
 
 const MyTasks = () => {
   const { tasks, loading, getAllTasks, updateTask, createTask  } = useTask();
+  const { calls, getAllCalls} = useCall();
 
   const [filter, setFilter]           = useState("all");
   const [editTarget, setEditTarget]   = useState(null);
@@ -50,8 +53,12 @@ const [statusTarget, setStatusTarget] = useState(null);
 
   useEffect(() => {
     getAllTasks();
-    
+    getAllCalls();
   }, []);
+const callOptions = calls.map((c) => ({
+  value: c.id,
+  label: `${c.caller_name} — ${c.call_type} (${new Date(c.createdAt).toLocaleDateString()})`,
+}));
 
   
   // const employeeOptions = users.map((u) => ({
@@ -136,6 +143,7 @@ const handleStatusUpdate = async (e) => {
           description: form.description || null,
           due_date:    form.due_date    || null,
            status:      form.status      || undefined, 
+          //  call_id:     form.call_id     || null,
         });
         setAlert({ type: "success", message: "Task updated successfully" });
       } else {
@@ -144,6 +152,7 @@ const handleStatusUpdate = async (e) => {
           description: form.description || null,
 
           due_date:    form.due_date    || null,
+          call_id:     form.call_id     || null,
         });
         setAlert({ type: "success", message: "Task assigned successfully" });
       }
@@ -342,6 +351,18 @@ const handleStatusUpdate = async (e) => {
     onChange={handleChangeTask}
   />
 </div>
+       {!editTarget && (
+  <div className="col-12">
+    <Select
+      label="Linked Call (optional)"
+      name="call_id"
+      value={form.call_id}
+      onChange={handleChangeTask}
+      options={callOptions}
+      placeholder="Select a call to link (optional)"
+    />
+  </div>
+)}
           </div>
 
           <div className="d-flex justify-content-end gap-2 mt-3 pt-3 border-top">
