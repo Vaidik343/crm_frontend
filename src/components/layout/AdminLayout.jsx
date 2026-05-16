@@ -56,7 +56,7 @@ const AdminLayout = () => {
                         </div>
                     )}
                     <button
-                        className={`p-2 rounded-lg hover:bg-white/10 transition-colors ${collapsed ? "mx-auto" : ""}`}
+                        className={`p-2 rounded hover:bg-white/10 transition-colors flex items-center justify-center ${collapsed ? "mx-auto w-10 h-10" : ""}`}
                         onClick={() => setCollapsed((prev) => !prev)}
                         title={collapsed ? "Expand" : "Collapse"}
                     >
@@ -73,7 +73,7 @@ const AdminLayout = () => {
                                 title={collapsed ? item.label : ""}
                                 to={item.to}
                                 className={({ isActive }) =>
-                                    `flex items-center gap-4 px-3 py-3 rounded-xl transition-all duration-200 group text-decoration-none ${isActive
+                                    `flex items-center ${collapsed ? "justify-center px-0 w-10 h-10 mx-auto" : "gap-4 px-3 py-3"} rounded transition-all duration-200 group text-decoration-none ${isActive
                                         ? "text-white font-bold shadow-lg shadow-orange-500/20 decoration-none"
                                         : "text-white hover:bg-white/10 hover:text-white"
                                     }`
@@ -82,7 +82,7 @@ const AdminLayout = () => {
                                     backgroundColor: isActive ? "#E98937" : "transparent"
                                 })}
                             >
-                                <span className={`shrink-0 transition-transform duration-200 group-hover:scale-110`}>
+                                <span className={`shrink-0 flex items-center justify-center transition-transform duration-200 group-hover:scale-110`}>
                                     {item.icon}
                                 </span>
                                 {!collapsed && (
@@ -96,18 +96,18 @@ const AdminLayout = () => {
                 </nav>
 
                 {/* User info + logout */}
-                <div className="p-4 border-t border-white/10 bg-black/5">
+                <div className="p-4 border-t border-white/10 bg-black/5 flex flex-col items-center">
                     {!collapsed && (
-                        <div className="mb-4 px-2">
+                        <div className="mb-4 px-2 w-full">
                             <p className="text-sm font-semibold text-white truncate">{user?.name}</p>
                             <p className="text-xs text-white/50 truncate uppercase tracking-wider">{user?.employee_id}</p>
                         </div>
                     )}
                     <button
-                        className="flex items-center justify-center gap-2 w-full py-2.5 rounded-xl border border-white/20 hover:bg-red-500 hover:border-red-500 transition-all duration-200 group text-white/80 hover:text-white"
+                        className={`flex items-center justify-center gap-2 py-2.5 rounded border border-white/20 hover:bg-red-500 hover:border-red-500 transition-all duration-200 group text-white/80 hover:text-white ${collapsed ? "w-10 h-10 p-0" : "w-full"}`}
                         onClick={logout}
                     >
-                        <CgLogOut className="group-hover:translate-x-0.5 transition-transform" />
+                        <CgLogOut size={collapsed ? 20 : undefined} className="group-hover:translate-x-0.5 transition-transform" />
                         {!collapsed && <span className="text-sm font-medium">Logout</span>}
                     </button>
                 </div>

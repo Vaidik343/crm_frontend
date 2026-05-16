@@ -8,11 +8,23 @@ export const ProjectProvider = ({ children }) => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading]   = useState(false);
 
-  const getAllProjects = useCallback(async () => {
+      // pagination states
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [total, setTotal] = useState(0);
+
+  const getAllProjects = useCallback(async (pageNumber = 1, pageLimit = 10) => {
     try {
       setLoading(true);
-      const { data } = await api.get(ENDPOINTS.PROJECTS.ALL);
-      setProjects(data);
+       const { data } = await api.get(
+        `${ENDPOINTS.PROJECTS.ALL}?page=${pageNumber}&limit=${pageLimit}`
+      );
+
+      setProjects(data.data || []);
+        setPage(data.page || 1);
+      setLimit(data.limit || 20);
+      setTotal(data.total || 0);
+
       return data;
     } catch (error) {
       throw error;
@@ -60,9 +72,19 @@ export const ProjectProvider = ({ children }) => {
     }
   }, []);
 
+    const totalPages = Math.ceil(total / limit);
+
   const value = useMemo(
-    () => ({ projects, loading, getAllProjects, getProjectById, createProject, updateProject, deleteProject }),
-    [projects, loading, getAllProjects, getProjectById, createProject, updateProject, deleteProject]
+    () => ({ projects, loading,page,
+      limit,
+      total,
+      totalPages, setPage, getAllProjects, getProjectById, createProject, updateProject, deleteProject }),
+    [projects, loading,  page,
+      limit,
+      total,
+      totalPages,
+
+      setPage, getAllProjects, getProjectById, createProject, updateProject, deleteProject]
   );
 
   return <ProjectContext.Provider value={value}>{children}</ProjectContext.Provider>;

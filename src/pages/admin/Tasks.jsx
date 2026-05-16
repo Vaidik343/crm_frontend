@@ -21,11 +21,12 @@ const initialForm = {
   project_id: "",
   call_id: "",
   due_date: "",
-  status: "pending",
+  status: "open",
 };
 
 const Tasks = () => {
-  const { tasks, loading, getAllTasks, createTask, updateTask, deleteTask } = useTask();
+  const { tasks, loading, page,setPage,
+  totalPages, getAllTasks, createTask, updateTask, deleteTask } = useTask();
   const { users, getAllUsers } = useUser();
   const { projects, getAllProjects } = useProject();
   const { calls, getAllCalls } = useCall();
@@ -40,11 +41,11 @@ const Tasks = () => {
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    getAllTasks();
+    getAllTasks(page);
     getAllUsers();
     getAllProjects();
     getAllCalls();
-  }, []);
+  }, [page]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -74,7 +75,7 @@ const Tasks = () => {
       assigned_to: task.assigned_to,
       project_id: task.project_id || "",
       call_id: task.call_id || "",
-      due_date: task.due_date ? new Date(task.due_date).toISOString().split("T")[0] : "",
+      due_date: task.due_date ? new Date(task.due_date).toISOString().split("T")[0] : "" ,
       status: task.status,
     });
     setFieldErrors({});
@@ -88,6 +89,14 @@ const Tasks = () => {
     setFieldErrors({});
   };
 
+  const payload = {
+  ...form,
+  due_date: form.due_date || null,
+  assigned_to: form.assigned_to || null,
+  call_id: form.call_id || null,
+};
+
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const errors = validate();
@@ -99,7 +108,7 @@ const Tasks = () => {
         await updateTask(editTarget.id, form);
         setAlert({ type: "success", message: "Task updated successfully" });
       } else {
-        await createTask(form);
+        await createTask(payload);
         setAlert({ type: "success", message: "New task deployed" });
       }
       closeModal();
@@ -141,7 +150,7 @@ const Tasks = () => {
           </h2>
           <p className="text-slate-500 font-bold text-base">Total Tasks: {tasks.length} </p>
         </div>
-        <Button variant="primary" className="shadow-lg shadow-[#132ea7]/20 py-3 px-8 rounded-2xl h-[52px] font-black uppercase tracking-widest text-sm" onClick={openCreate}>
+        <Button variant="primary" className="shadow-lg shadow-[#132ea7]/20 py-3 px-8 rounded h-[52px] font-black uppercase tracking-widest text-sm" onClick={openCreate}>
           <MdAdd size={22} />
           Add New Task
         </Button>
@@ -158,7 +167,7 @@ const Tasks = () => {
                 <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Task Objective</th>
                 <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Status</th>
                 <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Assigned Employee</th>
-                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Project</th>
+                {/* <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Project</th> */}
                 <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Due Date</th>
                 <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</th>
               </tr>
@@ -200,12 +209,12 @@ const Tasks = () => {
                         <span className="text-sm font-black text-slate-600">{employeeName}</span>
                       </div>
                     </td>
-                    <td className="px-8 py-6">
+                    {/* <td className="px-8 py-6">
                       <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
                         <MdFolder className="text-slate-300" size={18} />
                         {projectName}
                       </div>
-                    </td>
+                    </td> */}
                     <td className="px-8 py-6">
                       {/* Fix: Restored the DueDateBadge usage to show 48h warning and hour countdown */}
                       <DueDateBadge dueDate={task.due_date} />
@@ -232,8 +241,49 @@ const Tasks = () => {
                 );
               })}
             </tbody>
+            
           </table>
+
         </div>
+          {/* pagination */}
+          {/* Pagination */}
+<div className="flex items-center justify-between px-4 py-6">
+  <button
+    disabled={page === 1}
+    onClick={() => setPage(page - 1)}
+    className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50"
+  >
+    Previous
+  </button>
+
+  <div className="flex items-center gap-2">
+    {[...Array(totalPages)].map((_, i) => {
+      const pageNum = i + 1;
+
+      return (
+        <button
+          key={pageNum}
+          onClick={() => setPage(pageNum)}
+          className={`w-10 h-10 rounded-xl font-bold transition-all ${
+            page === pageNum
+              ? "bg-[#132ea7] text-white"
+              : "bg-slate-100 text-slate-700"
+          }`}
+        >
+          {pageNum}
+        </button>
+      );
+    })}
+  </div>
+
+  <button
+    disabled={page === totalPages}
+    onClick={() => setPage(page + 1)}
+    className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50"
+  >
+    Next
+  </button>
+</div>
       </div>
 
       {/* Create / Edit Modal */}
@@ -269,7 +319,7 @@ const Tasks = () => {
               </select>
               {fieldErrors.assigned_to && <p className="text-red-500 text-[10px] font-bold mt-1 ml-1 uppercase">{fieldErrors.assigned_to}</p>}
             </div>
-            <div className="space-y-1.5">
+            {/* <div className="space-y-1.5">
               <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">Parent Project</label>
               <select
                 name="project_id"
@@ -282,7 +332,7 @@ const Tasks = () => {
                   <option key={p.id} value={p.id}>{p.name}</option>
                 ))}
               </select>
-            </div>
+            </div> */}
             
             <div className="space-y-1.5">
               <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">Linked Call (Optional)</label>
@@ -311,7 +361,7 @@ const Tasks = () => {
             <div className="md:col-span-2 space-y-1.5">
               <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">Current Status</label>
               <div className="flex flex-wrap gap-3">
-                {["pending", "in-progress", "completed", "cancelled"].map((s) => (
+                {["open", "in-ongoing", "closed",].map((s) => (
                   <button
                     key={s}
                     type="button"

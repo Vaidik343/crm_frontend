@@ -109,13 +109,13 @@ const Roles = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-2 uppercase">
-            Security <span className="text-[#132ea7]">Tiers</span>
+            <span className="text-[#132ea7]">Roles</span>
           </h2>
-          <p className="text-slate-500 font-bold text-base">Define authority levels and baseline clearances ({roles.length} tiers)</p>
+          <p className="text-slate-500 font-bold text-base">Total Roles:{roles.length}</p>
         </div>
-        <Button variant="primary" className="shadow-lg shadow-[#132ea7]/20 py-3 px-8 rounded-2xl h-[52px] font-black uppercase tracking-widest text-sm" onClick={openCreate}>
+        <Button variant="primary" className="shadow-lg shadow-[#132ea7]/20 py-3 px-8 rounded h-[52px] font-black uppercase tracking-widest text-sm" onClick={openCreate}>
           <MdAdd size={22} />
-          Create New Tier
+          Create New Role
         </Button>
       </div>
 

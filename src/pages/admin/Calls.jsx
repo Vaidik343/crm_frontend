@@ -44,7 +44,8 @@ const initialForm = {
 };
 
 const Calls = () => {
-  const { calls, loading, getAllCalls, createCall, updateCall, deleteCall } = useCall();
+  const { calls, loading, page,setPage,
+  totalPages, getAllCalls, createCall, updateCall, deleteCall } = useCall();
   const { projects, getAllProjects } = useProject();
 
   const [filter, setFilter]           = useState("all");
@@ -59,9 +60,9 @@ const Calls = () => {
   const [deleting, setDeleting]       = useState(false);
 
   useEffect(() => {
-    getAllCalls();
+    getAllCalls(page);
     getAllProjects();
-  }, []);
+  }, [page]);
 
   const projectOptions = projects.map((p) => ({ value: p.id, label: p.name }));
 
@@ -182,7 +183,7 @@ const Calls = () => {
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
           <select
-            className="bg-white border border-slate-100 text-slate-600 text-sm font-bold rounded-2xl px-5 py-3.5 focus:outline-none focus:border-[#132ea7]/30 focus:ring-4 focus:ring-[#132ea7]/5 transition-all outline-none shadow-sm cursor-pointer"
+            className="bg-white border border-slate-100 text-slate-600 text-sm font-bold rounded px-3 focus:outline-none focus:border-[#132ea7]/30 focus:ring-4 focus:ring-[#132ea7]/5 transition-all outline-none shadow-sm cursor-pointer h-[52px]"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
           >
@@ -190,7 +191,7 @@ const Calls = () => {
               <option key={o.value} value={o.value}>{o.label}</option>
             ))}
           </select>
-          <Button variant="primary" className="shadow-lg shadow-[#132ea7]/20 py-3.5 px-6 rounded-2xl font-black uppercase tracking-widest text-sm whitespace-nowrap h-[50px]" onClick={openCreate}>
+          <Button variant="primary" className="shadow-lg shadow-[#132ea7]/20 px-6 rounded font-black uppercase tracking-widest text-sm whitespace-nowrap h-[52px]" onClick={openCreate}>
             <MdAdd size={20} className="mr-1" /> Log New Contact
           </Button>
         </div>
@@ -296,6 +297,46 @@ const Calls = () => {
             </tbody>
           </table>
         </div>
+        {/* Pagination */}
+<div className="flex items-center justify-between px-6 py-6 border-t border-slate-100">
+  
+  <button
+    disabled={page === 1}
+    onClick={() => setPage(page - 1)}
+    className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50"
+  >
+    Previous
+  </button>
+
+  <div className="flex items-center gap-2">
+    {[...Array(totalPages)].map((_, i) => {
+      const pageNum = i + 1;
+
+      return (
+        <button
+          key={pageNum}
+          onClick={() => setPage(pageNum)}
+          className={`w-10 h-10 rounded-xl font-bold transition-all ${
+            page === pageNum
+              ? "bg-[#132ea7] text-white"
+              : "bg-slate-100 text-slate-700"
+          }`}
+        >
+          {pageNum}
+        </button>
+      );
+    })}
+  </div>
+
+  <button
+    disabled={page === totalPages}
+    onClick={() => setPage(page + 1)}
+    className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50"
+  >
+    Next
+  </button>
+
+</div>
       </div>
 
       {/* Create / Edit Modal */}

@@ -8,11 +8,24 @@ export const TaskProvider = ({ children }) => {
   const [tasks, setTasks]     = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const getAllTasks = useCallback(async () => {
+    // pagination states
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [total, setTotal] = useState(0);
+
+  const getAllTasks = useCallback(async (pageNumber = 1, pageLimit = 10) => {
     try {
-      setLoading(true);
-      const { data } = await api.get(ENDPOINTS.TASKS.ALL);
-      setTasks(data.tasks);
+  setLoading(true);
+
+      const { data } = await api.get(
+        `${ENDPOINTS.TASKS.ALL}?page=${pageNumber}&limit=${pageLimit}`
+      );
+
+      setTasks(data.data || []);
+      setPage(data.page || 1);
+      setLimit(data.limit || 10);
+      setTotal(data.total || 0);
+
       return data;
     } catch (error) {
       throw error;
@@ -64,9 +77,24 @@ export const TaskProvider = ({ children }) => {
     }
   }, []);
 
+   const totalPages = Math.ceil(total / limit);
+
+   
   const value = useMemo(
-    () => ({ tasks, loading, getAllTasks, getTaskById, createTask, updateTask, deleteTask }),
-    [tasks, loading, getAllTasks, getTaskById, createTask, updateTask, deleteTask]
+    () => ({ tasks, loading, page,
+      limit,
+      total,
+      totalPages,
+
+      setPage,
+      getAllTasks, getTaskById, createTask, updateTask, deleteTask }),
+    [tasks, loading,  page,
+      limit,
+      total,
+      totalPages,
+
+      setPage,
+      getAllTasks, getTaskById, createTask, updateTask, deleteTask]
   );
 
   return <TaskContext.Provider value={value}>{children}</TaskContext.Provider>;

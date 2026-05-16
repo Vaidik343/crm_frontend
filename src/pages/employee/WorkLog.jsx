@@ -1,167 +1,232 @@
 import { useEffect, useState } from "react";
-import api from "../../api/axiosInstance";
-import { ENDPOINTS } from "../../api/endpoints";
-import Spinner from "../../components/ui/Spinner";
+import { useWorkLog } from "../../context/WorkLogContext";
+import { useAuth } from "../../context/AuthContext";
 import Button from "../../components/ui/Button";
-import Textarea from "../../components/ui/Textarea";
 import Alert from "../../components/ui/Alert";
-import { MdBook, MdHistory, MdCalendarToday, MdAccessTime, MdOutlineSpeakerNotes } from "react-icons/md";
+import Modal from "../../components/ui/Modal";
+import Input from "../../components/ui/Input";
+import Textarea from "../../components/ui/Textarea";
+import ConfirmDialog from "../../components/ui/ConfirmDialog";
+import Spinner from "../../components/ui/Spinner";
+import { MdAccessTime, MdOutlineSpeakerNotes, MdHistory, MdCalendarToday, MdAdd, MdEdit, MdDelete } from "react-icons/md";
+
+const initialForm = {
+  description: "",
+  date: new Date().toISOString().split("T")[0], // today's date as default
+};
 
 const WorkLog = () => {
-  const [logs, setLogs]           = useState([]);
-  const [loading, setLoading]     = useState(true);
-  const [logText, setLogText]     = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [alert, setAlert]         = useState({ type: "", message: "" });
+  const { workLogs, loading, getAllWorkLogs, createWorkLog, updateWorkLog, deleteWorkLog } = useWorkLog();
+  const { can } = useAuth();
 
-  const fetchLogs = async () => {
-    try {
-      setLoading(true);
-      const { data } = await api.get(ENDPOINTS.WORKLOG.MY_LOGS);
-      setLogs(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [showModal, setShowModal] = useState(false);
+  const [editTarget, setEditTarget] = useState(null);
+  const [form, setForm] = useState(initialForm);
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [submitting, setSubmitting] = useState(false);
+  const [alert, setAlert] = useState({ type: "", message: "" });
+  const [confirmDelete, setConfirmDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    fetchLogs();
+    getAllWorkLogs();
   }, []);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+    if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: "" }));
+  };
+
+  const validate = () => {
+    const errors = {};
+    if (!form.description.trim()) errors.description = "Description is required";
+    if (!form.date) errors.date = "Date is required";
+    return errors;
+  };
+
+  const openCreate = () => {
+    setEditTarget(null);
+    setForm(initialForm);
+    setFieldErrors({});
+    setShowModal(true);
+  };
+
+  const openEdit = (log) => {
+    setEditTarget(log);
+    setForm({ description: log.description, date: log.date });
+    setFieldErrors({});
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setEditTarget(null);
+    setForm(initialForm);
+    setFieldErrors({});
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!logText.trim()) return;
+    const errors = validate();
+    if (Object.keys(errors).length) { setFieldErrors(errors); return; }
 
     try {
       setSubmitting(true);
-      await api.post(ENDPOINTS.WORKLOG.ALL, { log_text: logText });
-      setLogText("");
-      setAlert({ type: "success", message: "Mission journal updated successfully" });
-      fetchLogs();
+      if (editTarget) {
+        await updateWorkLog(editTarget.id, form);
+        setAlert({ type: "success", message: "Work log updated" });
+      } else {
+        await createWorkLog(form);
+        setAlert({ type: "success", message: "Work log added" });
+      }
+      closeModal();
     } catch (err) {
-      setAlert({ type: "danger", message: "Failed to submit operational report" });
+      setAlert({ type: "danger", message: err?.response?.data?.message || "Something went wrong" });
     } finally {
       setSubmitting(false);
     }
   };
 
-  if (loading && !logs.length) return (
-    <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-      <Spinner size="lg" />
-      <p className="text-slate-400 font-bold animate-pulse uppercase tracking-[0.2em] text-sm">Syncing mission archives...</p>
-    </div>
-  );
+  const handleDelete = async () => {
+    if (!confirmDelete) return;
+    try {
+      setDeleting(true);
+      await deleteWorkLog(confirmDelete.id);
+      setAlert({ type: "success", message: "Work log deleted" });
+    } catch (err) {
+      setAlert({ type: "danger", message: err?.response?.data?.message || "Delete failed" });
+    } finally {
+      setDeleting(false);
+      setConfirmDelete(null);
+    }
+  };
+
+  if (loading && !workLogs.length) return <Spinner />;
 
   return (
-    <div className="space-y-10 animate-in fade-in duration-700">
+    <div className="space-y-8 animate-in fade-in duration-700">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl md:text-4xl font-black text-slate-800 tracking-tight mb-2 uppercase">
-            Mission <span className="text-[#132ea7]">Journal</span>
+          <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-2 uppercase">
+            Work <span className="text-[#132ea7]">Log</span>
           </h2>
-          <p className="text-slate-500 font-bold text-base">Document your daily operations and tactical progress</p>
+          <p className="text-slate-500 font-bold text-base">Your daily work journal</p>
         </div>
-        <div className="flex items-center gap-4 bg-white p-3 px-6 rounded-2xl border border-slate-100 shadow-xl shadow-slate-200/50">
-           <div className="w-12 h-12 rounded-xl bg-[#132ea7] text-white flex items-center justify-center shadow-lg shadow-[#132ea7]/20">
-              <MdCalendarToday size={24} />
-           </div>
-           <div>
-              <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-1 text-center">Active Date</p>
-              <p className="text-base font-black text-[#132ea7] uppercase tracking-widest leading-none">{new Date().toLocaleDateString("default", { month: "short", day: "numeric", year: "numeric" })}</p>
-           </div>
-        </div>
+        {can("can_write") && (
+          <Button variant="primary" className="shadow-lg shadow-[#132ea7]/20 py-3.5 px-8 rounded-2xl font-black uppercase tracking-widest text-xs" onClick={openCreate}>
+            <MdAdd size={20} /> Add Entry
+          </Button>
+        )}
       </div>
 
-      <Alert type={alert.type} message={alert.message} onClose={() => setAlert({ type: "", message: "" })} />
+      <Alert
+        type={alert.type}
+        message={alert.message}
+        onClose={() => setAlert({ type: "", message: "" })}
+      />
 
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-10">
-        
-        {/* Entry Form */}
-        <div className="xl:col-span-1">
-          <div className="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-2xl shadow-slate-200/40 sticky top-10">
-            <div className="flex items-center gap-3 mb-8">
-               <div className="w-2 h-10 bg-[#132ea7] rounded-full shadow-[0_0_15px_#132ea7]" />
-               <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight">New Entry</h3>
-            </div>
-            
-            <form onSubmit={handleSubmit} className="space-y-8">
-              <div className="space-y-3">
-                 <label className="text-[11px] font-black text-slate-500 uppercase tracking-[0.2em] block ml-1">Briefing Report</label>
-                 <Textarea
-                   value={logText}
-                   onChange={(e) => setLogText(e.target.value)}
-                   placeholder="Detail your accomplishments, technical blockers, and objectives for the day..."
-                   rows={10}
-                   className="text-base font-bold leading-relaxed rounded-3xl border-slate-100 focus:ring-4 focus:ring-[#132ea7]/5"
-                   required
-                 />
-              </div>
-              <Button 
-                type="submit" 
-                variant="primary" 
-                className="w-full h-16 text-lg font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-[#132ea7]/20" 
-                loading={submitting}
-              >
-                Deploy Report
-              </Button>
-            </form>
-
-            <div className="mt-10 p-6 bg-[#132ea7]/5 border border-[#132ea7]/10 rounded-2xl">
-               <p className="text-xs font-bold text-slate-500 italic leading-relaxed">
-                  "Daily submissions are essential for mission continuity and team alignment. Provide clear, actionable summaries."
-               </p>
-            </div>
-          </div>
+      {/* Work logs List */}
+      {workLogs.length === 0 ? (
+        <div className="bg-white rounded-[2rem] border border-dashed border-slate-300 py-16 text-center shadow-sm">
+          <MdOutlineSpeakerNotes size={48} className="mx-auto text-slate-200 mb-4" />
+          <p className="text-slate-400 font-black uppercase tracking-widest text-sm">No work logs yet. Add your first entry.</p>
         </div>
-
-        {/* Archives */}
-        <div className="xl:col-span-2 space-y-8">
-          <div className="flex items-center justify-between px-4">
-             <h3 className="text-2xl font-black text-slate-800 uppercase tracking-tight flex items-center gap-3">
-                <MdHistory size={28} className="text-[#132ea7]" />
-                Archived Reports
-             </h3>
-             <span className="text-xs font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-4 py-1.5 rounded-full border border-slate-200">{logs.length} Submissions</span>
-          </div>
-
-          <div className="space-y-6">
-            {logs.length === 0 && (
-              <div className="bg-white rounded-[2rem] p-20 text-center border border-dashed border-slate-200">
-                <MdOutlineSpeakerNotes size={48} className="text-slate-200 mx-auto mb-4" />
-                <h4 className="text-xl font-black text-slate-800 uppercase tracking-tight">No Reports Logged</h4>
-                <p className="text-slate-400 font-bold text-base mt-2">Begin your first operational entry to build your mission archive.</p>
-              </div>
-            )}
-            {logs.map((log) => (
-              <div key={log.id} className="group bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-xl shadow-slate-200/30 hover:shadow-2xl transition-all duration-300 relative overflow-hidden">
-                <div className="relative z-10 flex flex-col md:flex-row gap-8">
-                  <div className="flex flex-col items-center md:items-start shrink-0">
-                     <div className="w-16 h-16 rounded-[1.5rem] bg-slate-50 text-[#132ea7] flex items-center justify-center shadow-inner group-hover:bg-[#132ea7] group-hover:text-white transition-all duration-500 mb-4">
-                        <MdAccessTime size={28} />
-                     </div>
-                     <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Operational Date</p>
-                     <p className="text-base font-black text-slate-800 uppercase tracking-widest">{new Date(log.date).toLocaleDateString("default", { month: "short", day: "numeric", year: "numeric" })}</p>
-                  </div>
-                  
-                  <div className="flex-grow space-y-4">
-                     <div className="p-8 bg-[#132ea7]/5 border border-[#132ea7]/10 rounded-[1.5rem] relative">
-                        <p className="text-lg font-medium text-slate-700 leading-relaxed italic whitespace-pre-wrap">
-                          "{log.log_text}"
-                        </p>
-                     </div>
+      ) : (
+        <div className="space-y-4">
+          {workLogs.map((log) => (
+            <div key={log.id} className="bg-white rounded-[1.5rem] p-6 border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                
+                {/* Date pill */}
+                <div className="flex items-center gap-4 shrink-0">
+                  <div className="w-14 h-14 rounded-2xl bg-[#132ea7]/5 text-[#132ea7] border border-[#132ea7]/10 flex flex-col items-center justify-center font-black shadow-inner">
+                    <span className="text-xl leading-none">{new Date(log.date).getDate()}</span>
+                    <span className="text-[10px] uppercase tracking-widest">{new Date(log.date).toLocaleString("default", { month: "short" })}</span>
                   </div>
                 </div>
-                {/* Decorative element */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700 opacity-50" />
-              </div>
-            ))}
-          </div>
-        </div>
 
-      </div>
+                {/* Description */}
+                <div className="flex-grow">
+                  <p className="text-slate-700 font-medium leading-relaxed whitespace-pre-wrap">
+                    {log.description}
+                  </p>
+                  <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-2">
+                    {new Date(log.date).toLocaleDateString("default", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
+                  </p>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-3 shrink-0 border-t md:border-t-0 pt-4 md:pt-0 mt-2 md:mt-0">
+                  {can("can_update") && (
+                    <button
+                      onClick={() => openEdit(log)}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-50 text-slate-500 hover:text-blue-600 hover:bg-blue-50 font-black text-xs uppercase tracking-widest transition-all"
+                    >
+                      <MdEdit size={16} /> Edit
+                    </button>
+                  )}
+                  {can("can_delete") && (
+                    <button
+                      onClick={() => setConfirmDelete(log)}
+                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-50 text-slate-500 hover:text-red-600 hover:bg-red-50 font-black text-xs uppercase tracking-widest transition-all"
+                    >
+                      <MdDelete size={16} /> Delete
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      <Modal
+        show={showModal}
+        onClose={closeModal}
+        title={editTarget ? "Edit Work Log" : "Add Work Log"} >
+        <form onSubmit={handleSubmit} noValidate className="space-y-6 pt-4" >
+          <div className="grid grid-cols-1 gap-6">
+            <Input
+              label="Date"
+              name="date"
+              type="date"
+              value={form.date}
+              onChange={handleChange}
+              error={fieldErrors.date}
+              required
+            />
+            <Textarea
+              label="What did you do today?"
+              name="description"
+              value={form.description}
+              onChange={handleChange}
+              error={fieldErrors.description}
+              placeholder="Describe your work for the day..."
+              rows={5}
+              className="text-sm font-bold leading-relaxed rounded-2xl border-slate-100 focus:ring-4 focus:ring-[#132ea7]/5"
+              required
+            />
+          </div>
+          <div className="flex gap-4 pt-4 border-t border-slate-50">
+            <Button variant="ghost" className="flex-1 font-black uppercase tracking-widest text-sm" onClick={closeModal} disabled={submitting}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary" className="flex-[2] h-14 text-sm font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-[#132ea7]/20" loading={submitting}>
+              {editTarget ? "Update" : "Save Entry"}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Delete confirm */}
+      <ConfirmDialog
+        show={!!confirmDelete}
+        message="Delete this work log entry? This cannot be undone."
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDelete(null)}
+        loading={deleting}
+      />
     </div>
   );
 };

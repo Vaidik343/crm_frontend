@@ -8,6 +8,10 @@ export const CallProvider = ({ children }) => {
   const [calls, setCalls] = useState([]);
   const [loading, setLoading] = useState(false);
 
+        // pagination states
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [total, setTotal] = useState(0);
   const createCall = useCallback(async (payload) => {
     try {
       const { data } = await api.post(ENDPOINTS.CALLS.CREATE, payload);
@@ -18,11 +22,18 @@ export const CallProvider = ({ children }) => {
     }
   }, []);
 
-  const getAllCalls = useCallback(async () => {
+  const getAllCalls = useCallback(async (pageNumber = 1, pageLimit = 10) => {
     try {
       setLoading(true);
-      const { data } = await api.get(ENDPOINTS.CALLS.ALL);
-      setCalls(data);
+      const { data } = await api.get(
+        `${ENDPOINTS.CALLS.ALL}?page=${pageNumber}&limit=${pageLimit}`
+      );
+
+      setCalls(data.data || []);
+        setPage(data.page || 1);
+      setLimit(data.limit || 10);
+      setTotal(data.total || 0);
+      
       return data;
     } catch (error) {
       throw error;
@@ -61,9 +72,17 @@ export const CallProvider = ({ children }) => {
     }
   }, []);
 
+     const totalPages = Math.ceil(total / limit);
+
   const value = useMemo(
-    () => ({ calls, loading, createCall, getAllCalls, getCallById, updateCall, deleteCall }),
-    [calls, loading, createCall, getAllCalls, getCallById, updateCall, deleteCall]
+    () => ({ calls, loading,page,
+      limit,
+      total,
+      totalPages, setPage, createCall, getAllCalls, getCallById, updateCall, deleteCall }),
+    [calls, loading, page,
+      limit,
+      total,
+      totalPages, setPage,createCall, getAllCalls, getCallById, updateCall, deleteCall]
   );
 
   return <CallContext.Provider value={value}>{children}</CallContext.Provider>;

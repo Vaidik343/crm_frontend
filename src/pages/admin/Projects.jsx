@@ -14,7 +14,8 @@ import { MdAdd, MdBusinessCenter, MdCalendarToday, MdEdit, MdDelete, MdPerson, M
 const initialForm = { name: "", description: "", remarks: "" };
 
 const Projects = () => {
-  const { projects, loading, getAllProjects, createProject, updateProject, deleteProject } = useProject();
+  const { projects, loading,  page,
+  totalPages, getAllProjects, createProject, updateProject, deleteProject } = useProject();
 
   const [showModal, setShowModal] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
@@ -26,8 +27,8 @@ const Projects = () => {
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    getAllProjects();
-  }, []);
+    getAllProjects(page);
+  }, [page]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -140,9 +141,9 @@ const Projects = () => {
           <p className="text-slate-500 font-bold text-base">Total Projects: {projects.length} </p>
         </div>
 
-        <Button variant="primary" className="shadow-lg shadow-[#132ea7]/20 py-3.5 px-8 rounded-2xl h-[52px] font-black uppercase tracking-widest text-sm" onClick={openCreate}>
+        <Button variant="primary" className="shadow-lg shadow-[#132ea7]/20 py-3.5 px-8 rounded h-[52px] font-black uppercase tracking-widest text-sm" onClick={openCreate}>
           <MdAdd size={22} />
-          Launch New Project
+          New Project
         </Button>
       </div>
 
@@ -237,6 +238,46 @@ const Projects = () => {
               </tbody>
             </table>
           </div>
+          {/* Pagination */}
+<div className="flex items-center justify-between px-6 py-6 border-t border-slate-100">
+  
+  <button
+    disabled={page === 1}
+    onClick={() => getAllProjects(page - 1)}
+    className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50"
+  >
+    Previous
+  </button>
+
+  <div className="flex items-center gap-2">
+    {[...Array(totalPages)].map((_, i) => {
+      const pageNum = i + 1;
+
+      return (
+        <button
+          key={pageNum}
+          onClick={() => getAllProjects(pageNum)}
+          className={`w-10 h-10 rounded-xl font-bold transition-all ${
+            page === pageNum
+              ? "bg-[#132ea7] text-white"
+              : "bg-slate-100 text-slate-700"
+          }`}
+        >
+          {pageNum}
+        </button>
+      );
+    })}
+  </div>
+
+  <button
+    disabled={page === totalPages}
+    onClick={() => getAllProjects(page + 1)}
+    className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50"
+  >
+    Next
+  </button>
+
+</div>
         </div>
       )}
 

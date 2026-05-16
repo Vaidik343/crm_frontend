@@ -153,7 +153,7 @@ const Employees = () => {
           </h2>
           <p className="text-slate-500 font-bold text-base">Manage your workforce and access levels ({users.length} total)</p>
         </div>
-        <Button variant="primary" className="shadow-lg shadow-[#132ea7]/20 py-3 px-8 rounded-2xl h-[52px] font-black uppercase tracking-widest text-sm" onClick={openCreate}>
+        <Button variant="primary" className="shadow-lg shadow-[#132ea7]/20 py-3 px-8 rounded h-[52px] font-black uppercase tracking-widest text-sm" onClick={openCreate}>
           <MdAdd size={22} />
           Add New Employee
         </Button>
