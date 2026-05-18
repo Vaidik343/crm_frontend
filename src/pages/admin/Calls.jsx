@@ -35,7 +35,7 @@ const FILTER_OPTIONS = [
 const initialForm = {
   caller_name:   "",
   caller_number: "",
-  project_id:    "",
+  project_id:    null,
   call_type:     "",
   call_subtype:  "",
   receive_type:  "",
@@ -60,8 +60,8 @@ const Calls = () => {
   const [deleting, setDeleting]       = useState(false);
 
   useEffect(() => {
-    getAllCalls(page);
-    getAllProjects();
+    getAllCalls?.(page);
+    getAllProjects?.();
   }, [page]);
 
   const projectOptions = projects.map((p) => ({ value: p.id, label: p.name }));
@@ -91,7 +91,7 @@ const Calls = () => {
   const validate = () => {
     const errors = {};
     if (!form.caller_name.trim()) errors.caller_name  = "Caller name is required";
-    if (!form.project_id)         errors.project_id   = "Project is required";
+    // if (!form.project_id)         errors.project_id   = "Project is required";
     if (!form.call_type)          errors.call_type    = "Call type is required";
     if (!form.call_subtype)       errors.call_subtype = "Call subtype is required";
     if (!form.receive_type)       errors.receive_type = "Receive type is required";
@@ -110,7 +110,7 @@ const Calls = () => {
     setForm({
       caller_name:   call.caller_name   || "",
       caller_number: call.caller_number || "",
-      project_id:    call.project_id    || "",
+      project_id:    call.project_id    || null,
       call_type:     call.call_type     || "",
       call_subtype:  call.call_subtype  || "",
       receive_type:  call.receive_type  || "",
@@ -139,7 +139,17 @@ const Calls = () => {
         await updateCall(editTarget.id, form);
         setAlert({ type: "success", message: "Call updated successfully" });
       } else {
-        await createCall(form);
+      const payload = {
+  ...form,
+  project_id: form.project_id || null,
+  caller_number: form.caller_number || null,
+  call_summary: form.call_summary || null,
+  remarks: form.remarks || null,
+};
+
+const cc = await createCall(payload);
+console.log("🚀 ~ handleSubmit ~ cc:", cc);
+        console.log("🚀 ~ handleSubmit ~ cc:", cc)
         setAlert({ type: "success", message: "Call logged successfully" });
       }
       closeModal();
@@ -192,7 +202,7 @@ const Calls = () => {
             ))}
           </select>
           <Button variant="primary" className="shadow-lg shadow-[#132ea7]/20 px-6 rounded font-black uppercase tracking-widest text-sm whitespace-nowrap h-[52px]" onClick={openCreate}>
-            <MdAdd size={20} className="mr-1" /> Log New Contact
+            <MdAdd size={20} className="mr-1" /> Log New Call
           </Button>
         </div>
       </div>
@@ -351,9 +361,9 @@ const Calls = () => {
               onChange={handleChange} placeholder="e.g. +91 98765 43210" />
             
             <div className="md:col-span-2">
-              <Select label="Parent Operation (Project)" name="project_id" value={form.project_id}
+              <Select label="Project" name="project_id" value={form.project_id}
                 onChange={handleChange} options={projectOptions}
-                error={fieldErrors.project_id} placeholder="Select associated project..." required />
+                error={fieldErrors.project_id} placeholder="Select associated project..."  />
             </div>
 
             <Select label="Call Type" name="call_type" value={form.call_type}

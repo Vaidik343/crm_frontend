@@ -8,11 +8,19 @@ export const WorkLogProvider = ({ children }) => {
   const [workLogs, setWorkLogs] = useState([]);
   const [loading, setLoading]   = useState(false);
 
-  const getAllWorkLogs = useCallback(async () => {
+      // pagination states
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [total, setTotal] = useState(0);
+
+  const getAllWorkLogs = useCallback(async (pageNumber = 1, pageLimit = 10) => {
     try {
       setLoading(true);
-      const { data } = await api.get(ENDPOINTS.WORKLOGS.ALL);
-      setWorkLogs(data.workLogs);
+        const { data } = await api.get(
+        `${ENDPOINTS.WORKLOGS.ALL}?page=${pageNumber}&limit=${pageLimit}`
+      );
+
+setWorkLogs(data.data || []);
       return data;
     } catch (error) {
       throw error;
@@ -40,16 +48,31 @@ export const WorkLogProvider = ({ children }) => {
     }
   }, []);
 
-  const updateWorkLog = useCallback(async (id, payload) => {
-    try {
-      const { data } = await api.patch(ENDPOINTS.WORKLOGS.UPDATE(id), payload);
-      setWorkLogs((prev) => prev.map((w) => (w.id === id ? data.workLog : w)));
-      return data;
-    } catch (error) {
-      throw error;
-    }
-  }, []);
+const updateWorkLog = useCallback(async (id, payload) => {
+  try {
+    const response = await api.patch(
+      ENDPOINTS.WORKLOGS.UPDATE(id),
+      payload
+    );
 
+    console.log("UPDATE WORKLOG RESPONSE:", response.data);
+
+    const updatedWorkLog =
+      response.data.workLog ||
+      response.data.data ||
+      response.data;
+
+    setWorkLogs((prev) =>
+      prev.map((w) =>
+        w.id === id ? updatedWorkLog : w
+      )
+    );
+
+    return updatedWorkLog;
+  } catch (error) {
+    throw error;
+  }
+}, []);
   const deleteWorkLog = useCallback(async (id) => {
     try {
       const { data } = await api.delete(ENDPOINTS.WORKLOGS.DELETE(id));
@@ -60,9 +83,22 @@ export const WorkLogProvider = ({ children }) => {
     }
   }, []);
 
+     const totalPages = Math.ceil(total / limit);
+
+
   const value = useMemo(
-    () => ({ workLogs, loading, getAllWorkLogs, getWorkLogById, createWorkLog, updateWorkLog, deleteWorkLog }),
-    [workLogs, loading, getAllWorkLogs, getWorkLogById, createWorkLog, updateWorkLog, deleteWorkLog]
+    () => ({ workLogs, loading, page,
+      limit,
+      total,
+      totalPages,
+
+      setPage, getAllWorkLogs, getWorkLogById, createWorkLog, updateWorkLog, deleteWorkLog }),
+    [workLogs, loading, page,
+      limit,
+      total,
+      totalPages,
+
+      setPage, getAllWorkLogs, getWorkLogById, createWorkLog, updateWorkLog, deleteWorkLog]
   );
 
   return <WorkLogContext.Provider value={value}>{children}</WorkLogContext.Provider>;

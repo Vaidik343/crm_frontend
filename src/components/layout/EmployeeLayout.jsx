@@ -16,14 +16,15 @@ const EmployeeLayout = () => {
     return (
         <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
             {/* Top Navbar - Modernized Horizontal Layout */}
-            <nav className="h-[70px] bg-white border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+            <nav className="h-[70px] bg-[#132ea7] border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-30 shadow-sm">
                 <div className="flex items-center gap-10">
+                    
                     {/* Brand Logo */}
                     <div className="flex items-center gap-2">
                         <div className="w-8 h-8 bg-[#132ea7] rounded-lg flex items-center justify-center shadow-lg shadow-[#132ea7]/20">
                             <span className="text-white font-black text-xs">CRM</span>
                         </div>
-                        <span className="font-black text-lg text-slate-800 tracking-tight uppercase valorant-text">Portal</span>
+                        <span className="font-black text-lg text-white tracking-tight uppercase valorant-text">Portal</span>
                     </div>
 
                     {/* Navigation Items */}
@@ -33,10 +34,10 @@ const EmployeeLayout = () => {
                                 <NavLink
                                     to={item.to}
                                     className={({ isActive }) =>
-                                        `flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black transition-all duration-200 uppercase tracking-widest ${
+                                        `flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black text-decoration-none  transition-all duration-200 uppercase tracking-widest ${
                                             isActive 
-                                            ? "bg-[#132ea7] text-white shadow-lg shadow-[#132ea7]/20" 
-                                            : "text-slate-400 hover:bg-slate-50 hover:text-slate-600"
+                                            ? "bg-[#e98937] text-white shadow-lg shadow-[#132ea7]/20" 
+                                            : "text-white hover:bg-[#e2832f] hover:text-slate-600"
                                         }`
                                     }
                                 >
@@ -51,7 +52,7 @@ const EmployeeLayout = () => {
                 {/* Right Actions */}
                 <div className="flex items-center gap-6">
                     <div className="hidden sm:flex flex-col items-end">
-                        <span className="text-sm font-black text-slate-800 leading-none uppercase tracking-tight">{user?.name}</span>
+                        <span className="text-sm font-black text-white leading-none uppercase tracking-tight">{user?.name}</span>
                         <span className="text-[10px] text-slate-400 font-black uppercase tracking-[0.2em] mt-1.5">{user?.role || "Employee"}</span>
                     </div>
 

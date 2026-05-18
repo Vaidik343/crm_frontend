@@ -57,15 +57,31 @@ export const TaskProvider = ({ children }) => {
     }
   }, []);
 
-  const updateTask = useCallback(async (id, payload) => {
-    try {
-      const { data } = await api.patch(ENDPOINTS.TASKS.UPDATE(id), payload);
-      setTasks((prev) => prev.map((t) => (t.id === id ? data.task : t)));
-      return data;
-    } catch (error) {
-      throw error;
-    }
-  }, []);
+const updateTask = useCallback(async (id, payload) => {
+  try {
+    const response = await api.patch(
+      ENDPOINTS.TASKS.UPDATE(id),
+      payload
+    );
+
+    console.log("UPDATE TASK RESPONSE:", response.data);
+
+    const updatedTask =
+      response.data.task ||
+      response.data.data ||
+      response.data;
+
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === id ? updatedTask : t
+      )
+    );
+
+    return updatedTask;
+  } catch (error) {
+    throw error;
+  }
+}, []);
 
   const deleteTask = useCallback(async (id) => {
     try {
@@ -75,7 +91,7 @@ export const TaskProvider = ({ children }) => {
     } catch (error) {
       throw error;
     }
-  }, []);
+  }, []); 
 
    const totalPages = Math.ceil(total / limit);
 

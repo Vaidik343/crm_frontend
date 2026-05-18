@@ -4,59 +4,71 @@ import { useProject } from "../../context/ProjectContext";
 import Badge from "../../components/ui/Badge";
 import Button from "../../components/ui/Button";
 import Alert from "../../components/ui/Alert";
+import Spinner from "../../components/ui/Spinner";
 import Modal from "../../components/ui/Modal";
 import Input from "../../components/ui/Input";
 import Select from "../../components/ui/Select";
 import Textarea from "../../components/ui/Textarea";
-import ConfirmDialog from "../../components/ui/ConfirmDialog";
-import Spinner from "../../components/ui/Spinner";
-import { useAuth } from "../../context/AuthContext";
-import { MdAdd, MdEdit, MdDelete, MdPhone, MdFolder } from "react-icons/md";
+import ConfirmDialog from "../../components/ui/ConfirmDialog";  
+import { MdPhone, MdAdd, MdCalendarToday,MdVisibility,MdEdit, MdDelete, MdFolder, MdInfoOutline, MdHistory } from "react-icons/md";
+
 
 const CALL_TYPES = {
-  inquiry: ["inquiry", "follow-back"],
-  request: ["other", "update", "new development"],
+  inquiry:   ["inquiry", "follow-back"],
+  request:   ["other", "update", "new development"],
   complaint: ["bug", "error solve"],
 };
 
 const RECEIVE_OPTIONS = [
-  { value: "call", label: "Call" },
-  { value: "msg", label: "Message" },
-  { value: "email", label: "Email" },
+  { value: "call",    label: "Call" },
+  { value: "msg",     label: "Message" },
+  { value: "email",   label: "Email" },
   { value: "meeting", label: "Meeting" },
 ];
 
+const FILTER_OPTIONS = [
+  { value: "all",       label: "All" },
+  { value: "inquiry",   label: "Inquiry" },
+  { value: "request",   label: "Request" },
+  { value: "complaint", label: "Complaint" },
+];
+
 const initialForm = {
-  caller_name: "",
+  caller_name:   "",
   caller_number: "",
-  project_id: "",
-  call_type: "",
-  call_subtype: "",
-  receive_type: "",
-  call_summary: "",
-  remarks: "",
+  project_id:    "",
+  call_type:     "",
+  call_subtype:  "",
+  receive_type:  "",
+  call_summary:  "",
+  remarks:       "",
 };
 
+
 const MyCalls = () => {
-  const { calls, loading, getAllCalls, createCall, updateCall, deleteCall } = useCall();
+  const { calls, loading,page,setPage,
+  totalPages, getAllCalls, createCall, updateCall, deleteCall } = useCall();
   const { projects, getAllProjects } = useProject();
-  const { can } = useAuth();
 
-  const [showModal, setShowModal] = useState(false);
-  const [editTarget, setEditTarget] = useState(null);
-  const [form, setForm] = useState(initialForm);
+  const [filter, setFilter]           = useState("all");
+  const [showModal, setShowModal]     = useState(false);
+  const [viewTarget, setViewTarget]   = useState(null);
+  const [editTarget, setEditTarget]   = useState(null);
+  const [form, setForm]               = useState(initialForm);
   const [fieldErrors, setFieldErrors] = useState({});
-  const [submitting, setSubmitting] = useState(false);
-  const [alert, setAlert] = useState({ type: "", message: "" });
+  const [submitting, setSubmitting]   = useState(false);
+  const [alert, setAlert]             = useState({ type: "", message: "" });
   const [confirmDelete, setConfirmDelete] = useState(null);
-  const [deleting, setDeleting] = useState(false);
+  const [deleting, setDeleting]       = useState(false);
 
-  useEffect(() => {
-    getAllCalls();
-    getAllProjects();
-  }, []);
 
-  const projectOptions = projects.map((p) => ({ value: p.id, label: p.name }));
+    useEffect(() => {
+    getAllCalls?.(page);
+    getAllProjects?.();
+  }, [page]);
+
+
+    const projectOptions = projects.map((p) => ({ value: p.id, label: p.name }));
 
   const callTypeOptions = Object.keys(CALL_TYPES).map((t) => ({
     value: t, label: t.charAt(0).toUpperCase() + t.slice(1),
@@ -66,27 +78,28 @@ const MyCalls = () => {
     ? CALL_TYPES[form.call_type].map((s) => ({ value: s, label: s }))
     : [];
 
+  const filtered = filter === "all"
+    ? calls
+    : calls.filter((c) => c.call_type === filter);
+
+
+
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    // reset subtype when type changes
-    if (name === "call_type") {
-      setForm((prev) => ({ ...prev, call_type: value, call_subtype: "" }));
-    } else {
-      setForm((prev) => ({ ...prev, [name]: value }));
-    }
-    if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: "" }));
+    setForm({ ...form, [e.target.name]: e.target.value });
+    if (fieldErrors[e.target.name]) setFieldErrors({ ...fieldErrors, [e.target.name]: "" });
   };
 
-  const validate = () => {
+const validate = () => {
     const errors = {};
-    if (!form.caller_name.trim()) errors.caller_name = "Caller name is required";
-    if (!form.project_id) errors.project_id = "Project is required";
-    if (!form.call_type) errors.call_type = "Call type is required";
-    if (!form.call_subtype) errors.call_subtype = "Call subtype is required";
-    if (!form.receive_type) errors.receive_type = "Receive type is required";
+    if (!form.caller_name.trim()) errors.caller_name  = "Caller name is required";
+    if (!form.project_id)         errors.project_id   = "Project is required";
+    if (!form.call_type)          errors.call_type    = "Call type is required";
+    if (!form.call_subtype)       errors.call_subtype = "Call subtype is required";
+    if (!form.receive_type)       errors.receive_type = "Receive type is required";
     return errors;
   };
 
+  
   const openCreate = () => {
     setEditTarget(null);
     setForm(initialForm);
@@ -97,14 +110,14 @@ const MyCalls = () => {
   const openEdit = (call) => {
     setEditTarget(call);
     setForm({
-      caller_name: call.caller_name || "",
+      caller_name:   call.caller_name   || "",
       caller_number: call.caller_number || "",
-      project_id: call.project_id || "",
-      call_type: call.call_type || "",
-      call_subtype: call.call_subtype || "",
-      receive_type: call.receive_type || "",
-      call_summary: call.call_summary || "",
-      remarks: call.remarks || "",
+      project_id:    call.project_id    || "",
+      call_type:     call.call_type     || "",
+      call_subtype:  call.call_subtype  || "",
+      receive_type:  call.receive_type  || "",
+      call_summary:  call.call_summary  || "",
+      remarks:       call.remarks       || "",
     });
     setFieldErrors({});
     setShowModal(true);
@@ -139,233 +152,346 @@ const MyCalls = () => {
     }
   };
 
+    
   const handleDelete = async () => {
     if (!confirmDelete) return;
     try {
       setDeleting(true);
-      await deleteCall(confirmDelete.id);
+     const dc = await deleteCall(confirmDelete.id);
+      console.log("🚀 ~ handleDelete ~ dc:", dc)
       setAlert({ type: "success", message: "Call deleted" });
     } catch (err) {
       setAlert({ type: "danger", message: err?.response?.data?.message || "Delete failed" });
+      console.log("🚀 ~ handleDelete ~ err:", err)
     } finally {
       setDeleting(false);
       setConfirmDelete(null);
     }
   };
 
-  if (loading && !calls.length) return <Spinner />;
+
+  if (loading && !calls.length) return (
+    <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+      <Spinner size="lg" />
+      <p className="text-slate-400 font-bold animate-pulse uppercase tracking-[0.2em] text-sm">Accessing comms archives...</p>
+    </div>
+  );
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700">
+    <div className="space-y-10 animate-in fade-in duration-700">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-2 uppercase">
-            My <span className="text-[#132ea7]">Calls</span>
+            CALL <span className="text-[#132ea7]">Logs</span>
           </h2>
-          <p className="text-slate-500 font-bold text-base">{calls.length} total calls logged</p>
+          <p className="text-slate-500 font-bold text-base">Total calls: {calls.length}</p>
         </div>
-        {can("can_write") && (
-          <Button variant="primary" className="shadow-lg shadow-[#132ea7]/20 py-3.5 px-8 rounded-2xl font-black uppercase tracking-widest text-xs" onClick={openCreate}>
-            <MdAdd size={20} /> Log Call
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+          <select
+            className="bg-white border border-slate-100 text-slate-600 text-sm font-bold rounded px-3 focus:outline-none focus:border-[#132ea7]/30 focus:ring-4 focus:ring-[#132ea7]/5 transition-all outline-none shadow-sm cursor-pointer h-[52px]"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          >
+            {FILTER_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+          <Button variant="primary" className="shadow-lg shadow-[#132ea7]/20 px-6 rounded font-black uppercase tracking-widest text-sm whitespace-nowrap h-[52px]" onClick={openCreate}>
+            <MdAdd size={20} className="mr-1" /> Log New Call
           </Button>
-        )}
+        </div>
       </div>
 
-      <Alert
-        type={alert.type}
-        message={alert.message}
-        onClose={() => setAlert({ type: "", message: "" })}
-      />
+      <Alert type={alert.type} message={alert.message} onClose={() => setAlert({ type: "", message: "" })} />
 
-      {/* Calls list */}
-      {calls.length === 0 ? (
-        <div className="bg-white rounded-[2rem] border border-dashed border-slate-300 py-16 text-center shadow-sm">
-          <MdPhone size={48} className="mx-auto text-slate-200 mb-4" />
-          <p className="text-slate-400 font-black uppercase tracking-widest text-sm">No calls logged yet. Add your first entry.</p>
+      {/* Stats Quick View */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/30 flex items-center gap-6">
+          <div className="w-16 h-16 rounded-2xl bg-sky-50 text-sky-500 flex items-center justify-center">
+            <MdPhone size={32} />
+          </div>
+          <div>
+            <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Total Logs</p>
+            <p className="text-3xl font-black text-slate-800">{calls.length}</p>
+          </div>
         </div>
-      ) : (
-        <div className="space-y-4">
-          {calls.map((call) => (
-            <div key={call.id} className="bg-white rounded-[1.5rem] p-6 border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300">
-              <div className="flex flex-col md:flex-row gap-6">
-                
-                {/* Icons & Types */}
-                <div className="flex flex-col gap-3 shrink-0 md:w-48">
-                  <div className="flex flex-wrap gap-2">
-                    <Badge value={call.call_type} />
-                    <Badge value={call.receive_type} />
-                  </div>
-                  <div className="flex items-center gap-2 text-xs font-bold text-slate-500 bg-slate-50 px-3 py-2 rounded-xl border border-slate-100">
-                    <MdFolder className="text-[#132ea7]" size={16} />
-                    {call.Project?.name || "Global"}
-                  </div>
-                </div>
+        <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/30 flex items-center gap-6">
+          <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-500 flex items-center justify-center">
+            <MdHistory size={32} />
+          </div>
+          <div>
+            <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Today's Contacts</p>
+            <p className="text-3xl font-black text-slate-800">
+              {calls.filter(c => new Date(c.createdAt).toDateString() === new Date().toDateString()).length}
+            </p>
+          </div>
+        </div>
+        <div className="bg-[#132ea7] p-8 rounded-[2rem] shadow-2xl shadow-[#132ea7]/20 flex items-center gap-6 text-white relative overflow-hidden">
+          <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center relative z-10">
+            <MdInfoOutline size={32} />
+          </div>
+          <div className="relative z-10">
+            <p className="text-[11px] font-black text-white/50 uppercase tracking-[0.2em] mb-1">Last Submission</p>
+            <p className="text-lg font-black">{calls[0] ? new Date(calls[0].createdAt).toLocaleDateString() : "No Records"}</p>
+          </div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl" />
+        </div>
+      </div>
 
-                {/* Main Content */}
-                <div className="flex-grow space-y-2">
-                  <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
-                    <h6 className="text-lg font-black text-slate-800 leading-none">{call.caller_name}</h6>
-                    {call.caller_number && (
-                      <span className="text-slate-400 font-bold text-sm tracking-wide bg-slate-50 px-3 py-1 rounded-lg border border-slate-100">{call.caller_number}</span>
-                    )}
-                  </div>
-                  
-                  <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">
-                    Subtype: <span className="text-slate-600">{call.call_subtype}</span>
-                  </p>
-
-                  {call.call_summary && (
-                    <div className="p-4 bg-[#132ea7]/5 border border-[#132ea7]/10 rounded-2xl mt-3">
-                      <p className="text-sm font-medium text-slate-700 leading-relaxed italic">
-                        "{call.call_summary}"
-                      </p>
+      {/* Logs Table */}
+      <div className="bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
+        <div className="overflow-x-auto custom-scrollbar">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50/50">
+                <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Timestamp</th>
+                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Operation</th>
+                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Contact Method</th>
+                 <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {calls.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="text-center text-slate-400 py-16 font-bold italic text-lg uppercase tracking-widest">No intelligence logs archived yet.</td>
+                </tr>
+              )}
+              {calls.map((call) => (
+                <tr key={call.id} className="hover:bg-slate-50/80 transition-colors group">
+                  <td className="px-10 py-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-slate-50 text-[#132ea7] flex items-center justify-center shadow-inner group-hover:bg-[#132ea7] group-hover:text-white transition-all">
+                        <MdCalendarToday size={18} />
+                      </div>
+                      <div>
+                        <div className="font-black text-slate-800 text-base">{new Date(call.createdAt).toLocaleDateString()}</div>
+                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{new Date(call.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                      </div>
                     </div>
-                  )}
-
-                  {call.remarks && (
-                    <p className="text-sm text-slate-500 mt-2">
-                      <span className="font-bold text-xs uppercase tracking-widest text-slate-400">Remarks:</span> {call.remarks}
-                    </p>
-                  )}
-                  
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-4">
-                    {new Date(call.createdAt).toLocaleString()}
-                  </p>
-                </div>
-
-                {/* Actions */}
-                {(can("can_update") || can("can_delete")) && (
-                  <div className="flex items-start md:items-center md:flex-col gap-3 shrink-0 border-t md:border-t-0 md:border-l border-slate-100 pt-4 md:pt-0 md:pl-6 mt-4 md:mt-0">
-                    {can("can_update") && (
-                      <button
-                        onClick={() => openEdit(call)}
-                        className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl bg-slate-50 text-slate-500 hover:text-blue-600 hover:bg-blue-50 font-black text-[10px] uppercase tracking-widest transition-all"
-                      >
-                        <MdEdit size={16} /> Edit
-                      </button>
-                    )}
-                    {can("can_delete") && (
-                      <button
-                        onClick={() => setConfirmDelete(call)}
-                        className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl bg-slate-50 text-slate-500 hover:text-red-600 hover:bg-red-50 font-black text-[10px] uppercase tracking-widest transition-all"
-                      >
-                        <MdDelete size={16} /> Delete
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
+                  </td>
+                  <td className="px-8 py-6">
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-2 text-sm font-black text-slate-700">
+                        <MdFolder className="text-[#132ea7]" size={16} />
+                        {call.Project?.name || "Global Operation"}
+                      </div>
+                      <Badge value={call.call_type} />
+                    </div>
+                  </td>
+                  <td className="px-8 py-6">
+                    <span className="text-xs font-black text-slate-500 uppercase tracking-[0.2em] bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">{call.receive_type}</span>
+                  </td>
+                   <td className="px-10 py-6 text-right">
+                                      <div className="flex items-center justify-end gap-2">
+                                        <button
+                                          className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all"
+                                          onClick={() => setViewTarget(call)}
+                                          title="View Details"
+                                        >
+                                          <MdVisibility size={20} />
+                                        </button>
+                                        <button
+                                          className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 transition-all"
+                                          onClick={() => openEdit(call)}
+                                          title="Edit Log"
+                                        >
+                                          <MdEdit size={20} />
+                                        </button>
+                                        <button
+                                          className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
+                                          onClick={() => setConfirmDelete(call)}
+                                          title="Delete Log"
+                                        >
+                                          <MdDelete size={20} />
+                                        </button>
+                                      </div>
+                                    </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-      )}
+      </div>
 
-      {/* Create / Edit Modal */}
-      <Modal
-        show={showModal}
-        onClose={closeModal}
-        title={editTarget ? "Edit Call" : "Log a Call"}
-        size="lg"
-      >
-        <form onSubmit={handleSubmit} noValidate className="space-y-6 pt-4">
+        {/* Pagination */}
+<div className="flex items-center justify-between px-6 py-6 border-t border-slate-100">
+  
+  <button
+    disabled={page === 1}
+    onClick={() => setPage(page - 1)}
+    className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50"
+  >
+    Previous
+  </button>
+
+  <div className="flex items-center gap-2">
+    {[...Array(totalPages)].map((_, i) => {
+      const pageNum = i + 1;
+
+      return (
+        <button
+          key={pageNum}
+          onClick={() => setPage(pageNum)}
+          className={`w-10 h-10 rounded-xl font-bold transition-all ${
+            page === pageNum
+              ? "bg-[#132ea7] text-white"
+              : "bg-slate-100 text-slate-700"
+          }`}
+        >
+          {pageNum}
+        </button>
+      );
+    })}
+  </div>
+
+  <button
+    disabled={page === totalPages}
+    onClick={() => setPage(page + 1)}
+    className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50"
+  >
+    Next
+  </button>
+
+</div>
+      {/* Log Modal */}
+      <Modal show={showModal} onClose={closeModal} title={editTarget ? "Edit Call Log" : "Log New Call"} size="lg">
+        <form onSubmit={handleSubmit} noValidate className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Input
-              label="Caller Name"
-              name="caller_name"
-              value={form.caller_name}
-              onChange={handleChange}
-              error={fieldErrors.caller_name}
-              placeholder="e.g. Rahul Shah"
-              required
-            />
-            <Input
-              label="Caller Number"
-              name="caller_number"
-              value={form.caller_number}
-              onChange={handleChange}
-              placeholder="e.g. +91 98765 43210"
-            />
+            <Input label="Caller Name" name="caller_name" value={form.caller_name}
+              onChange={handleChange} error={fieldErrors.caller_name}
+              placeholder="e.g. Rahul Shah" required />
+            
+            <Input label="Caller Number" name="caller_number" value={form.caller_number}
+              onChange={handleChange} placeholder="e.g. +91 98765 43210" />
+            
             <div className="md:col-span-2">
-              <Select
-                label="Project"
-                name="project_id"
-                value={form.project_id}
-                onChange={handleChange}
-                options={projectOptions}
-                error={fieldErrors.project_id}
-                placeholder="Select a project"
-                required
-              />
+              <Select label="Parent Operation (Project)" name="project_id" value={form.project_id}
+                onChange={handleChange} options={projectOptions}
+                error={fieldErrors.project_id} placeholder="Select associated project..." required />
             </div>
-            <Select
-              label="Call Type"
-              name="call_type"
-              value={form.call_type}
-              onChange={handleChange}
-              options={callTypeOptions}
-              error={fieldErrors.call_type}
-              placeholder="Select type"
-              required
-            />
-            <Select
-              label="Call Subtype"
-              name="call_subtype"
-              value={form.call_subtype}
-              onChange={handleChange}
-              options={subtypeOptions}
+
+            <Select label="Call Type" name="call_type" value={form.call_type}
+              onChange={handleChange} options={callTypeOptions}
+              error={fieldErrors.call_type} placeholder="Select core classification..." required />
+            
+            <Select label="Call Subtype" name="call_subtype" value={form.call_subtype}
+              onChange={handleChange} options={subtypeOptions}
               error={fieldErrors.call_subtype}
-              placeholder={form.call_type ? "Select subtype" : "Select type first"}
-              disabled={!form.call_type}
-              required
-            />
-            <Select
-              label="Receive Type"
-              name="receive_type"
-              value={form.receive_type}
-              onChange={handleChange}
-              options={RECEIVE_OPTIONS}
-              error={fieldErrors.receive_type}
-              placeholder="Select receive type"
-              required
-            />
+              placeholder={form.call_type ? "Select specific subtype..." : "Select type first"}
+              disabled={!form.call_type} required />
+            
             <div className="md:col-span-2">
-              <Textarea
-                label="Call Summary"
-                name="call_summary"
-                value={form.call_summary}
-                onChange={handleChange}
-                placeholder="Brief summary of the call..."
-                rows={3}
-              />
+              <Select label="Communication Medium" name="receive_type" value={form.receive_type}
+                onChange={handleChange} options={RECEIVE_OPTIONS}
+                error={fieldErrors.receive_type} placeholder="Select medium..." required />
             </div>
+
             <div className="md:col-span-2">
-              <Textarea
-                label="Remarks"
-                name="remarks"
-                value={form.remarks}
-                onChange={handleChange}
-                placeholder="Any additional remarks..."
-                rows={2}
-              />
+              <Textarea label="Executive Summary" name="call_summary" value={form.call_summary}
+                onChange={handleChange} placeholder="Brief summary of the contact objectives..." rows={3} />
+            </div>
+
+            <div className="md:col-span-2">
+              <Textarea label="Employee Remarks" name="remarks" value={form.remarks}
+                onChange={handleChange} placeholder="Any additional notes or action items..." rows={2} />
             </div>
           </div>
-
-          <div className="flex gap-4 pt-6 border-t border-slate-50 mt-6">
-            <Button variant="ghost" className="flex-1 font-black uppercase tracking-widest text-sm" onClick={closeModal} disabled={submitting}>
-              Cancel
-            </Button>
-            <Button type="submit" variant="primary" className="flex-[2] h-14 text-sm font-black uppercase tracking-widest rounded-2xl shadow-xl shadow-[#132ea7]/20" loading={submitting}>
-              {editTarget ? "Update Call" : "Log Call"}
+          <div className="flex gap-4 pt-6 border-t border-slate-50">
+            <Button variant="ghost" className="flex-1 font-black uppercase tracking-widest text-sm" onClick={closeModal} disabled={submitting}>Cancel</Button>
+            <Button type="submit" variant="primary" className="flex-[2] h-14 shadow-xl shadow-[#132ea7]/20 font-black uppercase tracking-[0.2em] text-sm" loading={submitting}>
+              {editTarget ? "Authorize Update" : "Create Call Log"}
             </Button>
           </div>
         </form>
       </Modal>
 
-      {/* Delete confirm */}
+       {/* detail model */}
+             {/* View Modal */}
+      <Modal show={!!viewTarget} onClose={() => setViewTarget(null)} title="Intelligence Briefing" size="lg">
+        {viewTarget && (
+          <div className="space-y-8 py-4">
+            {/* Header info */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 pb-8 border-b border-slate-50">
+              <div className="flex items-center gap-5">
+                <div className="w-20 h-20 rounded-[2rem] bg-[#132ea7] text-white flex items-center justify-center font-black text-3xl shadow-2xl shadow-[#132ea7]/20">
+                  {viewTarget.caller_name?.charAt(0) || <MdPhone size={32} />}
+                </div>
+                <div>
+                  <h3 className="text-2xl font-black text-slate-800 leading-tight">{viewTarget.caller_name}</h3>
+                  <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-xs mt-1">Contact: {viewTarget.caller_number || "—"}</p>
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <Badge value={viewTarget.call_type} className="text-sm px-4 py-1.5" />
+                <div className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                  <MdCalendarToday size={16} className="text-slate-300" />
+                  {new Date(viewTarget.createdAt).toLocaleDateString("default", {
+                    weekday: "long", year: "numeric", month: "long", day: "numeric"
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Context Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="p-6 bg-slate-50 rounded-[1.5rem] border border-slate-100">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
+                  <MdFolder size={16} /> Operation Context
+                </p>
+                <p className="text-lg font-black text-slate-800">{viewTarget.Project?.name || "Global Objective"}</p>
+                <p className="text-xs font-bold text-[#132ea7] uppercase tracking-widest mt-1">Subtype: {viewTarget.call_subtype || "General"}</p>
+              </div>
+              <div className="p-6 bg-slate-50 rounded-[1.5rem] border border-slate-100">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
+                  <MdPhone size={16} /> Contact Details
+                </p>
+                <p className="text-lg font-black text-slate-800 capitalize"><Badge value={viewTarget.receive_type} /></p>
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-2">Employee: {viewTarget.User?.name || "—"} ({viewTarget.User?.employee_id})</p>
+              </div>
+            </div>
+
+            {/* Summary Briefing */}
+            {(viewTarget.call_summary || viewTarget.remarks) && (
+              <div className="p-10 bg-[#132ea7] rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden">
+                <div className="relative z-10 space-y-6">
+                  {viewTarget.call_summary && (
+                    <div>
+                      <p className="text-[11px] font-black text-white/50 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
+                        <MdInfoOutline size={18} className="text-white/30" /> Executive Summary
+                      </p>
+                      <p className="text-xl font-medium leading-relaxed opacity-95 italic whitespace-pre-wrap">
+                        "{viewTarget.call_summary}"
+                      </p>
+                    </div>
+                  )}
+                  {viewTarget.remarks && (
+                    <div>
+                      <p className="text-[11px] font-black text-white/50 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
+                        Remarks
+                      </p>
+                      <p className="text-base font-medium leading-relaxed opacity-80 whitespace-pre-wrap">
+                        {viewTarget.remarks}
+                      </p>
+                    </div>
+                  )}
+                </div>
+                {/* Abstract background elements */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-[100px]" />
+                <div className="absolute bottom-0 left-0 w-48 h-48 bg-sky-500/10 rounded-full blur-[80px]" />
+              </div>
+            )}
+
+            <div className="flex items-center justify-end pt-4">
+              <Button variant="ghost" onClick={() => setViewTarget(null)} className="text-slate-400 font-black uppercase tracking-[0.2em] text-xs">Close</Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+  {/* Delete confirm */}
       <ConfirmDialog
         show={!!confirmDelete}
-        message={`Delete call from "${confirmDelete?.caller_name}"? This cannot be undone.`}
+        message={`This action will permanently purge the call record for "${confirmDelete?.caller_name}".`}
         onConfirm={handleDelete}
         onCancel={() => setConfirmDelete(null)}
         loading={deleting}

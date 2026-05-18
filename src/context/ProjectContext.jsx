@@ -52,15 +52,31 @@ export const ProjectProvider = ({ children }) => {
     }
   }, []);
 
-  const updateProject = useCallback(async (id, payload) => {
-    try {
-      const { data } = await api.patch(ENDPOINTS.PROJECTS.UPDATE(id), payload);
-      setProjects((prev) => prev.map((p) => (p.id === id ? data.project : p)));
-      return data;
-    } catch (error) {
-      throw error;
-    }
-  }, []);
+const updateProject = useCallback(async (id, payload) => {
+  try {
+    const response = await api.patch(
+      ENDPOINTS.PROJECTS.UPDATE(id),
+      payload
+    );
+
+    console.log("UPDATE PROJECT RESPONSE:", response.data);
+
+    const updatedProject =
+      response.data.project ||
+      response.data.data ||
+      response.data;
+
+    setProjects((prev) =>
+      prev.map((p) =>
+        p.id === id ? updatedProject : p
+      )
+    );
+
+    return updatedProject;
+  } catch (error) {
+    throw error;
+  }
+}, []);
 
   const deleteProject = useCallback(async (id) => {
     try {

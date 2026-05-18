@@ -121,7 +121,7 @@ const AdminLayout = () => {
                         <div className="lg:hidden">
                             <MdMenuOpen size={24} className="text-slate-600" />
                         </div>
-                        <h1 className="text-lg font-semibold text-slate-800">Admin Dashboard</h1>
+                        <h1 className="text-lg font-semibold text-slate-800 uppercase">Admin Dashboard</h1>
                     </div>
 
                     <div className="flex items-center gap-4">

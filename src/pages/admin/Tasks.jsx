@@ -167,7 +167,7 @@ const Tasks = () => {
                 <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Task Objective</th>
                 <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Status</th>
                 <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Assigned Employee</th>
-                {/* <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Project</th> */}
+                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Project</th>
                 <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Due Date</th>
                 <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</th>
               </tr>
@@ -209,12 +209,12 @@ const Tasks = () => {
                         <span className="text-sm font-black text-slate-600">{employeeName}</span>
                       </div>
                     </td>
-                    {/* <td className="px-8 py-6">
+                    <td className="px-8 py-6">
                       <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
                         <MdFolder className="text-slate-300" size={18} />
                         {projectName}
                       </div>
-                    </td> */}
+                    </td>
                     <td className="px-8 py-6">
                       {/* Fix: Restored the DueDateBadge usage to show 48h warning and hour countdown */}
                       <DueDateBadge dueDate={task.due_date} />
@@ -319,7 +319,7 @@ const Tasks = () => {
               </select>
               {fieldErrors.assigned_to && <p className="text-red-500 text-[10px] font-bold mt-1 ml-1 uppercase">{fieldErrors.assigned_to}</p>}
             </div>
-            {/* <div className="space-y-1.5">
+            <div className="space-y-1.5">
               <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">Parent Project</label>
               <select
                 name="project_id"
@@ -332,7 +332,7 @@ const Tasks = () => {
                   <option key={p.id} value={p.id}>{p.name}</option>
                 ))}
               </select>
-            </div> */}
+            </div>
             
             <div className="space-y-1.5">
               <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">Linked Call (Optional)</label>
@@ -361,7 +361,7 @@ const Tasks = () => {
             <div className="md:col-span-2 space-y-1.5">
               <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">Current Status</label>
               <div className="flex flex-wrap gap-3">
-                {["open", "in-ongoing", "closed",].map((s) => (
+                {["open", "ongoing", "closed",].map((s) => (
                   <button
                     key={s}
                     type="button"

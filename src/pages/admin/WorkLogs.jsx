@@ -8,23 +8,25 @@ import Input from "../../components/ui/Input";
 import { MdBook, MdVisibility, MdCalendarToday, MdPerson, MdAccessTime, MdOutlineSpeakerNotes, MdSearch } from "react-icons/md";
 
 const AdminWorkLogs = () => {
-  const { workLogs, loading, getAllWorkLogs } = useWorkLog();
+  const { workLogs = [], loading, page,
+      totalPages,
+      setPage, getAllWorkLogs } = useWorkLog();
 
   const [viewTarget, setViewTarget] = useState(null);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState("");
 
   useEffect(() => {
-    getAllWorkLogs();
-  }, []);
+    getAllWorkLogs?.(page);
+  }, [page]);
 
   // filter by employee name
-  const filtered = filter.trim()
-    ? workLogs.filter((w) =>
+ const filtered = filter.trim()
+  ? (workLogs || []).filter((w) =>
       w.User?.name?.toLowerCase().includes(filter.toLowerCase()) ||
       w.User?.employee_id?.toLowerCase().includes(filter.toLowerCase())
     )
-    : workLogs;
+  : (workLogs || []);
 
   if (loading && !workLogs.length) return (
     <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
@@ -118,6 +120,47 @@ const AdminWorkLogs = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+<div className="flex items-center justify-between px-6 py-6 border-t border-slate-100">
+  
+  <button
+    disabled={page === 1}
+    onClick={() => setPage(page - 1)}
+    className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50"
+  >
+    Previous
+  </button>
+
+  <div className="flex items-center gap-2">
+    {[...Array(totalPages)].map((_, i) => {
+      const pageNum = i + 1;
+
+      return (
+        <button
+          key={pageNum}
+          onClick={() => setPage(pageNum)}
+          className={`w-10 h-10 rounded-xl font-bold transition-all ${
+            page === pageNum
+              ? "bg-[#132ea7] text-white"
+              : "bg-slate-100 text-slate-700"
+          }`}
+        >
+          {pageNum}
+        </button>
+      );
+    })}
+  </div>
+
+  <button
+    disabled={page === totalPages}
+    onClick={() => setPage(page + 1)}
+    className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50"
+  >
+    Next
+  </button>
+
+</div>
       </div>
 
       {/* Log Detail Modal */}

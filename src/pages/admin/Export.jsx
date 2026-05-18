@@ -260,7 +260,7 @@ const Export = ({ from: parentFrom = "", to: parentTo = "" }) => {
                 loading={loading === item.id}
               >
                 <MdFileDownload size={18} />
-                Export XLSX
+                Download
               </Button>
             </div>
           </div>

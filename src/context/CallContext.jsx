@@ -12,15 +12,19 @@ export const CallProvider = ({ children }) => {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [total, setTotal] = useState(0);
+
+  
   const createCall = useCallback(async (payload) => {
     try {
       const { data } = await api.post(ENDPOINTS.CALLS.CREATE, payload);
+      console.log("🚀 ~ CallProvider ~ data:", data)
       setCalls((prev) => [data, ...prev]);
       return data;
     } catch (error) {
+      console.log("🚀 ~ CallProvider ~ error:", error)
       throw error;
     }
-  }, []);
+  }, []); 
 
   const getAllCalls = useCallback(async (pageNumber = 1, pageLimit = 10) => {
     try {
@@ -51,17 +55,26 @@ export const CallProvider = ({ children }) => {
     }
   }, []);
 
-  const updateCall = useCallback(async (id, payload) => {
-    try {
-      const { data } = await api.patch(ENDPOINTS.CALLS.PATCH(id), payload); // was missing payload
-      console.log("🚀 ~ CallProvider ~ data:", data)
-      setCalls((prev) => prev.map((c) => (c.id === id ? data : c)));
-      return data;
-    } catch (error) {
-      throw error;
-    }
-  }, []);
+const updateCall = useCallback(async (id, payload) => {
+  try {
+    const response = await api.patch(
+      ENDPOINTS.CALLS.PATCH(id),
+      payload
+    );
 
+    const updatedCall = response.data.data || response.data;
+
+    setCalls((prev) =>
+      prev.map((c) =>
+        c.id === id ? updatedCall : c
+      )
+    );
+
+    return updatedCall;
+  } catch (error) {
+    throw error;
+  }
+}, []);
   const deleteCall = useCallback(async (id) => {
     try {
       const { data } = await api.delete(ENDPOINTS.CALLS.DELETE(id));

@@ -9,6 +9,7 @@ import Input from "../../components/ui/Input";
 import Textarea from "../../components/ui/Textarea";
 import Spinner from "../../components/ui/Spinner";
 import { MdAssignment, MdEdit, MdAdd } from "react-icons/md";
+import { useCall } from "../../context/CallContext";
 
 const STATUS_OPTIONS = [
   { value: "open", label: "Open" },
@@ -26,11 +27,14 @@ const FILTER_OPTIONS = [
 const initialCreateForm = {
   task: "",
   description: "",
+  call_id: "",
   due_date: "",
+  status: "ongoing",
 };
 
 const MyTasks = () => {
   const { tasks, loading, getAllTasks, updateTask, createTask } = useTask();
+  const { calls, getAllCalls } = useCall();
 
   const [filter, setFilter] = useState("all");
   const [editTarget, setEditTarget] = useState(null);
@@ -44,7 +48,8 @@ const MyTasks = () => {
   const [alert, setAlert] = useState({ type: "", message: "" });
 
   useEffect(() => {
-    getAllTasks();
+    getAllTasks?.();
+    getAllCalls?.();
   }, []);
 
   const filtered = filter === "all"
@@ -77,29 +82,57 @@ const MyTasks = () => {
 
   const handleCreateChange = (e) => {
     const { name, value } = e.target;
+    console.log("🚀 ~ handleCreateChange ~ name, value :", name, value )
     setCreateForm((prev) => ({ ...prev, [name]: value }));
     if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
+ 
   const handleCreateSubmit = async (e) => {
-    e.preventDefault();
-    const errors = {};
-    if (!createForm.task.trim()) errors.task = "Task name is required";
-    if (Object.keys(errors).length) { setFieldErrors(errors); return; }
+  e.preventDefault();
 
-    try {
-      setSubmitting(true);
-      await createTask(createForm);
-      setAlert({ type: "success", message: "New task deployed successfully" });
-      setShowCreateModal(false);
-      setCreateForm(initialCreateForm);
-    } catch (err) {
-      setAlert({ type: "danger", message: err?.response?.data?.message || "Failed to deploy task" });
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  const errors = {};
 
+  if (!createForm.task.trim()) {
+    errors.task = "Task name is required";
+  }
+
+  if (Object.keys(errors).length) {
+    setFieldErrors(errors);
+    return;
+  }
+
+  try {
+    setSubmitting(true);
+
+    const payload = {
+      ...createForm,
+      due_date: createForm.due_date || null,
+    };
+
+   const ct = await createTask(payload);
+   console.log("🚀 ~ handleCreateSubmit ~ ct:", ct)
+
+    setAlert({
+      type: "success",
+      message: "New task deployed successfully",
+    });
+
+    setShowCreateModal(false);
+    setCreateForm(initialCreateForm);
+
+  } catch (err) {
+     console.log("🚀 ~ handleCreateSubmit ~ err:", err)
+    setAlert({
+      type: "danger",
+      message:
+        err?.response?.data?.message ||
+        "Failed to deploy task",
+    });
+  } finally {
+    setSubmitting(false);
+  }
+};
   if (loading && !tasks.length) return <Spinner />;
 
   return (
@@ -125,7 +158,7 @@ const MyTasks = () => {
               ))}
             </select>
           </div>
-          <Button variant="primary" className="shadow-lg shadow-[#132ea7]/20 py-3.5 px-8 rounded-2xl font-black uppercase tracking-widest text-xs" onClick={() => setShowCreateModal(true)}>
+          <Button variant="primary" className="shadow-lg shadow-[#132ea7]/20 py-3.5 px-8 rounded font-black uppercase tracking-widest text-xs" onClick={() => setShowCreateModal(true)}>
             <MdAdd size={20} /> Create Task
           </Button>
         </div>
@@ -261,6 +294,39 @@ const MyTasks = () => {
               />
             </div>
 
+            <div className="md:col-span-2 space-y-2.5 mb-3">
+              <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">Current Status</label>
+              <div className="flex flex-wrap gap-3">
+                {["open", "ongoing", "closed",].map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setCreateForm(prev => ({ ...prev, status: s }))}
+                    className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${createForm.status === s ? 'bg-[#132ea7] text-white shadow-lg shadow-[#132ea7]/20' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
+                  >
+                    {s.replace('-', ' ')}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">Linked Call (Optional)</label>
+              <select
+                name="call_id"
+                value={createForm.call_id}
+                onChange={handleCreateChange}
+                className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-base font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all outline-none"
+              >
+                <option value="">No Linked Call</option>
+                {calls.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.caller_name} — {c.call_type} ({new Date(c.createdAt).toLocaleDateString()})
+                  </option>
+                ))}
+              </select>
+            </div>
+
             <Input
               label="Deadline (Optional)"
               name="due_date"
@@ -268,6 +334,8 @@ const MyTasks = () => {
               value={createForm.due_date}
               onChange={handleCreateChange}
             />
+
+            
           </div>
 
           <div className="flex justify-end gap-3 mt-6 pt-6 border-t border-slate-50">

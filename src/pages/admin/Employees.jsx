@@ -248,7 +248,7 @@ const Employees = () => {
         show={showModal}
         onClose={closeModal}
         title={credentials ? "Security Authorization" : (editTarget ? "Modify Profile" : "Create New Profile")}
-        size={credentials ? "md" : "lg"}
+        size={credentials ? "md" : "sm"}
       >
         {credentials ? (
           <div className="space-y-6">

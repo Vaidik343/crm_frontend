@@ -114,11 +114,11 @@ const WorkLog = () => {
           </h2>
           <p className="text-slate-500 font-bold text-base">Your daily work journal</p>
         </div>
-        {can("can_write") && (
-          <Button variant="primary" className="shadow-lg shadow-[#132ea7]/20 py-3.5 px-8 rounded-2xl font-black uppercase tracking-widest text-xs" onClick={openCreate}>
-            <MdAdd size={20} /> Add Entry
+        
+          <Button variant="primary" className="shadow-lg shadow-[#132ea7]/20 py-3.5 px-8 rounded font-black uppercase tracking-widest text-xs" onClick={openCreate}>
+            <MdAdd size={20} /> Add Work
           </Button>
-        )}
+        
       </div>
 
       <Alert
