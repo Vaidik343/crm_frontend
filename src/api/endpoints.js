@@ -49,6 +49,14 @@ export const ENDPOINTS = {
         DELETE: (id) => `/tasks/${id}`
 
     },
+    TEAMS: {
+        CRATE: "/teams",
+        ALL: "/teams",
+        GET_BY_ID: (id) => `/teams/${id}`,
+        UPDATE: (id) => `/teams/${id}`,
+        DELETE: (id) => `/teams/${id}`
+    },
+
     USERS: {
         CREATE: '/users',
         ALL: '/users',
