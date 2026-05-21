@@ -13,6 +13,7 @@ import { CallProvider } from './context/CallContext.jsx';
 import { WorkLogProvider } from './context/WorkLogContext.jsx';
 import { PermissionProvider } from './context/PermissionContext.jsx';
 import { PasswordProvider } from './context/PasswordContext.jsx';
+import { TeamProvider } from './context/TeamContext.jsx'
 
 
 createRoot(document.getElementById('root')).render(
@@ -25,11 +26,13 @@ createRoot(document.getElementById('root')).render(
           <TaskProvider>
             <CallProvider>
               <WorkLogProvider>
+                <TeamProvider>
                 <PermissionProvider>
                   <PasswordProvider>
                     <App />
                   </PasswordProvider>
                 </PermissionProvider>
+                </TeamProvider>
               </WorkLogProvider>
             </CallProvider>
           </TaskProvider>

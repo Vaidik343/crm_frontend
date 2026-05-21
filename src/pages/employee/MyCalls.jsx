@@ -42,6 +42,7 @@ const initialForm = {
   receive_type:  "",
   call_summary:  "",
   remarks:       "",
+  is_task:       false,
 };
 
 
@@ -84,18 +85,33 @@ const MyCalls = () => {
 
 
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-    if (fieldErrors[e.target.name]) setFieldErrors({ ...fieldErrors, [e.target.name]: "" });
-  };
+  // const handleChange = (e) => {
+  //   setForm({ ...form, [e.target.name]: e.target.value });
+  //   if (fieldErrors[e.target.name]) setFieldErrors({ ...fieldErrors, [e.target.name]: "" });
+  // };
+
+  // AFTER — add boolean check:
+const handleChange = (e) => {
+  const { name, value, type, checked } = e.target;
+  const newValue = type === "checkbox" ? checked : value;
+
+  if (name === "call_type") {
+    setForm((prev) => ({ ...prev, call_type: value, call_subtype: "" }));
+  } else {
+    setForm((prev) => ({ ...prev, [name]: newValue }));
+  }
+  if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: "" }));
+};
+
 
 const validate = () => {
     const errors = {};
     if (!form.caller_name.trim()) errors.caller_name  = "Caller name is required";
-    if (!form.project_id)         errors.project_id   = "Project is required";
+    // if (!form.project_id)         errors.project_id   = "Project is required";
     if (!form.call_type)          errors.call_type    = "Call type is required";
     if (!form.call_subtype)       errors.call_subtype = "Call subtype is required";
     if (!form.receive_type)       errors.receive_type = "Receive type is required";
+     if (form.is_task && !form.project_id) errors.project_id = "Project is required when creating a task";
     return errors;
   };
 
@@ -118,6 +134,7 @@ const validate = () => {
       receive_type:  call.receive_type  || "",
       call_summary:  call.call_summary  || "",
       remarks:       call.remarks       || "",
+      is_task:       call.is_task       || false,
     });
     setFieldErrors({});
     setShowModal(true);
@@ -141,8 +158,12 @@ const validate = () => {
         await updateCall(editTarget.id, form);
         setAlert({ type: "success", message: "Call updated successfully" });
       } else {
-        await createCall(form);
-        setAlert({ type: "success", message: "Call logged successfully" });
+const cc = await createCall(payload);
+if (cc?.task) {
+  setAlert({ type: "success", message: "Call logged and task auto-created successfully" });
+} else {
+  setAlert({ type: "success", message: "Call logged successfully" });
+}
       }
       closeModal();
     } catch (err) {
@@ -475,6 +496,37 @@ const validate = () => {
                       </p>
                     </div>
                   )}
+
+                  {/* Add this block after the remarks Textarea, inside the grid */}
+<div className="md:col-span-2">
+  <div className="flex items-center justify-between p-5 bg-slate-50 rounded-2xl border border-slate-100">
+    <div>
+      <p className="text-sm font-black text-slate-700 uppercase tracking-widest">
+        Auto-Create Task
+      </p>
+      <p className="text-xs font-bold text-slate-400 mt-0.5">
+        {form.is_task
+          ? "A task will be auto-created from this call"
+          : "Log call only, no task created"}
+      </p>
+      {form.is_task && !form.project_id && (
+        <p className="text-xs font-bold text-amber-500 mt-1">
+          ⚠ Select a project to enable task creation
+        </p>
+      )}
+    </div>
+    <label className="relative inline-flex items-center cursor-pointer">
+      <input
+        type="checkbox"
+        name="is_task"
+        checked={form.is_task}
+        onChange={handleChange}
+        className="sr-only peer"
+      />
+      <div className="w-12 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-6 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#132ea7]" />
+    </label>
+  </div>
+</div>
                 </div>
                 {/* Abstract background elements */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-[100px]" />

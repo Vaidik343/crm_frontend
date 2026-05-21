@@ -18,7 +18,7 @@ export const CallProvider = ({ children }) => {
     try {
       const { data } = await api.post(ENDPOINTS.CALLS.CREATE, payload);
       console.log("🚀 ~ CallProvider ~ data:", data)
-      setCalls((prev) => [data, ...prev]);
+      setCalls((prev) => [data.call, ...prev]);
       return data;
     } catch (error) {
       console.log("🚀 ~ CallProvider ~ error:", error)
@@ -104,5 +104,5 @@ const updateCall = useCallback(async (id, payload) => {
 export const useCall = () => {
   const context = useContext(CallContext);
   if (!context) throw new Error("useCall must be used inside CallProvider");
-  return context; // was missing return
+  return context; 
 };

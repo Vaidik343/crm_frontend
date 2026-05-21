@@ -56,7 +56,15 @@ export const ENDPOINTS = {
         UPDATE: (id) => `/teams/${id}`,
         DELETE: (id) => `/teams/${id}`
     },
-
+  
+    TEAM_MEMBERS:{
+        CREATE: '/team-members',
+        ALL: '/team-members',
+        GET_BY_ID: (id) => `/team-members/${id}`,
+        UPDATE: (id) => `/team-members/${id}`,
+        REMOVE: (id) => `/team-members/${id}`
+    },
+    
     USERS: {
         CREATE: '/users',
         ALL: '/users',
