@@ -14,6 +14,7 @@ import { WorkLogProvider } from './context/WorkLogContext.jsx';
 import { PermissionProvider } from './context/PermissionContext.jsx';
 import { PasswordProvider } from './context/PasswordContext.jsx';
 import { TeamProvider } from './context/TeamContext.jsx'
+import { TeamMemberContext, TeamMemberProvider } from './context/TeamMemberContext.jsx'
 
 
 createRoot(document.getElementById('root')).render(
@@ -27,11 +28,13 @@ createRoot(document.getElementById('root')).render(
             <CallProvider>
               <WorkLogProvider>
                 <TeamProvider>
+                  <TeamMemberProvider>
                 <PermissionProvider>
                   <PasswordProvider>
                     <App />
                   </PasswordProvider>
                 </PermissionProvider>
+                </TeamMemberProvider>
                 </TeamProvider>
               </WorkLogProvider>
             </CallProvider>

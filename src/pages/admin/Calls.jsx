@@ -66,6 +66,7 @@ const Calls = () => {
   }, [page]);
 
   const projectOptions = projects.map((p) => ({ value: p.id, label: p.name }));
+  console.log("🚀 ~ Calls ~ projectOptions:", projectOptions)
 
   const callTypeOptions = Object.keys(CALL_TYPES).map((t) => ({
     value: t, label: t.charAt(0).toUpperCase() + t.slice(1),

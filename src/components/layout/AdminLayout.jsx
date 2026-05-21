@@ -3,7 +3,7 @@ import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import Button from "../ui/Button";
 
-import {
+import { 
     MdDashboard,
     MdPeople,
     MdLabel,
@@ -13,7 +13,8 @@ import {
     MdLock,
     MdFileDownload,
     MdMenuOpen,
-    MdBook
+    MdBook,
+    MdGroup
 } from "react-icons/md";
 
 import { CgLogOut } from "react-icons/cg";
@@ -29,6 +30,7 @@ const navItems = [
     { to: "/admin/calls", label: "Calls", icon: <MdPhone size={20} /> },
     { to: "/admin/permissions", label: "Permissions", icon: <MdLock size={20} /> },
     { to: "/admin/work-logs", label: "Work Logs", icon: <MdBook size={20} /> },
+    { to: "/admin/teams", label: "Teams", icon: <MdGroup size={20} /> }
     // { to: "/admin/export", label: "Export", icon: <MdFileDownload size={20} /> },
 ];
 const AdminLayout = () => {
@@ -86,7 +88,7 @@ const AdminLayout = () => {
                                     {item.icon}
                                 </span>
                                 {!collapsed && (
-                                    <span className="text-sm tracking-wide transition-opacity duration-300">
+                                    <span className="text-md tracking-wide transition-opacity duration-300">
                                         {item.label}
                                     </span>
                                 )}

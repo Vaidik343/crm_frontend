@@ -32,9 +32,11 @@ export const TeamMemberProvider = ({ children }) => {
     try {
       const { data } = await api.post(ENDPOINTS.TEAM_MEMBERS.CREATE, payload);
       setMember((prev) => [...prev, data]);
-      getAllMembers();
+     await getAllMembers?.();
       return data;
     } catch (error) {
+      
+    console.log("🚀 ~ TeamMemberProvider ~ error:", error)
       throw error;
     }
   }, []);

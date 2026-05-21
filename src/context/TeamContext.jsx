@@ -16,13 +16,14 @@ export const TeamProvider = ({children}) => {
         try {
             const {data} = await api.post(ENDPOINTS.TEAMS.CRATE, payload);
         setTeams((prev) => [data, ...prev]);
+       await getAllTeams?.();
         return data;
         } catch (error) {
             throw error;
         }
     }, [])
 
-            console.log("🚀 ~ TeamProvider ~ error:", error)
+            
     const getAllTeams = useCallback(async () => {
             try {
                 setLoading(true);

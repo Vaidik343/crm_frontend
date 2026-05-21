@@ -21,7 +21,13 @@ import MyTasks         from "./pages/employee/MyTasks";
 import MyCalls         from "./pages/employee/MyCalls";
 import WorkLog         from "./pages/employee/WorkLog";
 import ChangePassword  from "./pages/employee/ChangePassword";
+
 import Calls from './pages/admin/Calls';
+import MyDashboard from './pages/employee/MyDashboard';
+import Teams from './pages/Team';
+import TeamDashboard from './pages/TeamDashboard';
+import MyTeams from './pages/employee/MyTeam';
+
 
 
 const App = () => {
@@ -51,6 +57,8 @@ const App = () => {
         <Route path='calls' element={<Calls />} />
         <Route path='permissions' element={<Permissions />}/>
         <Route path="work-logs" element={<AdminWorkLogs />} />
+        <Route path="teams" element={<Teams />} />                          // ADD
+<Route path="teams/:id/dashboard" element={<TeamDashboard />} /> 
         <Route index  element={<Navigate to="dashboard" replace />} />
       </Route>
      
@@ -62,6 +70,11 @@ const App = () => {
         <Route path="calls"     element={<MyCalls />} />
         <Route path="work-logs" element={<WorkLog />} />
         <Route path="password"  element={<ChangePassword />} />
+        <Route path="teams/:id/dashboard" element={<TeamDashboard />} />   // ADD
+<Route path="myDashboard" element={< MyDashboard/>} /> 
+  
+  <Route path="teams"              element={<MyTeams />} />              // ADD — shows list of teams user belongs to
+  <Route path="teams/:id/dashboard" element={<TeamDashboard />} /> 
         <Route index element={<Navigate to="tasks" replace />} />
       </Route>
     
