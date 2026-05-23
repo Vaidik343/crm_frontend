@@ -15,6 +15,9 @@ import {
   MdPersonAdd, MdPersonRemove, MdCheckCircle, MdCancel, MdBusiness
 } from "react-icons/md";
 import Select from "../components/ui/Select";
+import { useNavigate } from "react-router-dom";
+
+
 
 // ── Initial Forms ─────────────────────────────────────────────────────────────
 const initialTeamForm = { name: "", project_id:null, description: "" };
@@ -30,7 +33,7 @@ const Teams = () => {
       const projectOptions = projects.map((p) => ({ value: p.id, label: p.name }));
       console.log("🚀 ~ Teams ~ projectOptions:", projectOptions)
 
-
+const navigate = useNavigate();
 
   // ── State ──────────────────────────────────────────────────────────────────
   const [expandedTeam, setExpandedTeam]   = useState(null); // which team is expanded
@@ -176,7 +179,8 @@ const Teams = () => {
   const handleRemoveMember = async (memberId, memberName) => {
     try {
       setRemovingMember(memberId);
-      await removeMember(memberId);
+    const rm = await removeMember(memberId);
+      console.log("🚀 ~ handleRemoveMember ~ rm:", rm)
       setAlert({ type: "success", message: `${memberName} removed from team` });
       await getAllTeams();
     } catch (err) {
@@ -219,6 +223,7 @@ const Teams = () => {
 
       {/* Teams List */}
       {teams.length === 0 ? (
+        
         <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl p-16 text-center">
           <div className="w-20 h-20 rounded-[2rem] bg-slate-50 flex items-center justify-center mx-auto mb-6">
             <MdGroup size={40} className="text-slate-300" />
@@ -229,7 +234,7 @@ const Teams = () => {
       ) : (
         <div className="space-y-4">
           {teams.map((team) => {
-            const members = team.TeamMembers || team.team_memberships || [];
+            const members = (team.TeamMembers || team.team_memberships || []).filter(m => m.is_active !== false);
             const isExpanded = expandedTeam === team.id;
             const availableEmps = getAvailableEmployees(team);
 
@@ -266,6 +271,15 @@ const Teams = () => {
 
                   {/* Actions */}
                   <div className="flex items-center gap-2">
+
+                      {/* Dashboard Button */}
+  <button
+    className="px-3 py-2 rounded-xl bg-[#132ea7]/10 text-[#132ea7] hover:bg-[#132ea7] hover:text-white transition-all text-xs font-black uppercase tracking-wider"
+    onClick={() => navigate(`/admin/teams/${team.id}/dashboard`)}
+    title="Open Dashboard"
+  >
+    Dashboard
+  </button>
                     <button
                       className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all"
                       onClick={() => openEdit(team)}
@@ -319,6 +333,7 @@ const Teams = () => {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                           {members.map((m) => {
                             const user = m.user || m.User;
+                            console.log("TEAM MEMBER =>", m);
                             return (
                               <div
                                 key={m.id}
@@ -336,7 +351,7 @@ const Teams = () => {
                                   </div>
                                 </div>
                                 <button
-                                  className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
+                                  className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
                                   onClick={() => handleRemoveMember(m.id, user?.name)}
                                   disabled={removingMember === m.id}
                                   title="Remove Member"

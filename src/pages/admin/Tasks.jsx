@@ -41,12 +41,13 @@ const Tasks = () => {
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    getAllTasks(page);
-    getAllUsers();
-    getAllProjects();
-    getAllCalls();
+    getAllTasks?.(page);
+    getAllUsers?.();
+    getAllProjects?.();
+    getAllCalls?.();
   }, [page]);
 
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));

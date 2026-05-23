@@ -11,14 +11,17 @@ export const TeamProvider = ({children}) => {
 
 
 
+      
     const createTeam = useCallback( async (payload) => {
 
         try {
             const {data} = await api.post(ENDPOINTS.TEAMS.CRATE, payload);
+            console.log("🚀 ~ TeamProvider ~ data:", data)
         setTeams((prev) => [data, ...prev]);
        await getAllTeams?.();
         return data;
         } catch (error) {
+              console.log("🚀 ~ TeamProvider ~ error:", error)
             throw error;
         }
     }, [])

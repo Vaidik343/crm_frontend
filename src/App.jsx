@@ -46,38 +46,51 @@ const App = () => {
 
       {/* Admin - nested user AdminLayout */}
       <Route
-        path='/admin'
-        element={<AdminRoute><AdminLayout /></AdminRoute>}
-      >
-        <Route path='dashboard' element={<AdminDashboard />}/>
-        <Route path='employees' element={<Employees />} />
-        <Route path='roles' element={<Roles />}/>
-        <Route path='projects' element={<Projects />} />
-        <Route path='tasks' element={<Tasks />}/>
-        <Route path='calls' element={<Calls />} />
-        <Route path='permissions' element={<Permissions />}/>
-        <Route path="work-logs" element={<AdminWorkLogs />} />
-        <Route path="teams" element={<Teams />} />                          // ADD
-<Route path="teams/:id/dashboard" element={<TeamDashboard />} /> 
-        <Route index  element={<Navigate to="dashboard" replace />} />
-      </Route>
+  path='/admin'
+  element={
+    <AdminRoute>
+      <AdminLayout />
+    </AdminRoute>
+  }
+>
+  <Route path='dashboard' element={<AdminDashboard />} />
+  <Route path='employees' element={<Employees />} />
+  <Route path='roles' element={<Roles />} />
+  <Route path='projects' element={<Projects />} />
+  <Route path='tasks' element={<Tasks />} />
+  <Route path='calls' element={<Calls />} />
+  <Route path='permissions' element={<Permissions />} />
+  <Route path='work-logs' element={<AdminWorkLogs />} />
+
+  {/* Teams */}
+  <Route path='teams' element={<Teams />} />
+  <Route path='teams/:id/dashboard' element={<TeamDashboard />} />
+
+  <Route index element={<Navigate to='dashboard' replace />} />
+</Route>
      
-      <Route
-        path="/employee"
-        element={<ProtectedRoute><EmployeeLayout /></ProtectedRoute>}
-      >
-        <Route path="tasks"     element={<MyTasks />} />
-        <Route path="calls"     element={<MyCalls />} />
-        <Route path="work-logs" element={<WorkLog />} />
-        <Route path="password"  element={<ChangePassword />} />
-        <Route path="teams/:id/dashboard" element={<TeamDashboard />} />   // ADD
-<Route path="myDashboard" element={< MyDashboard/>} /> 
-  
-  <Route path="teams"              element={<MyTeams />} />              // ADD — shows list of teams user belongs to
-  <Route path="teams/:id/dashboard" element={<TeamDashboard />} /> 
-        <Route index element={<Navigate to="tasks" replace />} />
-      </Route>
-    
+<Route
+  path="/employee"
+  element={
+    <ProtectedRoute>
+      <EmployeeLayout />
+    </ProtectedRoute>
+  }
+>
+  <Route path="tasks" element={<MyTasks />} />
+  <Route path="calls" element={<MyCalls />} />
+  <Route path="work-logs" element={<WorkLog />} />
+  <Route path="password" element={<ChangePassword />} />
+
+  {/* Dashboard */}
+  <Route path="myDashboard" element={<MyDashboard />} />
+
+  {/* Teams */}
+  <Route path="teams" element={<MyTeams />} />
+  <Route path="teams/:id/dashboard" element={<TeamDashboard />} />
+
+  <Route index element={<Navigate to="tasks" replace />} />
+</Route>
 
   {/* Root redirect */}
       <Route

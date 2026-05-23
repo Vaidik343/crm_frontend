@@ -30,7 +30,8 @@ const navItems = [
     { to: "/admin/calls", label: "Calls", icon: <MdPhone size={20} /> },
     { to: "/admin/permissions", label: "Permissions", icon: <MdLock size={20} /> },
     { to: "/admin/work-logs", label: "Work Logs", icon: <MdBook size={20} /> },
-    { to: "/admin/teams", label: "Teams", icon: <MdGroup size={20} /> }
+    { to: "/admin/teams", label: "Teams", icon: <MdGroup size={20} /> },
+    
     // { to: "/admin/export", label: "Export", icon: <MdFileDownload size={20} /> },
 ];
 const AdminLayout = () => {

@@ -12,9 +12,12 @@ export const UserProvider = ({ children }) => {
     try {
       setLoading(true);
       const { data } = await api.get(ENDPOINTS.USERS.ALL);
+      console.log("🚀 ~ UserProvider ~ data:", data)
       setUsers(data.users);
       return data;
     } catch (error) {
+      
+    console.log("🚀 ~ UserProvider ~ error:", error)
       throw error;
     } finally {
       setLoading(false);
@@ -27,7 +30,7 @@ export const UserProvider = ({ children }) => {
       return data;
     } catch (error) {
       throw error;
-    }
+    } 
   }, []);
 
   const createUser = useCallback(async (payload) => {

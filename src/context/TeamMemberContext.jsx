@@ -31,7 +31,7 @@ export const TeamMemberProvider = ({ children }) => {
   const addTeamMember = useCallback(async (payload) => {
     try {
       const { data } = await api.post(ENDPOINTS.TEAM_MEMBERS.CREATE, payload);
-      setMember((prev) => [...prev, data]);
+      // setMember((prev) => [...prev, data]);
      await getAllMembers?.();
       return data;
     } catch (error) {
@@ -45,7 +45,7 @@ export const TeamMemberProvider = ({ children }) => {
   const getMemberById = useCallback( async (id) => {
     try {
         const {data} = await api.get(ENDPOINTS.TEAM_MEMBERS.GET_BY_ID(id));
-        setMember(data);
+        // setMember(data); // in get by id , dot not add this
         return data
     } catch (error) {
         throw error
@@ -66,7 +66,7 @@ export const TeamMemberProvider = ({ children }) => {
   const removeMember = useCallback(async(id) => {
     try {
         const {data} = await api.delete(ENDPOINTS.TEAM_MEMBERS.REMOVE(id));
-        setMember((prev) => prev.filter((m) => m.id !== id));
+      await getAllMembers?.();
         return data;
     } catch (error) {
         throw error;

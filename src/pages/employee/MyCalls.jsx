@@ -114,7 +114,7 @@ const validate = () => {
      if (form.is_task && !form.project_id) errors.project_id = "Project is required when creating a task";
     return errors;
   };
-
+ 
   
   const openCreate = () => {
     setEditTarget(null);

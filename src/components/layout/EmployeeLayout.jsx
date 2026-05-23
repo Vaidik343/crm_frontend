@@ -1,15 +1,15 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from '../../context/AuthContext';
 import Button from "../ui/Button";
-import { MdLogout, MdTask, MdPhone, MdBook, MdLock ,MdDashboard} from "react-icons/md";
+import { MdLogout, MdTask, MdPhone, MdBook, MdLock, MdDashboard } from "react-icons/md";
 
 const navItems = [
-  { to: "/employee/tasks",     label: "My Tasks",  icon: <MdTask size={18} /> },
-  { to: "/employee/calls",     label: "My Calls",  icon: <MdPhone size={18} /> },
-  { to: "/employee/work-logs", label: "Work Log",  icon: <MdBook size={18} /> },
-  { to: "/employee/password",  label: "Password",  icon: <MdLock size={18} /> },
-   { to: "/employee/MyDashboard",  label: "Dashboard", icon: <MdDashboard size={18} /> },
-//   {to: "/Team", label:"Team", }
+    { to: "/employee/tasks", label: "My Tasks", icon: <MdTask size={18} /> },
+    { to: "/employee/calls", label: "My Calls", icon: <MdPhone size={18} /> },
+    { to: "/employee/work-logs", label: "Work Log", icon: <MdBook size={18} /> },
+    { to: "/employee/password", label: "Password", icon: <MdLock size={18} /> },
+    { to: "/employee/MyDashboard", label: "Dashboard", icon: <MdDashboard size={18} /> },
+    //   {to: "/Team", label:"Team", }
 ];
 
 const EmployeeLayout = () => {
@@ -20,7 +20,7 @@ const EmployeeLayout = () => {
             {/* Top Navbar - Modernized Horizontal Layout */}
             <nav className="h-[70px] bg-[#132ea7] border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-30 shadow-sm">
                 <div className="flex items-center gap-10">
-                    
+
                     {/* Brand Logo */}
                     <div className="flex items-center gap-2">
                         <div className="w-8 h-8 bg-[#132ea7] rounded-lg flex items-center justify-center shadow-lg shadow-[#132ea7]/20">
@@ -36,9 +36,8 @@ const EmployeeLayout = () => {
                                 <NavLink
                                     to={item.to}
                                     className={({ isActive }) =>
-                                        `flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black text-decoration-none  transition-all duration-200 uppercase tracking-widest ${
-                                            isActive 
-                                            ? "bg-[#e98937] text-white shadow-lg shadow-[#132ea7]/20" 
+                                        `flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black text-decoration-none  transition-all duration-200 uppercase tracking-widest ${isActive
+                                            ? "bg-[#e98937] text-white shadow-lg shadow-[#132ea7]/20"
                                             : "text-white hover:bg-[#e2832f] hover:text-slate-600"
                                         }`
                                     }
@@ -64,9 +63,9 @@ const EmployeeLayout = () => {
 
                     <div className="h-8 w-px bg-slate-200 mx-1"></div>
 
-                    <Button 
-                        variant="ghost" 
-                        size="sm" 
+                    <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={logout}
                         className="text-red-500 hover:bg-red-50 font-black uppercase tracking-widest text-xs gap-2"
                     >

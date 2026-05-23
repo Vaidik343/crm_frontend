@@ -154,6 +154,7 @@ const Calls = () => {
 };
 
 const cc = await createCall(payload);
+console.log("🚀 ~ handleSubmit ~ cc:", cc)
 if (cc?.task) {
   setAlert({ type: "success", message: "Call logged and task auto-created successfully" });
 } else {
