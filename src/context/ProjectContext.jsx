@@ -19,6 +19,7 @@ export const ProjectProvider = ({ children }) => {
        const { data } = await api.get(
         `${ENDPOINTS.PROJECTS.ALL}?page=${pageNumber}&limit=${pageLimit}`
       );
+       console.log("🚀 ~ ProjectProvider ~ data:", data)
 
       setProjects(data.data || []);
         setPage(data.page || 1);

@@ -11,6 +11,21 @@ export const TeamProvider = ({children}) => {
 
 
 
+       const getAllTeams = useCallback(async () => {
+            try {
+                setLoading(true);
+                const {data} = await api.get(ENDPOINTS.TEAMS.ALL);
+                console.log("🚀 ~ TeamProvider ~ data:", data)
+                setTeams(data.teams || []);
+                return data;
+
+            } catch (error) {
+                    console.log("🚀 ~ TeamProvider ~ error:", error)
+                throw error;
+            } finally {
+                setLoading(false);
+            }
+    }, []);
       
     const createTeam = useCallback( async (payload) => {
 
@@ -27,21 +42,7 @@ export const TeamProvider = ({children}) => {
     }, [])
 
             
-    const getAllTeams = useCallback(async () => {
-            try {
-                setLoading(true);
-                const {data} = await api.get(ENDPOINTS.TEAMS.ALL);
-                console.log("🚀 ~ TeamProvider ~ data:", data)
-                setTeams(data.teams || []);
-                return data;
-
-            } catch (error) {
-                    console.log("🚀 ~ TeamProvider ~ error:", error)
-                throw error;
-            } finally {
-                setLoading(false);
-            }
-    }, []);
+ 
 
     const getTeamById = useCallback( async (id) => {
         try {
@@ -57,7 +58,8 @@ export const TeamProvider = ({children}) => {
         try {
             const {data} = await api.patch(ENDPOINTS.TEAMS.UPDATE(id), payload)
 
-            setTeams((prev) => prev.map((t) =>(t.id === id ? data : t) ))
+            // setTeams((prev) => prev.map((t) =>(t.id === id ? data : t) ))
+            setTeams((prev) => prev.map((t) => (t.id === id ? data.team || data : t)));
             return data;
         } catch (error) {
             throw error;

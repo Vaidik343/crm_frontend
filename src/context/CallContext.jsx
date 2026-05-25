@@ -32,6 +32,7 @@ export const CallProvider = ({ children }) => {
       const { data } = await api.get(
         `${ENDPOINTS.CALLS.ALL}?page=${pageNumber}&limit=${pageLimit}`
       );
+      console.log("🚀 ~ CallProvider ~ data:", data)
 
       setCalls(data.data || []);
         setPage(data.page || 1);

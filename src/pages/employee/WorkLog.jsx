@@ -1,36 +1,50 @@
 import { useEffect, useState } from "react";
 import { useWorkLog } from "../../context/WorkLogContext";
-import { useAuth } from "../../context/AuthContext";
 import Button from "../../components/ui/Button";
 import Alert from "../../components/ui/Alert";
 import Modal from "../../components/ui/Modal";
 import Input from "../../components/ui/Input";
 import Textarea from "../../components/ui/Textarea";
-import ConfirmDialog from "../../components/ui/ConfirmDialog";
 import Spinner from "../../components/ui/Spinner";
-import { MdAccessTime, MdOutlineSpeakerNotes, MdHistory, MdCalendarToday, MdAdd, MdEdit, MdDelete } from "react-icons/md";
+import {MdBook, MdVisibility, MdCalendarToday, MdPerson, MdAccessTime, MdOutlineSpeakerNotes, MdAdd, MdEdit } from "react-icons/md";
 
-const initialForm = {
+const initialForm = { 
   description: "",
   date: new Date().toISOString().split("T")[0], // today's date as default
 };
 
 const WorkLog = () => {
-  const { workLogs, loading, getAllWorkLogs, createWorkLog, updateWorkLog, deleteWorkLog } = useWorkLog();
-  const { can } = useAuth();
+  const { workLogs = [], loading,page,
+      totalPages,
+      setPage, getAllWorkLogs, createWorkLog, updateWorkLog } = useWorkLog();
 
   const [showModal, setShowModal] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
+  const [viewTarget, setViewTarget] = useState(null);
   const [form, setForm] = useState(initialForm);
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [alert, setAlert] = useState({ type: "", message: "" });
-  const [confirmDelete, setConfirmDelete] = useState(null);
-  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    getAllWorkLogs();
-  }, []);
+    getAllWorkLogs?.(page);
+  }, [page]);
+
+  const totalEntries = workLogs.length;
+  
+  const currentMonthEntries = workLogs.filter((log) => {
+    const logDate = new Date(log.date);
+    const today = new Date();
+    return logDate.getMonth() === today.getMonth() && logDate.getFullYear() === today.getFullYear();
+  }).length;
+  
+  const hasLoggedToday = workLogs.some((log) => {
+    const logDate = new Date(log.date);
+    const today = new Date();
+    return logDate.getDate() === today.getDate() && 
+           logDate.getMonth() === today.getMonth() && 
+           logDate.getFullYear() === today.getFullYear();
+  });
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -88,21 +102,12 @@ const WorkLog = () => {
     }
   };
 
-  const handleDelete = async () => {
-    if (!confirmDelete) return;
-    try {
-      setDeleting(true);
-      await deleteWorkLog(confirmDelete.id);
-      setAlert({ type: "success", message: "Work log deleted" });
-    } catch (err) {
-      setAlert({ type: "danger", message: err?.response?.data?.message || "Delete failed" });
-    } finally {
-      setDeleting(false);
-      setConfirmDelete(null);
-    }
-  };
-
-  if (loading && !workLogs.length) return <Spinner />;
+  if (loading && !workLogs.length) return (
+    <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+      <Spinner size="lg" />
+      <p className="text-slate-400 font-bold animate-pulse uppercase tracking-[0.2em] text-sm">Accessing daily archives...</p>
+    </div>
+  );
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
@@ -115,10 +120,9 @@ const WorkLog = () => {
           <p className="text-slate-500 font-bold text-base">Your daily work journal</p>
         </div>
         
-          <Button variant="primary" className="shadow-lg shadow-[#132ea7]/20 py-3.5 px-8 rounded font-black uppercase tracking-widest text-xs" onClick={openCreate}>
-            <MdAdd size={20} /> Add Work
-          </Button>
-        
+        <Button variant="primary" className="shadow-lg shadow-[#132ea7]/20 py-3 px-8 rounded h-[52px] font-black uppercase tracking-widest text-sm flex items-center justify-center gap-2" onClick={openCreate}>
+          <MdAdd size={22} /> Add Entry
+        </Button>
       </div>
 
       <Alert
@@ -127,60 +131,132 @@ const WorkLog = () => {
         onClose={() => setAlert({ type: "", message: "" })}
       />
 
-      {/* Work logs List */}
-      {workLogs.length === 0 ? (
-        <div className="bg-white rounded-[2rem] border border-dashed border-slate-300 py-16 text-center shadow-sm">
-          <MdOutlineSpeakerNotes size={48} className="mx-auto text-slate-200 mb-4" />
-          <p className="text-slate-400 font-black uppercase tracking-widest text-sm">No work logs yet. Add your first entry.</p>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/30 flex items-center gap-6">
+          <div className="w-16 h-16 rounded-2xl bg-sky-50 text-sky-500 flex items-center justify-center">
+            <MdBook size={32} />
+          </div>
+          <div>
+            <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Total Entries</p>
+            <p className="text-3xl font-black text-slate-800">{totalEntries}</p>
+          </div>
         </div>
-      ) : (
-        <div className="space-y-4">
-          {workLogs.map((log) => (
-            <div key={log.id} className="bg-white rounded-[1.5rem] p-6 border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                
-                {/* Date pill */}
-                <div className="flex items-center gap-4 shrink-0">
-                  <div className="w-14 h-14 rounded-2xl bg-[#132ea7]/5 text-[#132ea7] border border-[#132ea7]/10 flex flex-col items-center justify-center font-black shadow-inner">
-                    <span className="text-xl leading-none">{new Date(log.date).getDate()}</span>
-                    <span className="text-[10px] uppercase tracking-widest">{new Date(log.date).toLocaleString("default", { month: "short" })}</span>
-                  </div>
-                </div>
-
-                {/* Description */}
-                <div className="flex-grow">
-                  <p className="text-slate-700 font-medium leading-relaxed whitespace-pre-wrap">
-                    {log.description}
-                  </p>
-                  <p className="text-slate-400 text-xs font-bold uppercase tracking-widest mt-2">
-                    {new Date(log.date).toLocaleDateString("default", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
-                  </p>
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center gap-3 shrink-0 border-t md:border-t-0 pt-4 md:pt-0 mt-2 md:mt-0">
-                  {can("can_update") && (
-                    <button
-                      onClick={() => openEdit(log)}
-                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-50 text-slate-500 hover:text-blue-600 hover:bg-blue-50 font-black text-xs uppercase tracking-widest transition-all"
-                    >
-                      <MdEdit size={16} /> Edit
-                    </button>
-                  )}
-                  {can("can_delete") && (
-                    <button
-                      onClick={() => setConfirmDelete(log)}
-                      className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-50 text-slate-500 hover:text-red-600 hover:bg-red-50 font-black text-xs uppercase tracking-widest transition-all"
-                    >
-                      <MdDelete size={16} /> Delete
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
+        <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/30 flex items-center gap-6">
+          <div className="w-16 h-16 rounded-2xl bg-[#132ea7]/5 text-[#132ea7] flex items-center justify-center">
+            <MdCalendarToday size={32} />
+          </div>
+          <div>
+            <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">This Month</p>
+            <p className="text-3xl font-black text-slate-800">{currentMonthEntries}</p>
+          </div>
         </div>
-      )}
+        <div className={`p-8 rounded-[2rem] shadow-2xl flex items-center gap-6 text-white relative overflow-hidden transition-all duration-300 ${hasLoggedToday ? "bg-emerald-600 shadow-emerald-600/20" : "bg-[#132ea7] shadow-[#132ea7]/20"}`}>
+          <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center relative z-10">
+            <MdAccessTime size={32} />
+          </div>
+          <div className="relative z-10">
+            <p className="text-[11px] font-black text-white/50 uppercase tracking-[0.2em] mb-1">Today's Status</p>
+            <p className="text-xl font-black uppercase tracking-widest">{hasLoggedToday ? "Submitted" : "Pending"}</p>
+          </div>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl" />
+        </div>
+      </div>
+
+      {/* Table Container */}
+      <div className="bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
+        <div className="overflow-x-auto custom-scrollbar">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50/50">
+                <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Operational Date</th>
+                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Work Briefing</th>
+                <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-50">
+              {workLogs.length === 0 && (
+                <tr>
+                  <td colSpan={3} className="text-center text-slate-400 py-16 font-medium italic text-lg uppercase tracking-widest">No work logs logged yet.</td>
+                </tr>
+              )}
+              {workLogs.map((log) => (
+                <tr key={log.id} className="hover:bg-slate-50/80 transition-colors group">
+                  <td className="px-10 py-6">
+                    <div className="flex items-center gap-3">
+                       <div className="w-10 h-10 rounded-xl bg-slate-50 text-[#132ea7] flex items-center justify-center shadow-inner group-hover:bg-[#132ea7] group-hover:text-white transition-all">
+                          <MdCalendarToday size={18} />
+                       </div>
+                       <span className="text-sm font-black text-slate-700 uppercase tracking-wider">{new Date(log.date).toLocaleDateString("default", { month: "short", day: "numeric", year: "numeric" })}</span>
+                    </div>
+                  </td>
+                  <td className="px-8 py-6">
+                    <p className="text-sm font-bold text-slate-500 truncate max-w-[500px]">
+                      {log.description}
+                    </p>
+                  </td>
+                  <td className="px-10 py-6 text-right">
+                    <div className="flex items-center justify-end gap-3">
+                      <button
+                        className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all shadow-sm"
+                        onClick={() => setViewTarget(log)}
+                        title="View Full Log"
+                      >
+                        <MdVisibility size={20} />
+                      </button>
+                      <button
+                        onClick={() => openEdit(log)}
+                        className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all shadow-sm"
+                        title="Edit"
+                      >
+                        <MdEdit size={20} />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="flex items-center justify-between px-6 py-6 border-t border-slate-100">
+          <button
+            disabled={page === 1}
+            onClick={() => setPage(page - 1)}
+            className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50"
+          >
+            Previous
+          </button>
+
+          <div className="flex items-center gap-2">
+            {[...Array(totalPages)].map((_, i) => {
+              const pageNum = i + 1;
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => setPage(pageNum)}
+                  className={`w-10 h-10 rounded-xl font-bold transition-all ${
+                    page === pageNum
+                      ? "bg-[#132ea7] text-white"
+                      : "bg-slate-100 text-slate-700"
+                  }`}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            disabled={page === totalPages}
+            onClick={() => setPage(page + 1)}
+            className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+      </div>
       <Modal
         show={showModal}
         onClose={closeModal}
@@ -219,14 +295,53 @@ const WorkLog = () => {
         </form>
       </Modal>
 
-      {/* Delete confirm */}
-      <ConfirmDialog
-        show={!!confirmDelete}
-        message="Delete this work log entry? This cannot be undone."
-        onConfirm={handleDelete}
-        onCancel={() => setConfirmDelete(null)}
-        loading={deleting}
-      />
+      {/* Log Detail Modal */}
+      <Modal
+        show={!!viewTarget}
+        onClose={() => setViewTarget(null)}
+        title="Operational Report Details"
+        size="lg"
+      >
+        {viewTarget && (
+          <div className="space-y-8 py-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 pb-8 border-b border-slate-50">
+               <div className="flex items-center gap-5">
+                  <div className="w-20 h-20 rounded-[2rem] bg-[#132ea7] text-white flex items-center justify-center font-black text-3xl shadow-2xl shadow-[#132ea7]/20">
+                     {viewTarget.User?.name?.charAt(0) || <MdPerson size={32} />}
+                  </div>
+                  <div>
+                     <h3 className="text-2xl font-black text-slate-800 leading-tight">{viewTarget.User?.name || "Your Work Log"}</h3>
+                     <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-xs mt-1">Status: Logged successfully</p>
+                  </div>
+               </div>
+               <div className="flex items-center gap-4 bg-slate-50 p-4 px-6 rounded-[1.5rem] border border-slate-100 shadow-sm">
+                  <MdAccessTime size={24} className="text-[#132ea7]" />
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-1">Operational Date</p>
+                    <p className="text-base font-black text-slate-800 uppercase tracking-widest">{new Date(viewTarget.date).toLocaleDateString("default", { month: "long", day: "numeric", year: "numeric" })}</p>
+                  </div>
+               </div>
+            </div>
+
+            <div className="p-10 bg-[#132ea7] rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden">
+               <div className="relative z-10">
+                 <p className="text-[11px] font-black text-white/50 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                   <MdOutlineSpeakerNotes size={20} className="text-white/30" /> Mission Activity Briefing
+                 </p>
+                 <p className="text-xl font-medium leading-relaxed opacity-95 italic whitespace-pre-wrap">
+                    "{viewTarget.description}"
+                 </p>
+               </div>
+               <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-[100px]" />
+               <div className="absolute bottom-0 left-0 w-48 h-48 bg-sky-500/10 rounded-full blur-[80px]" />
+            </div>
+
+            <div className="flex items-center justify-end pt-4">
+               <Button variant="ghost" onClick={() => setViewTarget(null)} className="text-slate-400 font-black uppercase tracking-[0.2em] text-xs">Close Archives</Button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

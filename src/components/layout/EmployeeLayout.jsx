@@ -1,7 +1,7 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from '../../context/AuthContext';
 import Button from "../ui/Button";
-import { MdLogout, MdTask, MdPhone, MdBook, MdLock, MdDashboard } from "react-icons/md";
+import { MdLogout, MdTask, MdPhone, MdBook, MdLock, MdDashboard, MdMenu,MdClose,} from "react-icons/md";
 
 const navItems = [
     { to: "/employee/tasks", label: "My Tasks", icon: <MdTask size={18} /> },

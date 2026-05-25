@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useCall } from "../../context/CallContext";
 import { useProject } from "../../context/ProjectContext";
+import { useTask } from './../../context/TaskContext';
 import Badge from "../../components/ui/Badge";
 import Button from "../../components/ui/Button";
-import Alert from "../../components/ui/Alert";
+import Alert from "../../components/ui/Alert"; 
 import Spinner from "../../components/ui/Spinner";
 import Modal from "../../components/ui/Modal";
 import Input from "../../components/ui/Input";
@@ -35,30 +36,30 @@ const FILTER_OPTIONS = [
 const initialForm = {
   caller_name:   "",
   caller_number: "",
-  project_id:    null,
+  project_id:    "",
   call_type:     "",
   call_subtype:  "",
   receive_type:  "",
   call_summary:  "",
   remarks:       "",
-  is_task:       false, 
+  is_task:       false,
 };
 
 const Calls = () => {
-  const { calls, loading, page,setPage,
-  totalPages, getAllCalls, createCall, updateCall, deleteCall } = useCall();
+  const { calls, loading, page, setPage, totalPages, getAllCalls, createCall, updateCall, deleteCall } = useCall();
   const { projects, getAllProjects } = useProject();
+  const {getAllTasks, page: taskPage} = useTask()
 
-  const [filter, setFilter]           = useState("all");
-  const [showModal, setShowModal]     = useState(false);
-  const [viewTarget, setViewTarget]   = useState(null);
-  const [editTarget, setEditTarget]   = useState(null);
-  const [form, setForm]               = useState(initialForm);
-  const [fieldErrors, setFieldErrors] = useState({});
-  const [submitting, setSubmitting]   = useState(false);
-  const [alert, setAlert]             = useState({ type: "", message: "" });
+  const [filter, setFilter]               = useState("all");
+  const [showModal, setShowModal]         = useState(false);
+  const [viewTarget, setViewTarget]       = useState(null);
+  const [editTarget, setEditTarget]       = useState(null);
+  const [form, setForm]                   = useState(initialForm);
+  const [fieldErrors, setFieldErrors]     = useState({});
+  const [submitting, setSubmitting]       = useState(false);
+  const [alert, setAlert]                 = useState({ type: "", message: "" });
   const [confirmDelete, setConfirmDelete] = useState(null);
-  const [deleting, setDeleting]       = useState(false);
+  const [deleting, setDeleting]           = useState(false);
 
   useEffect(() => {
     getAllCalls?.(page);
@@ -66,7 +67,6 @@ const Calls = () => {
   }, [page]);
 
   const projectOptions = projects.map((p) => ({ value: p.id, label: p.name }));
-  console.log("🚀 ~ Calls ~ projectOptions:", projectOptions)
 
   const callTypeOptions = Object.keys(CALL_TYPES).map((t) => ({
     value: t, label: t.charAt(0).toUpperCase() + t.slice(1),
@@ -76,16 +76,14 @@ const Calls = () => {
     ? CALL_TYPES[form.call_type].map((s) => ({ value: s, label: s }))
     : [];
 
-  const filtered = filter === "all"
-    ? calls
-    : calls.filter((c) => c.call_type === filter);
+  const filtered = filter === "all" ? calls : calls.filter((c) => c.call_type === filter);
 
+  // ── Handlers ──────────────────────────────────────────────────────────────
   const handleChange = (e) => {
-    const { name, value,  type, checked  } = e.target;
-      const newValue = type === "checkbox" ? checked : value;
-
+    const { name, value, type, checked } = e.target;
+    const newValue = type === "checkbox" ? checked : value;
     if (name === "call_type") {
-      setForm((prev) => ({ ...prev, call_type: value, call_subtype: "" }));
+      setForm((prev) => ({ ...prev, call_type: newValue, call_subtype: "" }));
     } else {
       setForm((prev) => ({ ...prev, [name]: newValue }));
     }
@@ -95,11 +93,10 @@ const Calls = () => {
   const validate = () => {
     const errors = {};
     if (!form.caller_name.trim()) errors.caller_name  = "Caller name is required";
-    // if (!form.project_id)         errors.project_id   = "Project is required";
     if (!form.call_type)          errors.call_type    = "Call type is required";
     if (!form.call_subtype)       errors.call_subtype = "Call subtype is required";
     if (!form.receive_type)       errors.receive_type = "Receive type is required";
-     if (form.is_task && !form.project_id) errors.project_id = "Project is required when creating a task";
+    if (form.is_task && !form.project_id) errors.project_id = "Project is required when creating a task";
     return errors;
   };
 
@@ -115,7 +112,7 @@ const Calls = () => {
     setForm({
       caller_name:   call.caller_name   || "",
       caller_number: call.caller_number || "",
-      project_id:    call.project_id    || null,
+      project_id:    call.project_id    || "",
       call_type:     call.call_type     || "",
       call_subtype:  call.call_subtype  || "",
       receive_type:  call.receive_type  || "",
@@ -145,23 +142,21 @@ const Calls = () => {
         await updateCall(editTarget.id, form);
         setAlert({ type: "success", message: "Call updated successfully" });
       } else {
-      const payload = {
-  ...form,
-  project_id: form.project_id || null,
-  caller_number: form.caller_number || null,
-  call_summary: form.call_summary || null,
-  remarks: form.remarks || null,
-};
-
-const cc = await createCall(payload);
-console.log("🚀 ~ handleSubmit ~ cc:", cc)
-if (cc?.task) {
-  setAlert({ type: "success", message: "Call logged and task auto-created successfully" });
-} else {
-  setAlert({ type: "success", message: "Call logged successfully" });
-}
-console.log("🚀 ~ handleSubmit ~ cc:", cc);
-      
+        const payload = {
+          ...form,
+          project_id:    form.project_id    || null,
+          caller_number: form.caller_number || null,
+          call_summary:  form.call_summary  || null,
+          remarks:       form.remarks       || null,
+        };
+        const cc = await createCall(payload);
+       
+        if (cc?.task) {
+           await getAllTasks(taskPage); // ← refresh task list
+          setAlert({ type: "success", message: "Call logged and task auto-created successfully" });
+        } else {
+          setAlert({ type: "success", message: "Call logged successfully" });
+        }
       }
       closeModal();
     } catch (err) {
@@ -194,6 +189,7 @@ console.log("🚀 ~ handleSubmit ~ cc:", cc);
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
+
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -220,7 +216,7 @@ console.log("🚀 ~ handleSubmit ~ cc:", cc);
 
       <Alert type={alert.type} message={alert.message} onClose={() => setAlert({ type: "", message: "" })} />
 
-      {/* Table Container */}
+      {/* Table */}
       <div className="bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left border-collapse">
@@ -228,7 +224,7 @@ console.log("🚀 ~ handleSubmit ~ cc:", cc);
               <tr className="bg-slate-50/50">
                 <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap">Caller Info</th>
                 <th className="px-6 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Employee</th>
-                <th className="px-6 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap">Operation Scope</th>
+                <th className="px-6 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap">Project</th>
                 <th className="px-6 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Classification</th>
                 <th className="px-6 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Medium</th>
                 <th className="px-6 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Date</th>
@@ -259,7 +255,7 @@ console.log("🚀 ~ handleSubmit ~ cc:", cc);
                   <td className="px-6 py-6">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[#132ea7] font-black text-[10px] uppercase">
-                          {call.User?.name?.charAt(0) || "—"}
+                        {call.User?.name?.charAt(0) || "—"}
                       </div>
                       <div>
                         <div className="text-sm font-black text-slate-600">{call.User?.name || "—"}</div>
@@ -270,7 +266,7 @@ console.log("🚀 ~ handleSubmit ~ cc:", cc);
                   <td className="px-6 py-6">
                     <div className="flex items-center gap-2 text-sm font-black text-slate-600">
                       <MdFolder className="text-slate-300" size={16} />
-                      {call.Project?.name || "Global"}
+                      {call.Project?.name || "—"}
                     </div>
                   </td>
                   <td className="px-6 py-6">
@@ -279,36 +275,22 @@ console.log("🚀 ~ handleSubmit ~ cc:", cc);
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] bg-slate-50 px-2 py-0.5 rounded border border-slate-100">{call.call_subtype || "General"}</span>
                     </div>
                   </td>
-                  <td className="px-6 py-6">
-                    <Badge value={call.receive_type} />
-                  </td>
+                  <td className="px-6 py-6"><Badge value={call.receive_type} /></td>
                   <td className="px-6 py-6">
                     <div className="flex items-center gap-2 text-sm font-black text-slate-700">
-                        <MdCalendarToday className="text-slate-300" size={16} />
-                        {new Date(call.createdAt).toLocaleDateString("default", { month: "short", day: "numeric", year: "numeric" })}
+                      <MdCalendarToday className="text-slate-300" size={16} />
+                      {new Date(call.createdAt).toLocaleDateString("default", { month: "short", day: "numeric", year: "numeric" })}
                     </div>
                   </td>
                   <td className="px-10 py-6 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <button
-                        className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all"
-                        onClick={() => setViewTarget(call)}
-                        title="View Details"
-                      >
+                      <button className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all" onClick={() => setViewTarget(call)} title="View">
                         <MdVisibility size={20} />
                       </button>
-                      <button
-                        className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 transition-all"
-                        onClick={() => openEdit(call)}
-                        title="Edit Log"
-                      >
+                      <button className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 transition-all" onClick={() => openEdit(call)} title="Edit">
                         <MdEdit size={20} />
                       </button>
-                      <button
-                        className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
-                        onClick={() => setConfirmDelete(call)}
-                        title="Delete Log"
-                      >
+                      <button className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all" onClick={() => setConfirmDelete(call)} title="Delete">
                         <MdDelete size={20} />
                       </button>
                     </div>
@@ -318,75 +300,47 @@ console.log("🚀 ~ handleSubmit ~ cc:", cc);
             </tbody>
           </table>
         </div>
+
         {/* Pagination */}
-<div className="flex items-center justify-between px-6 py-6 border-t border-slate-100">
-  
-  <button
-    disabled={page === 1}
-    onClick={() => setPage(page - 1)}
-    className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50"
-  >
-    Previous
-  </button>
-
-  <div className="flex items-center gap-2">
-    {[...Array(totalPages)].map((_, i) => {
-      const pageNum = i + 1;
-
-      return (
-        <button
-          key={pageNum}
-          onClick={() => setPage(pageNum)}
-          className={`w-10 h-10 rounded-xl font-bold transition-all ${
-            page === pageNum
-              ? "bg-[#132ea7] text-white"
-              : "bg-slate-100 text-slate-700"
-          }`}
-        >
-          {pageNum}
-        </button>
-      );
-    })}
-  </div>
-
-  <button
-    disabled={page === totalPages}
-    onClick={() => setPage(page + 1)}
-    className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50"
-  >
-    Next
-  </button>
-
-</div>
+        <div className="flex items-center justify-between px-6 py-6 border-t border-slate-100">
+          <button disabled={page === 1} onClick={() => setPage(page - 1)} className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50">Previous</button>
+          <div className="flex items-center gap-2">
+            {[...Array(totalPages)].map((_, i) => (
+              <button key={i+1} onClick={() => setPage(i+1)} className={`w-10 h-10 rounded-xl font-bold transition-all ${page === i+1 ? "bg-[#132ea7] text-white" : "bg-slate-100 text-slate-700"}`}>{i+1}</button>
+            ))}
+          </div>
+          <button disabled={page === totalPages} onClick={() => setPage(page + 1)} className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50">Next</button>
+        </div>
       </div>
 
       {/* Create / Edit Modal */}
       <Modal show={showModal} onClose={closeModal} title={editTarget ? "Edit Call Log" : "Log New Call"} size="lg">
         <form onSubmit={handleSubmit} noValidate className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
             <Input label="Caller Name" name="caller_name" value={form.caller_name}
               onChange={handleChange} error={fieldErrors.caller_name}
               placeholder="e.g. Rahul Shah" required />
-            
+
             <Input label="Caller Number" name="caller_number" value={form.caller_number}
               onChange={handleChange} placeholder="e.g. +91 98765 43210" />
-            
+
             <div className="md:col-span-2">
               <Select label="Project" name="project_id" value={form.project_id}
                 onChange={handleChange} options={projectOptions}
-                error={fieldErrors.project_id} placeholder="Select associated project..."  />
+                error={fieldErrors.project_id} placeholder="Select associated project..." />
             </div>
 
             <Select label="Call Type" name="call_type" value={form.call_type}
               onChange={handleChange} options={callTypeOptions}
               error={fieldErrors.call_type} placeholder="Select core classification..." required />
-            
+
             <Select label="Call Subtype" name="call_subtype" value={form.call_subtype}
               onChange={handleChange} options={subtypeOptions}
               error={fieldErrors.call_subtype}
               placeholder={form.call_type ? "Select specific subtype..." : "Select type first"}
               disabled={!form.call_type} required />
-            
+
             <div className="md:col-span-2">
               <Select label="Communication Medium" name="receive_type" value={form.receive_type}
                 onChange={handleChange} options={RECEIVE_OPTIONS}
@@ -403,38 +357,28 @@ console.log("🚀 ~ handleSubmit ~ cc:", cc);
                 onChange={handleChange} placeholder="Any additional notes or action items..." rows={2} />
             </div>
 
-            {/* // is task */}
-                        
-<div className="sm:col-span-2">
-  <div className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100">
-    <div>
-      <p className="text-sm font-black text-slate-700 uppercase tracking-widest">
-        Auto-Create Task
-      </p>
-      <p className="text-xs font-bold text-slate-400 mt-0.5">
-        {form.is_task
-          ? "A task will be auto-created from this call"
-          : "Log call only, no task created"}
-      </p>
-      {form.is_task && !form.project_id && (
-        <p className="text-xs font-bold text-amber-500 mt-1">
-          ⚠ Select a project to enable task creation
-        </p>
-      )}
-    </div>
-    <label className="relative inline-flex items-center cursor-pointer">
-      <input
-        type="checkbox"
-        name="is_task"
-        checked={form.is_task}
-        onChange={handleChange}
-        className="sr-only peer"
-      />
-      <div className="w-12 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-6 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#132ea7]" />
-    </label>
-  </div>
-</div>
+            {/* is_task toggle — only on create */}
+            {!editTarget && (
+              <div className="md:col-span-2">
+                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <div>
+                    <p className="text-sm font-black text-slate-700 uppercase tracking-widest">Auto-Create Task</p>
+                    <p className="text-xs font-bold text-slate-400 mt-0.5">
+                      {form.is_task ? "A task will be auto-created from this call" : "Log call only, no task created"}
+                    </p>
+                    {form.is_task && !form.project_id && (
+                      <p className="text-xs font-bold text-amber-500 mt-1">⚠ Select a project to enable task creation</p>
+                    )}
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" name="is_task" checked={form.is_task} onChange={handleChange} className="sr-only peer" />
+                    <div className="w-12 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-6 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#132ea7]" />
+                  </label>
+                </div>
+              </div>
+            )}
           </div>
+
           <div className="flex gap-4 pt-6 border-t border-slate-50">
             <Button variant="ghost" className="flex-1 font-black uppercase tracking-widest text-sm" onClick={closeModal} disabled={submitting}>Cancel</Button>
             <Button type="submit" variant="primary" className="flex-[2] h-14 shadow-xl shadow-[#132ea7]/20 font-black uppercase tracking-[0.2em] text-sm" loading={submitting}>
@@ -445,10 +389,9 @@ console.log("🚀 ~ handleSubmit ~ cc:", cc);
       </Modal>
 
       {/* View Modal */}
-      <Modal show={!!viewTarget} onClose={() => setViewTarget(null)} title="Intelligence Briefing" size="lg">
+      <Modal show={!!viewTarget} onClose={() => setViewTarget(null)} title="Call Details" size="lg">
         {viewTarget && (
           <div className="space-y-8 py-4">
-            {/* Header info */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 pb-8 border-b border-slate-50">
               <div className="flex items-center gap-5">
                 <div className="w-20 h-20 rounded-[2rem] bg-[#132ea7] text-white flex items-center justify-center font-black text-3xl shadow-2xl shadow-[#132ea7]/20">
@@ -460,35 +403,33 @@ console.log("🚀 ~ handleSubmit ~ cc:", cc);
                 </div>
               </div>
               <div className="flex flex-col items-end gap-2">
-                <Badge value={viewTarget.call_type} className="text-sm px-4 py-1.5" />
+                <Badge value={viewTarget.call_type} />
                 <div className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                   <MdCalendarToday size={16} className="text-slate-300" />
-                  {new Date(viewTarget.createdAt).toLocaleDateString("default", {
-                    weekday: "long", year: "numeric", month: "long", day: "numeric"
-                  })}
+                  {new Date(viewTarget.createdAt).toLocaleDateString("default", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
                 </div>
               </div>
             </div>
 
-            {/* Context Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="p-6 bg-slate-50 rounded-[1.5rem] border border-slate-100">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
-                  <MdFolder size={16} /> Operation Context
+                  <MdFolder size={16} /> Project
                 </p>
-                <p className="text-lg font-black text-slate-800">{viewTarget.Project?.name || "Global Objective"}</p>
+                <p className="text-lg font-black text-slate-800">{viewTarget.Project?.name || "—"}</p>
                 <p className="text-xs font-bold text-[#132ea7] uppercase tracking-widest mt-1">Subtype: {viewTarget.call_subtype || "General"}</p>
               </div>
               <div className="p-6 bg-slate-50 rounded-[1.5rem] border border-slate-100">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
                   <MdPhone size={16} /> Contact Details
                 </p>
-                <p className="text-lg font-black text-slate-800 capitalize"><Badge value={viewTarget.receive_type} /></p>
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-2">Employee: {viewTarget.User?.name || "—"} ({viewTarget.User?.employee_id})</p>
+                <Badge value={viewTarget.receive_type} />
+                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-2">
+                  Employee: {viewTarget.User?.name || "—"} ({viewTarget.User?.employee_id})
+                </p>
               </div>
             </div>
 
-            {/* Summary Briefing */}
             {(viewTarget.call_summary || viewTarget.remarks) && (
               <div className="p-10 bg-[#132ea7] rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden">
                 <div className="relative z-10 space-y-6">
@@ -497,41 +438,31 @@ console.log("🚀 ~ handleSubmit ~ cc:", cc);
                       <p className="text-[11px] font-black text-white/50 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
                         <MdInfoOutline size={18} className="text-white/30" /> Executive Summary
                       </p>
-                      <p className="text-xl font-medium leading-relaxed opacity-95 italic whitespace-pre-wrap">
-                        "{viewTarget.call_summary}"
-                      </p>
+                      <p className="text-xl font-medium leading-relaxed opacity-95 italic whitespace-pre-wrap">"{viewTarget.call_summary}"</p>
                     </div>
                   )}
                   {viewTarget.remarks && (
                     <div>
-                      <p className="text-[11px] font-black text-white/50 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
-                        Remarks
-                      </p>
-                      <p className="text-base font-medium leading-relaxed opacity-80 whitespace-pre-wrap">
-                        {viewTarget.remarks}
-                      </p>
+                      <p className="text-[11px] font-black text-white/50 uppercase tracking-[0.2em] mb-3">Remarks</p>
+                      <p className="text-base font-medium leading-relaxed opacity-80 whitespace-pre-wrap">{viewTarget.remarks}</p>
                     </div>
                   )}
-
-      
                 </div>
-                {/* Abstract background elements */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-[100px]" />
                 <div className="absolute bottom-0 left-0 w-48 h-48 bg-sky-500/10 rounded-full blur-[80px]" />
               </div>
             )}
 
             <div className="flex items-center justify-end pt-4">
-              <Button variant="ghost" onClick={() => setViewTarget(null)} className="text-slate-400 font-black uppercase tracking-[0.2em] text-xs">Close Archives</Button>
+              <Button variant="ghost" onClick={() => setViewTarget(null)} className="text-slate-400 font-black uppercase tracking-[0.2em] text-xs">Close</Button>
             </div>
           </div>
         )}
       </Modal>
 
-      {/* Delete confirm */}
       <ConfirmDialog
         show={!!confirmDelete}
-        message={`This action will permanently purge the call record for "${confirmDelete?.caller_name}".`}
+        message={`Permanently delete call record for "${confirmDelete?.caller_name}"?`}
         onConfirm={handleDelete}
         onCancel={() => setConfirmDelete(null)}
         loading={deleting}

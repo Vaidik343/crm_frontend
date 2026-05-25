@@ -5,7 +5,7 @@ import { ENDPOINTS } from "../../api/endpoints";
 import Badge from "../../components/ui/Badge";
 import Spinner from "../../components/ui/Spinner";
 import Alert from "../../components/ui/Alert";
-import { MdPeople, MdPhone, MdCheckCircle, MdBook } from "react-icons/md";
+import { MdPeople, MdPhone, MdCheckCircle, MdBook ,MdGroups } from "react-icons/md";
 import Export from "./Export";
 
 import StatCard from "../../components/ui/StatCard";
@@ -62,27 +62,35 @@ const Dashboard = () => {
       <Alert type="danger" message={error} onClose={() => setError("")} />
 
       {/* ── Total counts ───────────────────────────────── */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
         <StatCard 
-          label="Total Team" 
+          label="Total Employee" 
           value={data?.totals?.employees} 
           icon={<MdPeople size={28} />} 
           color="secondary"
           description="Active Employees"
         />
+
+        <StatCard
+  label="Total Teams"
+  value={data?.totals?.teams}
+  icon={<MdGroups size={28} />}
+  color="success"
+  description="Active Teams"
+/>
         <StatCard 
-          label="Intelligence Logs" 
+          label="Total Calls" 
           value={data?.totals?.calls} 
           icon={<MdPhone size={28} />} 
           color="info"
           description="Calls & Meetings"
         />
         <StatCard 
-          label="Active Missions" 
+          label="Total Task" 
           value={data?.totals?.tasks} 
           icon={<MdCheckCircle size={28} />} 
           color="primary"
-          description="Tasks Assigned"
+          description="Assigned"
         />
         <StatCard 
           label="Work Archives" 
