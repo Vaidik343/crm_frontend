@@ -187,6 +187,8 @@ const MyTasks = () => {
       <Alert type={alert.type} message={alert.message} onClose={() => setAlert({ type: "", message: "" })} />
 
       {/* Table */}
+      {/* Desktop Table */}
+<div className="hidden md:block">
       <div className="bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left border-collapse">
@@ -261,7 +263,142 @@ const MyTasks = () => {
           </div>
           <button disabled={page === totalPages} onClick={() => setPage(page + 1)} className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50">Next</button>
         </div>
+
+        {/* Mobile Pagination */}
+<div className="d-md-none   mt-4">
+  <button
+    disabled={page === 1}
+    onClick={() => setPage(page - 1)}
+    className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50"
+  >
+    Prev
+  </button>
+
+  <span className="text-sm font-bold text-slate-500">
+    {page} / {totalPages}
+  </span>
+
+  <button
+    disabled={page === totalPages}
+    onClick={() => setPage(page + 1)}
+    className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50"
+  >
+    Next
+  </button>
+</div>
       </div>
+      </div>
+
+
+{/* Mobile Cards */}
+<div className="d-block d-md-none space-y-4">
+  {tasks.length === 0 ? (
+    <div className="bg-white  p-4 text-center text-slate-400 font-bold">
+      No tasks found.
+    </div>
+  ) : (
+    tasks.map((task) => (
+      <div
+        key={task.id}
+        className="bg-white  p-4 border border-slate-100 shadow-sm"
+      >
+        {/* Header */}
+        <div className="flex items-start justify-between gap-3 mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-3 bg-[#132ea7] text-white flex items-center justify-center">
+              <MdAssignment size={20} />
+            </div>
+
+            <div>
+              <h4 className="font-black text-slate-800 text-base leading-tight">
+                {task.task}
+              </h4>
+
+              {task.description && (
+                <p className="text-xs text-slate-400 mt-1">
+                  {task.description}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <Badge value={task.status} />
+        </div>
+
+        {/* Info */}
+        <div className="space-y-3 text-sm">
+          {/* Assignee */}
+          <div className="flex items-center justify-between">
+            <span className="text-slate-400 font-bold uppercase text-[10px]">
+              Assigned
+            </span>
+
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-[#132ea7] font-black text-[10px]">
+                {task.assignee?.name?.charAt(0) || "?"}
+              </div>
+
+              <span className="font-bold text-slate-700">
+                {task.assignee?.name || "—"}
+              </span>
+            </div>
+          </div>
+
+          {/* Team */}
+          <div className="flex items-center justify-between">
+            <span className="text-slate-400 font-bold uppercase text-[10px]">
+              Team
+            </span>
+
+            <span className="font-bold text-slate-700">
+              {task.team?.name || "—"}
+            </span>
+          </div>
+
+          {/* Project */}
+          <div className="flex items-center justify-between">
+            <span className="text-slate-400 font-bold uppercase text-[10px]">
+              Project
+            </span>
+
+            <span className="font-bold text-slate-700">
+              {task.project?.name || "—"}
+            </span>
+          </div>
+
+          {/* Due Date */}
+          <div className="flex items-center justify-between">
+            <span className="text-slate-400 font-bold uppercase text-[10px]">
+              Due
+            </span>
+
+            <DueDateBadge dueDate={task.due_date} />
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div className="flex items-center gap-3 mt-5 pt-4 border-t border-slate-100">
+          <button
+            onClick={() => openEdit(task)}
+            className="flex-1 h-11 rounded-3 bg-[#132ea7]/10 text-[#132ea7] font-bold flex items-center justify-center gap-2"
+          >
+            <MdEdit size={18} />
+            Edit
+          </button>
+
+          <button
+            onClick={() => setConfirmDelete(task)}
+            className="flex-1 h-11 rounded-3 bg-red-50 text-red-500 font-bold flex items-center justify-center gap-2"
+          >
+            <MdDelete size={18} />
+            Delete
+          </button>
+        </div>
+      </div>
+    ))
+  )}
+</div>
+
 
       {/* Create / Edit Modal */}
       <Modal show={showModal} onClose={closeModal} title={editTarget ? "Edit Task" : "Create New Task"} size="lg">
