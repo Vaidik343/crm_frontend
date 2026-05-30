@@ -101,7 +101,7 @@ const updateProject = useCallback(async (id, payload) => {
 
   const updateMemberRole = useCallback(async (memberId, role_id) => {
     try {
-      const {data} = await api.patch(ENDPOINTS.PROJECTS.UPDATE_MEMBER_ROLE(memberId))
+      const {data} = await api.patch(ENDPOINTS.PROJECTS.UPDATE_MEMBER_ROLE(memberId),{role_id})
       return data;
     } catch (error) {
       throw error
