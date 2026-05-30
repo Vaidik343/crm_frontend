@@ -14,12 +14,14 @@ import {
     MdFileDownload,
     MdMenuOpen,
     MdBook,
-    MdGroup
+    MdGroup,
+    MdNotifications
 } from "react-icons/md";
 
 import { CgLogOut } from "react-icons/cg";
 import { BsFillCaretLeftSquareFill } from "react-icons/bs"
 import { BsFillCaretRightSquareFill } from "react-icons/bs";
+import NotificationBell from "../NotificationBell";
 
 const navItems = [
     { to: "/admin/dashboard", label: "Dashboard", icon: <MdDashboard size={20} /> },
@@ -30,7 +32,7 @@ const navItems = [
     { to: "/admin/calls", label: "Calls", icon: <MdPhone size={20} /> },
     { to: "/admin/permissions", label: "Permissions", icon: <MdLock size={20} /> },
     { to: "/admin/work-logs", label: "Work Logs", icon: <MdBook size={20} /> },
-    { to: "/admin/teams", label: "Teams", icon: <MdGroup size={20} /> },
+    // { to: "/admin/teams", label: "Teams", icon: <MdGroup size={20} /> },
     
     // { to: "/admin/export", label: "Export", icon: <MdFileDownload size={20} /> },
 ];
@@ -132,6 +134,7 @@ const AdminLayout = () => {
                             <span className="text-sm font-medium text-slate-700 leading-none">{user?.name}</span>
                             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{user?.role || "Administrator"}</span>
                         </div>
+                        <NotificationBell />
                         <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md ring-2 ring-white" style={{ backgroundColor: "#132ea7" }}>
                             {user?.name?.charAt(0) || "A"}
                         </div>

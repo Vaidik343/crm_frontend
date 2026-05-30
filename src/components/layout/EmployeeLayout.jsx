@@ -1,9 +1,11 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from '../../context/AuthContext';
 import Button from "../ui/Button";
+
 import {  
-   MdLogout, MdTask, MdPhone, MdBook, MdLock, MdDashboard, MdMenu,MdClose,} from "react-icons/md";
+   MdLogout, MdTask, MdPhone, MdBook, MdLock, MdDashboard, MdMenu,MdClose, MdFolder} from "react-icons/md";
 import { useState } from "react";
+import NotificationBell from "../NotificationBell";
 
 const navItems = [
     { to: "/employee/tasks", label: "My Tasks", icon: <MdTask size={18} /> },
@@ -11,6 +13,7 @@ const navItems = [
     { to: "/employee/work-logs", label: "Work Log", icon: <MdBook size={18} /> },
     { to: "/employee/password", label: "Password", icon: <MdLock size={18} /> },
     { to: "/employee/MyDashboard", label: "Dashboard", icon: <MdDashboard size={18} /> },
+    { to: "/employee/projects", label: "Projects", icon: <MdFolder size={18} /> },
     //   {to: "/Team", label:"Team", }
 ];
 
@@ -78,6 +81,7 @@ const EmployeeLayout = () => {
             </div>
 
             {/* Avatar */}
+            <NotificationBell />
             <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[#132ea7] font-black shadow-inner">
                 {user?.name?.charAt(0) || "E"}
             </div>

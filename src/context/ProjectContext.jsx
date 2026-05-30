@@ -89,19 +89,53 @@ const updateProject = useCallback(async (id, payload) => {
     }
   }, []);
 
+  const addMemberToProject = useCallback(async (projectId, members) => {
+    try {
+      const {data} = await api.post(ENDPOINTS.PROJECTS.ADD_MEMBERS(projectId), {members});
+      setProjects( (prev) => prev.map( (p) => p.id === projectId ? data.project : p));
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }, [])
+
+  const updateMemberRole = useCallback(async (memberId, role_id) => {
+    try {
+      const {data} = await api.patch(ENDPOINTS.PROJECTS.UPDATE_MEMBER_ROLE(memberId))
+      return data;
+    } catch (error) {
+      throw error
+    }
+  }, []);
+
+  const removeMember = useCallback( async (memberId, projectId) => {
+    try {
+      const {data} = await api.delete(ENDPOINTS.PROJECTS.REMOVE_MEMBER(memberId));
+
+      // refresh that project in state
+      setProjects((prev) => prev.map( (p) => {
+        if(p.id !== projectId) return p;
+        return {...p, members: p.members.filter( (m) => m.id !== memberId)};
+      }));
+
+    } catch (error) {
+      throw error      
+    }
+
+  }, [])
     const totalPages = Math.ceil(total / limit);
 
   const value = useMemo(
     () => ({ projects, loading,page,
       limit,
       total,
-      totalPages, setPage, getAllProjects, getProjectById, createProject, updateProject, deleteProject }),
+      totalPages, setPage, getAllProjects, getProjectById, createProject, updateProject, deleteProject, addMemberToProject, updateMemberRole, removeMember }),
     [projects, loading,  page,
       limit,
       total,
       totalPages,
 
-      setPage, getAllProjects, getProjectById, createProject, updateProject, deleteProject]
+      setPage, getAllProjects, getProjectById, createProject, updateProject, deleteProject, addMemberToProject, updateMemberRole, removeMember]
   );
 
   return <ProjectContext.Provider value={value}>{children}</ProjectContext.Provider>;

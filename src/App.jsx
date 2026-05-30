@@ -24,11 +24,11 @@ import ChangePassword  from "./pages/employee/ChangePassword";
 
 import Calls from './pages/admin/Calls';
 import MyDashboard from './pages/employee/MyDashboard';
-import Teams from './pages/Team';
-import TeamDashboard from './pages/TeamDashboard';
-import MyTeams from './pages/employee/MyTeam';
+// import Teams from './pages/Team';
+// import TeamDashboard from './pages/TeamDashboard';
+// import MyTeams from './pages/employee/MyTeam';
 
-
+// import MyProject from './pages/employee/MyProjects';
 
 const App = () => {
 
@@ -63,8 +63,8 @@ const App = () => {
   <Route path='work-logs' element={<AdminWorkLogs />} />
 
   {/* Teams */}
-  <Route path='teams' element={<Teams />} />
-  <Route path='teams/:id/dashboard' element={<TeamDashboard />} />
+  {/* <Route path='teams' element={<Teams />} />
+  <Route path='teams/:id/dashboard' element={<TeamDashboard />} /> */}
 
   <Route index element={<Navigate to='dashboard' replace />} />
 </Route>
@@ -86,8 +86,11 @@ const App = () => {
   <Route path="myDashboard" element={<MyDashboard />} />
 
   {/* Teams */}
-  <Route path="teams" element={<MyTeams />} />
-  <Route path="teams/:id/dashboard" element={<TeamDashboard />} />
+  {/* <Route path="teams" element={<MyTeams />} />
+  <Route path="teams/:id/dashboard" element={<TeamDashboard />} /> */}
+ 
+   {/* project */}
+   {/* <Route path="projects" element={<MyProjects />} /> */}
 
   <Route index element={<Navigate to="tasks" replace />} />
 </Route>

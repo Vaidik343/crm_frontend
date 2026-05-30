@@ -27,9 +27,21 @@ export const ENDPOINTS = {
         ALL: "/projects",
         GET_BY_ID: (id) => `/projects/${id}`,
         UPDATE: (id) => `/projects/${id}`,
-        DELETE: (id) => `/projects/${id}`
+        DELETE: (id) => `/projects/${id}`,
+
+        // member routes
+        ADD_MEMBERS: (id) =>   `/projects/${id}/members`,
+        UPDATE_MEMBER_ROLE: (id) => `/projects/members/${id}`,
+        REMOVE_MEMBER: (memberId)=> `/members/${memberId}`,
 
     },
+
+    NOTIFICATION: {
+        ALL: '/notifications',
+        MARK_ALL_READ: 'notifications/read-all',
+        MARK_READ_ID: (id) => `/notifications/${id}/read`
+    },
+    
     PASSWORD: {
         CHANGE: (id) => '/password/change', //PATCH
         RESET: (id) => `/password/reset/${id}`     // PATCH

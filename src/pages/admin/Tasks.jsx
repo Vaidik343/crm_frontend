@@ -21,7 +21,7 @@ const initialForm = {
   project_id:  "",
   call_id:     "",
   assigned_to: "",
-  due_date:    "", 
+  due_date:    "",  
   status:      "open",
 };
 
