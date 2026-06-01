@@ -11,7 +11,7 @@ import Spinner from "../../components/ui/Spinner";
 import Badge from "../../components/ui/Badge";
 
 
-import { MdAdd, MdGroup , MdChevronRight , MdBusinessCenter, MdCalendarToday, MdEdit, MdDelete, MdPerson, MdPowerSettingsNew, MdFolder } from "react-icons/md";
+import { MdAdd, MdGroup , MdChevronRight , MdBusinessCenter, MdCalendarToday, MdEdit, MdDelete, MdPerson, MdPowerSettingsNew, MdFolder, MdPersonAdd, MdPersonRemove, MdCheckCircle } from "react-icons/md";
 import { useRole } from './../../context/RoleContext';
 import Select from './../../components/ui/Select';
 import { useUser } from './../../context/UserContext';
@@ -30,7 +30,8 @@ const initialForm = {
 
 const Projects = () => {
   const { projects, loading,  page,
-  totalPages, getAllProjects, createProject, updateProject, deleteProject } = useProject();
+  totalPages, getAllProjects, createProject, updateProject, deleteProject,
+  addMemberToProject, removeMember: removeMemberFromProject } = useProject();
   
   const {roles,  getAllRoles}  = useRole();
 
@@ -50,6 +51,12 @@ const Projects = () => {
     // Expanded rows (members inline)
   const [expandedRow, setExpandedRow] = useState(null);
 
+  // Inline add-member state (mirrors Team.jsx)
+  const [addingToProject, setAddingToProject] = useState(null);
+  const [selectedUsers, setSelectedUsers]     = useState([]);
+  const [addingMember, setAddingMember]       = useState(false);
+  const [removingMember, setRemovingMember]   = useState(null);
+
 
   useEffect(() => {
     getAllProjects?.(page);
@@ -57,6 +64,52 @@ const Projects = () => {
      getAllUsers?.();
   }, [page]);
 
+
+  // ── Inline Member Helpers (Team.jsx-style) ──────────────────────────────
+  const getMemberUserIds = (project) =>
+    (project.members || []).map((m) => m.user_id || m.user?.id);
+
+  const getAvailableEmployees = (project) => {
+    const memberIds = getMemberUserIds(project);
+    return users.filter((u) => !memberIds.includes(u.id));
+  };
+
+  const toggleSelectUser = (userId) => {
+    setSelectedUsers((prev) =>
+      prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
+    );
+  };
+
+  const handleAddProjectMembers = async () => {
+    if (!addingToProject || selectedUsers.length === 0) return;
+    try {
+      setAddingMember(true);
+      await addMemberToProject(
+        addingToProject.id,
+        selectedUsers.map((user_id) => ({ user_id }))
+      );
+      setAlert({ type: "success", message: `${selectedUsers.length} member(s) added to project` });
+      setAddingToProject(null);
+      setSelectedUsers([]);
+      await getAllProjects(page);
+    } catch (err) {
+      setAlert({ type: "danger", message: err?.response?.data?.message || "Failed to add members" });
+    } finally {
+      setAddingMember(false);
+    }
+  };
+
+  const handleRemoveProjectMember = async (memberId, memberName, projectId) => {
+    try {
+      setRemovingMember(memberId);
+      await removeMemberFromProject(memberId, projectId);
+      setAlert({ type: "success", message: `${memberName} removed from project` });
+    } catch (err) {
+      setAlert({ type: "danger", message: err?.response?.data?.message || "Failed to remove member" });
+    } finally {
+      setRemovingMember(null);
+    }
+  };
 
   const PROJECT_TYPES = {
   web: ["static", "dynamic"],
@@ -433,27 +486,136 @@ await createProject({
                     </td>
                   </tr>
 
-                     {/* Expanded members row */}
+                     {/* Expanded members row — Team.jsx-style */}
                     {expandedRow === project.id && (
-                      <tr key={`${project.id}-members`} className="bg-slate-50/50">
-                        <td colSpan={8} className="px-10 py-4">
-                          {project.members?.length === 0 ? (
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">No members yet</p>
-                          ) : (
-                            <div className="flex flex-wrap gap-3">
-                              {project.members.map((m) => (
-                                <div key={m.id} className="flex items-center gap-2 px-3 py-2 bg-white rounded-xl border border-slate-100 shadow-sm">
-                                  <div className="w-7 h-7 rounded-full bg-[#132ea7]/10 text-[#132ea7] flex items-center justify-center font-black text-[10px]">
-                                    {m.user?.name?.charAt(0) || "?"}
-                                  </div>
-                                  <div>
-                                    <p className="text-xs font-black text-slate-700">{m.user?.name}</p>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase">{m.role?.name || "No role"}</p>
-                                  </div>
-                                </div>
-                              ))}
+                      <tr key={`${project.id}-members`} className="bg-slate-50/30">
+                        <td colSpan={8} className="px-10 py-6">
+                          <div className="space-y-5">
+
+                            {/* Section header */}
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
+                                Project Members ({project.members?.length || 0})
+                              </h4>
+                              <button
+                                className="flex items-center gap-2 text-xs font-black text-[#132ea7] uppercase tracking-widest hover:bg-[#132ea7]/10 px-3 py-1.5 rounded-xl transition-all"
+                                onClick={() => setAddingToProject(addingToProject?.id === project.id ? null : project)}
+                              >
+                                <MdPersonAdd size={16} />
+                                Add Members
+                              </button>
                             </div>
-                          )}
+
+                            {/* Current members grid */}
+                            {!project.members?.length ? (
+                              <div className="text-center py-6 bg-white rounded-2xl border border-dashed border-slate-200">
+                                <MdGroup size={24} className="text-slate-300 mx-auto mb-2" />
+                                <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">No members yet</p>
+                                <p className="text-slate-300 text-xs mt-1">Click "Add Members" to get started</p>
+                              </div>
+                            ) : (
+                              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                                {project.members.map((m) => (
+                                  <div
+                                    key={m.id}
+                                    className="flex items-center justify-between p-3 bg-white rounded-2xl border border-slate-100 group shadow-sm"
+                                  >
+                                    <div className="flex items-center gap-2 min-w-0">
+                                      <div className="w-8 h-8 rounded-xl bg-[#132ea7]/10 text-[#132ea7] flex items-center justify-center font-black text-sm flex-shrink-0">
+                                        {m.user?.name?.charAt(0) || "?"}
+                                      </div>
+                                      <div className="min-w-0">
+                                        <p className="text-xs font-black text-slate-700 truncate">{m.user?.name || "Unknown"}</p>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">{m.role?.name || m.user?.employee_id || "—"}</p>
+                                      </div>
+                                    </div>
+                                    <button
+                                      className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all flex-shrink-0 ml-2"
+                                      onClick={() => handleRemoveProjectMember(m.id, m.user?.name, project.id)}
+                                      disabled={removingMember === m.id}
+                                      title="Remove Member"
+                                    >
+                                      {removingMember === m.id ? <Spinner size="xs" /> : <MdPersonRemove size={16} />}
+                                    </button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {/* Inline Add Members Panel */}
+                            {addingToProject?.id === project.id && (() => {
+                              const availableEmps = getAvailableEmployees(project);
+                              return (
+                                <div className="bg-white rounded-2xl border border-slate-100 p-5 space-y-4 shadow-sm">
+                                  <h4 className="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">
+                                    Select Employees to Add
+                                  </h4>
+                                  {availableEmps.length === 0 ? (
+                                    <p className="text-slate-400 font-medium text-sm text-center py-4">
+                                      All employees are already in this project
+                                    </p>
+                                  ) : (
+                                    <>
+                                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-56 overflow-y-auto custom-scrollbar">
+                                        {availableEmps.map((emp) => {
+                                          const isSelected = selectedUsers.includes(emp.id);
+                                          return (
+                                            <button
+                                              key={emp.id}
+                                              onClick={() => toggleSelectUser(emp.id)}
+                                              className={`flex items-center gap-2 p-3 rounded-xl border text-left transition-all ${
+                                                isSelected
+                                                  ? "bg-[#132ea7] border-[#132ea7] text-white"
+                                                  : "bg-slate-50 border-slate-200 text-slate-700 hover:border-[#132ea7]/30"
+                                              }`}
+                                            >
+                                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs flex-shrink-0 ${
+                                                isSelected ? "bg-white/20 text-white" : "bg-white text-[#132ea7]"
+                                              }`}>
+                                                {emp.name?.charAt(0)}
+                                              </div>
+                                              <div className="min-w-0 flex-1">
+                                                <p className={`text-xs font-black truncate ${isSelected ? "text-white" : "text-slate-700"}`}>
+                                                  {emp.name}
+                                                </p>
+                                                <p className={`text-[10px] font-bold uppercase tracking-widest ${isSelected ? "text-white/70" : "text-slate-400"}`}>
+                                                  {emp.employee_id}
+                                                </p>
+                                              </div>
+                                              {isSelected && <MdCheckCircle size={15} className="flex-shrink-0" />}
+                                            </button>
+                                          );
+                                        })}
+                                      </div>
+                                      <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+                                        <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
+                                          {selectedUsers.length} selected
+                                        </p>
+                                        <div className="flex gap-3">
+                                          <button
+                                            className="px-4 py-2 text-xs font-black text-slate-500 uppercase tracking-widest hover:bg-slate-100 rounded-xl transition-all"
+                                            onClick={() => { setAddingToProject(null); setSelectedUsers([]); }}
+                                          >
+                                            Cancel
+                                          </button>
+                                          <Button
+                                            variant="primary"
+                                            className="px-5 py-2 text-xs font-black uppercase tracking-widest h-auto"
+                                            onClick={handleAddProjectMembers}
+                                            loading={addingMember}
+                                            disabled={selectedUsers.length === 0}
+                                          >
+                                            Add {selectedUsers.length > 0 ? `(${selectedUsers.length})` : ""}
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
+                              );
+                            })()}
+
+                          </div>
                         </td>
                       </tr>
                     )}

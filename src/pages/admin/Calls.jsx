@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { useCall } from "../../context/CallContext";
 import { useProject } from "../../context/ProjectContext";
 import { useTask } from './../../context/TaskContext';
+import { useAuth } from './../../context/AuthContext';
+import { useUser } from './../../context/UserContext';
+
 import Badge from "../../components/ui/Badge";
 import Button from "../../components/ui/Button";
 import Alert from "../../components/ui/Alert"; 
@@ -11,7 +14,7 @@ import Input from "../../components/ui/Input";
 import Select from "../../components/ui/Select";
 import Textarea from "../../components/ui/Textarea";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
-import { MdEdit, MdDelete, MdVisibility, MdPhone, MdFolder, MdCalendarToday, MdInfoOutline, MdAdd } from "react-icons/md";
+import { MdEdit, MdDelete, MdComment, MdAssignment , MdVisibility, MdTransferWithinAStation ,MdPhone, MdFolder, MdCalendarToday, MdInfoOutline, MdAdd } from "react-icons/md";
 
 const CALL_TYPES = {
   inquiry:   ["inquiry", "follow-back"],
@@ -33,6 +36,16 @@ const FILTER_OPTIONS = [
   { value: "complaint", label: "Complaint" },
 ];
 
+
+const PREFIX_INFO = {
+  C: "Call",
+  CT: "Call + Task(Self)",
+  CTA: "Call + Task (Assigned to Other)",
+  CTR: "Call Transfer",
+  CFB: "Call follow-back",
+};
+
+
 const initialForm = {
   caller_name:   "",
   caller_number: "",
@@ -43,12 +56,31 @@ const initialForm = {
   call_summary:  "",
   remarks:       "",
   is_task:       false,
+  transfer_to:      "",
+  task_assigned_to: "",
+  is_follow_up: false,
+  parent_call_id:   "",
 };
+
+
+// -Derive expected display id prefix from..
+
+const getExpectedPrefix = (form) => {
+  if(form.transfer_to)  return "CTR";
+  if(form.is_task && form.task_assigned_to) return "CTA";
+  if(form.is_task) return "CT";
+   if (form.is_follow_up && form.parent_call_id) return "CFB";
+  return "C";
+};
+
 
 const Calls = () => {
   const { calls, loading, page, setPage, totalPages, getAllCalls, createCall, updateCall, deleteCall } = useCall();
   const { projects, getAllProjects } = useProject();
   const {getAllTasks, page: taskPage} = useTask()
+
+  const {users, getAllUsers} = useUser();
+  const {user: authUser} = useAuth();
 
   const [filter, setFilter]               = useState("all");
   const [showModal, setShowModal]         = useState(false);
@@ -61,9 +93,15 @@ const Calls = () => {
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [deleting, setDeleting]           = useState(false);
 
+  const [remarksTarget, setRemarksTarget] = useState(null);
+const [remarkText, setRemarkText]       = useState("");
+const [remarkSubmitting, setRemarkSubmitting] = useState(false);
+const [showNewRemark, setShowNewRemark] = useState(false);
+
   useEffect(() => {
     getAllCalls?.(page);
     getAllProjects?.();
+    getAllUsers?.();
   }, [page]);
 
   const projectOptions = projects.map((p) => ({ value: p.id, label: p.name }));
@@ -76,17 +114,34 @@ const Calls = () => {
     ? CALL_TYPES[form.call_type].map((s) => ({ value: s, label: s }))
     : [];
 
+    // Own calls for parent_call_id dropdown (follow-up);
+    const otherUsers = users.filter((u) => u.id !== authUser?.id);
+
+    //Own calls for parent_call_id dropdown (follow up)
+    const ownCalls = calls.filter( (c) => !c.parent_call_id && !c.transfer_to)
+
   const filtered = filter === "all" ? calls : calls.filter((c) => c.call_type === filter);
+
+  const expectedPrefix = getExpectedPrefix(form);
+
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     const newValue = type === "checkbox" ? checked : value;
-    if (name === "call_type") {
-      setForm((prev) => ({ ...prev, call_type: newValue, call_subtype: "" }));
-    } else {
-      setForm((prev) => ({ ...prev, [name]: newValue }));
-    }
+ if (name === "call_type") {
+    setForm((prev) => ({ ...prev, call_type: newValue, call_subtype: "" }));
+  } else if (name === "transfer_to") {
+    setForm((prev) => ({ ...prev, transfer_to: newValue, is_task: false, task_assigned_to: "", is_follow_up: false, parent_call_id: "" }));
+  } else if (name === "is_task" && !checked) {
+    setForm((prev) => ({ ...prev, is_task: false, task_assigned_to: "" }));
+  } else if (name === "is_follow_up" && !checked) {
+    setForm((prev) => ({ ...prev, is_follow_up: false, parent_call_id: "" }));
+  } else {
+    setForm((prev) => ({ ...prev, [name]: newValue }));
+  }
+
+
     if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
@@ -97,6 +152,8 @@ const Calls = () => {
     if (!form.call_subtype)       errors.call_subtype = "Call subtype is required";
     if (!form.receive_type)       errors.receive_type = "Receive type is required";
     if (form.is_task && !form.project_id) errors.project_id = "Project is required when creating a task";
+  if (form.is_follow_up && !form.parent_call_id) errors.parent_call_id = "Select the original call";
+    // if (form.transfer_to === authUser?.id)           errors.transfer_to   = "Cannot transfer to yourself";
     return errors;
   };
 
@@ -117,8 +174,12 @@ const Calls = () => {
       call_subtype:  call.call_subtype  || "",
       receive_type:  call.receive_type  || "",
       call_summary:  call.call_summary  || "",
-      remarks:       call.remarks       || "",
+      remarks:       "",
       is_task:       call.is_task       || false,
+       transfer_to:      "",
+      task_assigned_to: "",
+      follow_up:   "",
+      parent_call_id:   "",
     });
     setFieldErrors({});
     setShowModal(true);
@@ -129,6 +190,7 @@ const Calls = () => {
     setEditTarget(null);
     setForm(initialForm);
     setFieldErrors({});
+     setShowNewRemark(false); 
   };
 
   const handleSubmit = async (e) => {
@@ -139,7 +201,10 @@ const Calls = () => {
     try {
       setSubmitting(true);
       if (editTarget) {
-        await updateCall(editTarget.id, form);
+         const updated =  await updateCall(editTarget.id, form);
+          if (viewTarget?.id === editTarget.id) {
+        setViewTarget(updated.call || updated);
+      }
         setAlert({ type: "success", message: "Call updated successfully" });
       } else {
         const payload = {
@@ -148,6 +213,10 @@ const Calls = () => {
           caller_number: form.caller_number || null,
           call_summary:  form.call_summary  || null,
           remarks:       form.remarks       || null,
+           is_task:          form.is_task          || false,
+          transfer_to:      form.transfer_to      || null,
+          task_assigned_to: form.task_assigned_to || null,
+         parent_call_id:   form.is_follow_up ? (form.parent_call_id || null) : null,
         };
         const cc = await createCall(payload);
        
@@ -223,14 +292,17 @@ const Calls = () => {
             <thead>
               <tr className="bg-slate-50/50">
                 <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap">Caller Info</th>
+                 <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Display ID</th>
                 <th className="px-6 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Employee</th>
                 <th className="px-6 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap">Project</th>
-                <th className="px-6 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Classification</th>
+   <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Type</th>
                 <th className="px-6 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Medium</th>
                 <th className="px-6 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Date</th>
                 <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</th>
               </tr>
             </thead>
+
+
             <tbody className="divide-y divide-slate-50">
               {filtered.length === 0 && (
                 <tr>
@@ -239,59 +311,102 @@ const Calls = () => {
               )}
               {filtered.map((call) => (
                 <tr key={call.id} className="hover:bg-slate-50/80 transition-colors group">
-                  <td className="px-10 py-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-2xl bg-slate-50 text-[#132ea7] flex items-center justify-center font-black text-lg shadow-inner group-hover:bg-[#132ea7] group-hover:text-white transition-all">
-                        {call.caller_name?.charAt(0) || <MdPhone size={20} />}
+
+
+                  {/* Caller */}
+                  <td className="px-6 py-5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-2xl bg-slate-50 text-[#132ea7] flex items-center justify-center font-black shadow-inner group-hover:bg-[#132ea7] group-hover:text-white transition-all">
+                        {call.caller_name?.charAt(0) || <MdPhone size={18} />}
                       </div>
                       <div>
-                        <div className="font-black text-slate-800 text-lg leading-tight">{call.caller_name}</div>
+                        <div className="font-black text-slate-800 leading-tight">{call.caller_name}</div>
                         {call.caller_number && (
-                          <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">{call.caller_number}</div>
+                          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{call.caller_number}</div>
                         )}
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[#132ea7] font-black text-[10px] uppercase">
-                        {call.User?.name?.charAt(0) || "—"}
+                  {/* Display ID */}
+                  <td className="px-6 py-5">
+                    <span className="px-3 py-1 bg-[#132ea7]/10 text-[#132ea7] rounded-lg text-[10px] font-black uppercase tracking-widest font-mono">
+                      {call.display_id || "—"}
+                    </span>
+                  </td>
+                  {/* Employee */}
+                  <td className="px-6 py-5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-[#132ea7] font-black text-[10px]">
+                        {call.caller?.name?.charAt(0) || call.User?.name?.charAt(0) || "—"}
                       </div>
                       <div>
-                        <div className="text-sm font-black text-slate-600">{call.User?.name || "—"}</div>
-                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{call.User?.employee_id || ""}</div>
+                        <p className="text-xs font-black text-slate-600">{call.caller?.name || call.User?.name || "—"}</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase">{call.caller?.employee_id || call.User?.employee_id || ""}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-6">
-                    <div className="flex items-center gap-2 text-sm font-black text-slate-600">
+
+                  {/* Project */}
+                  <td className="px-6 py-5">
+                    <div className="flex items-center gap-1.5 text-xs font-black text-slate-600">
                       <MdFolder className="text-slate-300" size={16} />
-                      {call.Project?.name || "—"}
+                      {call.project?.name || call.Project?.name || "—"}
                     </div>
                   </td>
-                  <td className="px-6 py-6">
-                    <div className="flex flex-col items-start gap-1.5">
+
+                  {/* Type */}
+                  <td className="px-6 py-5">
+                    <div className="flex flex-col gap-1">
                       <Badge value={call.call_type} />
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] bg-slate-50 px-2 py-0.5 rounded border border-slate-100">{call.call_subtype || "General"}</span>
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
+                        {call.call_subtype}
+                      </span>
+                      {/* Flags */}
+                      <div className="flex gap-1 flex-wrap mt-0.5">
+                        {call.is_task && (
+                          <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-[9px] font-black uppercase flex items-center gap-1">
+                            <MdAssignment size={10} /> Task
+                          </span>
+                        )}
+                        {call.transfer_to && (
+                          <span className="px-1.5 py-0.5 bg-orange-50 text-orange-600 rounded text-[9px] font-black uppercase flex items-center gap-1">
+                            <MdTransferWithinAStation size={10} /> Transfer
+                          </span>
+                        )}
+                        {call.parent_call_id && (
+                          <span className="px-1.5 py-0.5 bg-purple-50 text-purple-600 rounded text-[9px] font-black uppercase">
+                            Follow-up
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </td>
-                  <td className="px-6 py-6"><Badge value={call.receive_type} /></td>
-                  <td className="px-6 py-6">
-                    <div className="flex items-center gap-2 text-sm font-black text-slate-700">
-                      <MdCalendarToday className="text-slate-300" size={16} />
+
+                  {/* Medium */}
+                  <td className="px-6 py-5"><Badge value={call.receive_type} /></td>
+
+                  {/* Date */}
+                  <td className="px-6 py-5">
+                    <div className="flex items-center gap-2 text-xs font-black text-slate-700">
+                      <MdCalendarToday className="text-slate-300" size={14} />
                       {new Date(call.createdAt).toLocaleDateString("default", { month: "short", day: "numeric", year: "numeric" })}
                     </div>
                   </td>
-                  <td className="px-10 py-6 text-right">
+
+                  {/* Actions */}
+                  <td className="px-6 py-5 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <button className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all" onClick={() => setViewTarget(call)} title="View">
-                        <MdVisibility size={20} />
+                      <button onClick={() => setViewTarget(call)} title="View" className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all">
+                        <MdVisibility size={18} />
                       </button>
-                      <button className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 transition-all" onClick={() => openEdit(call)} title="Edit">
-                        <MdEdit size={20} />
+                      {/* <button onClick={() => { setRemarksTarget(call); setRemarkText(""); }} title="Remarks" className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all">
+                        <MdComment size={18} />
+                      </button> */}
+                      <button onClick={() => openEdit(call)} title="Edit" className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 transition-all">
+                        <MdEdit size={18} />
                       </button>
-                      <button className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all" onClick={() => setConfirmDelete(call)} title="Delete">
-                        <MdDelete size={20} />
+                      <button onClick={() => setConfirmDelete(call)} title="Delete" className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all">
+                        <MdDelete size={18} />
                       </button>
                     </div>
                   </td>
@@ -352,33 +467,197 @@ const Calls = () => {
                 onChange={handleChange} placeholder="Brief summary of the contact objectives..." rows={3} />
             </div>
 
-            <div className="md:col-span-2">
-              <Textarea label="Employee Remarks" name="remarks" value={form.remarks}
-                onChange={handleChange} placeholder="Any additional notes or action items..." rows={2} />
-            </div>
+            {/* Remarks section in edit modal */}
+<div className="md:col-span-2 space-y-3">
+  <div className="flex items-center justify-between ml-1">
+    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
+      Remarks
+    </label>
+    {/* + button to toggle new remark input */}
+    <button
+      type="button"
+      onClick={() => setShowNewRemark((prev) => !prev)}
+      className="flex items-center gap-1 px-3 py-1.5 bg-[#132ea7]/10 text-[#132ea7] rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#132ea7]/20 transition-all"
+    >
+      <MdAdd size={14} />
+      {showNewRemark ? "Cancel" : "Add Remark"}
+    </button>
+  </div>
 
-            {/* is_task toggle — only on create */}
+  {/* Existing remarks log */}
+  {Array.isArray(editTarget?.remarks) && editTarget.remarks.length > 0 ? (
+    <div className="space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar">
+      {[...editTarget.remarks].reverse().map((r, i) => (
+        <div key={i} className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+          <p className="text-sm font-bold text-slate-700">{r.text}</p>
+          <div className="flex justify-between mt-1.5">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              {r.added_by_name}
+            </p>
+            <p className="text-[10px] font-bold text-slate-300">
+              {new Date(r.created_at).toLocaleString("default", {
+                month: "short", day: "numeric",
+                hour: "2-digit", minute: "2-digit"
+              })}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  ) : (
+    editTarget && (
+      <p className="text-xs font-bold text-slate-400 text-center py-3">No remarks yet</p>
+    )
+  )}
+
+  {/* New remark input — shown when + is clicked */}
+  {showNewRemark && (
+    <Textarea
+      name="remark"
+      value={form.remark}
+      onChange={handleChange}
+      placeholder="Add a new remark..."
+      rows={2}
+    />
+  )}
+
+  {/* On create — always show the textarea */}
+  {!editTarget && (
+    <Textarea
+      label="Initial Remark (optional)"
+      name="remark"
+      value={form.remark}
+      onChange={handleChange}
+      placeholder="Add a remark..."
+      rows={2}
+    />
+  )}
+</div>
+
+            {/* ── New fields — only on create ────────────────────── */}
             {!editTarget && (
-              <div className="md:col-span-2">
-                <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                  <div>
-                    <p className="text-sm font-black text-slate-700 uppercase tracking-widest">Auto-Create Task</p>
-                    <p className="text-xs font-bold text-slate-400 mt-0.5">
-                      {form.is_task ? "A task will be auto-created from this call" : "Log call only, no task created"}
-                    </p>
-                    {form.is_task && !form.project_id && (
-                      <p className="text-xs font-bold text-amber-500 mt-1">⚠ Select a project to enable task creation</p>
-                    )}
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" name="is_task" checked={form.is_task} onChange={handleChange} className="sr-only peer" />
-                    <div className="w-12 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-6 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#132ea7]" />
-                  </label>
-                </div>
-              </div>
+  <>
+    {/* Transfer To */}
+    <div className="md:col-span-2 space-y-1.5">
+      <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
+        Transfer Call To <span className="text-slate-300 font-bold normal-case">(optional)</span>
+      </label>
+      <select name="transfer_to" value={form.transfer_to} onChange={handleChange}
+        className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all">
+        <option value="">No Transfer</option>
+        {otherUsers.map((u) => (
+          <option key={u.id} value={u.id}>{u.name} ({u.employee_id})</option>
+        ))}
+      </select>
+    </div>
+
+    {/* Follow-up toggle — only when no transfer */}
+    {!form.transfer_to && (
+      <div className="md:col-span-2">
+        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+          <div>
+            <p className="text-sm font-black text-slate-700 uppercase tracking-widest">Follow-up Call</p>
+            <p className="text-xs font-bold text-slate-400 mt-0.5">
+              {form.is_follow_up
+                ? "Calling client back after resolving their request"
+                : "Mark if this is a callback after completing a previous request"}
+            </p>
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" name="is_follow_up" checked={form.is_follow_up}
+              onChange={handleChange} className="sr-only peer" />
+            <div className="w-12 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-6 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#132ea7]" />
+          </label>
+        </div>
+      </div>
+    )}
+
+    {/* Original call selector — shown when is_follow_up */}
+    {form.is_follow_up && !form.transfer_to && (
+      <div className="md:col-span-2 space-y-1.5">
+        <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
+          Original Call <span className="text-red-500">*</span>
+        </label>
+        <select name="parent_call_id" value={form.parent_call_id} onChange={handleChange}
+          className={`w-full bg-slate-50 border ${fieldErrors.parent_call_id ? "border-red-400" : "border-slate-100"} rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all`}>
+          <option value="">Select the call where client made the request...</option>
+          {ownCalls.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.display_id ? `[${c.display_id}] ` : ""}{c.caller_name} — {c.call_subtype} ({new Date(c.createdAt).toLocaleDateString()})
+            </option>
+          ))}
+        </select>
+        {fieldErrors.parent_call_id && (
+          <p className="text-red-500 text-[10px] font-bold uppercase ml-1">{fieldErrors.parent_call_id}</p>
+        )}
+        {/* <p className="text-[10px] font-bold text-slate-400 ml-1">
+          e.g. Jay Shah called about banner change — select that call here
+        </p> */}
+      </div>
+    )}
+
+    {/* is_task toggle — no transfer */}
+    {!form.transfer_to && (
+      <div className="md:col-span-2">
+        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+          <div>
+            <p className="text-sm font-black text-slate-700 uppercase tracking-widest">Auto-Create Task</p>
+            <p className="text-xs font-bold text-slate-400 mt-0.5">
+              {form.is_task ? "A task will be auto-created from this call" : "Log call only"}
+            </p>
+            {form.is_task && !form.project_id && (
+              <p className="text-xs font-bold text-amber-500 mt-1">⚠ Select a project to enable task creation</p>
             )}
           </div>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" name="is_task" checked={form.is_task}
+              onChange={handleChange} className="sr-only peer" />
+            <div className="w-12 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-6 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#132ea7]" />
+          </label>
+        </div>
+      </div>
+    )}
 
+    {/* Assign task to */}
+    {form.is_task && !form.transfer_to && (
+      <div className="md:col-span-2 space-y-1.5">
+        <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
+          Assign Task To <span className="text-slate-300 font-bold normal-case">(blank = self)</span>
+        </label>
+        <select name="task_assigned_to" value={form.task_assigned_to} onChange={handleChange}
+          className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all">
+          <option value="">Self Assign</option>
+          {otherUsers.map((u) => (
+            <option key={u.id} value={u.id}>{u.name} ({u.employee_id})</option>
+          ))}
+        </select>
+      </div>
+    )}
+
+    {/* Follow-up + task combined info */}
+    {form.is_follow_up && form.is_task && (
+      <div className="md:col-span-2 bg-amber-50 border border-amber-100 rounded-2xl px-5 py-3">
+        <p className="text-xs font-black text-amber-600 uppercase tracking-widest">
+          Follow-up call with new task — prefix: {form.task_assigned_to ? "CTA" : "CT"}
+        </p>
+        <p className="text-xs font-bold text-amber-500 mt-1">
+          Link to original call is preserved
+        </p>
+      </div>
+    )}
+  </>
+)}
+          </div>
+
+  {/* Prefix info banner */}
+          {!editTarget && (
+            <div className="bg-[#132ea7]/5 border border-[#132ea7]/10 rounded-2xl px-5 py-3">
+              <p className="text-xs font-black text-[#132ea7] uppercase tracking-widest">
+                Display ID prefix: <span className="text-[#e98937]">{expectedPrefix}</span>
+                <span className="text-slate-400 font-bold normal-case tracking-normal ml-2">— {PREFIX_INFO[expectedPrefix]}</span>
+              </p>
+            </div>
+          )}
           <div className="flex gap-4 pt-6 border-t border-slate-50">
             <Button variant="ghost" className="flex-1 font-black uppercase tracking-widest text-sm" onClick={closeModal} disabled={submitting}>Cancel</Button>
             <Button type="submit" variant="primary" className="flex-[2] h-14 shadow-xl shadow-[#132ea7]/20 font-black uppercase tracking-[0.2em] text-sm" loading={submitting}>
@@ -390,71 +669,118 @@ const Calls = () => {
 
       {/* View Modal */}
       <Modal show={!!viewTarget} onClose={() => setViewTarget(null)} title="Call Details" size="lg">
-        {viewTarget && (
-          <div className="space-y-8 py-4">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 pb-8 border-b border-slate-50">
-              <div className="flex items-center gap-5">
-                <div className="w-20 h-20 rounded-[2rem] bg-[#132ea7] text-white flex items-center justify-center font-black text-3xl shadow-2xl shadow-[#132ea7]/20">
-                  {viewTarget.caller_name?.charAt(0) || <MdPhone size={32} />}
+       {viewTarget && (
+          <div className="space-y-6 py-2">
+
+            {/* Header */}
+            <div className="flex items-start gap-4 pb-5 border-b border-slate-100">
+              <div className="w-14 h-14 rounded-2xl bg-[#132ea7] text-white flex items-center justify-center font-black text-2xl shadow-xl shadow-[#132ea7]/20 shrink-0">
+                {viewTarget.caller_name?.charAt(0) || <MdPhone size={24} />}
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <h3 className="text-xl font-black text-slate-800">{viewTarget.caller_name}</h3>
+                  <Badge value={viewTarget.call_type} />
                 </div>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 font-mono">
+                  {viewTarget.display_id || "No display ID"}
+                </p>
+                {viewTarget.caller_number && (
+                  <p className="text-xs font-bold text-slate-400 mt-1">{viewTarget.caller_number}</p>
+                )}
+              </div>
+            </div>
+
+            {/* Info grid */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {[
+                { label: "Subtype",    value: viewTarget.call_subtype || "—" },
+                { label: "Medium",     value: viewTarget.receive_type || "—" },
+                { label: "Project",    value: viewTarget.project?.name || viewTarget.Project?.name || "—" },
+                { label: "Logged By",  value: viewTarget.caller?.name || viewTarget.User?.name || "—" },
+                { label: "Date",       value: new Date(viewTarget.createdAt).toLocaleDateString() },
+                { label: "Has Task",   value: viewTarget.is_task ? "Yes" : "No" },
+              ].map((item) => (
+                <div key={item.label} className="bg-slate-50 rounded-2xl p-4">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{item.label}</p>
+                  <p className="font-black text-slate-700 text-sm">{item.value}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Transfer info */}
+            {viewTarget.transfer_to && (
+              <div className="flex items-center gap-3 p-4 bg-orange-50 rounded-2xl border border-orange-100">
+                <MdTransferWithinAStation size={20} className="text-orange-500 shrink-0" />
                 <div>
-                  <h3 className="text-2xl font-black text-slate-800 leading-tight">{viewTarget.caller_name}</h3>
-                  <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-xs mt-1">Contact: {viewTarget.caller_number || "—"}</p>
+                  <p className="text-xs font-black text-orange-600 uppercase tracking-widest">Call Transferred</p>
+                  <p className="text-sm font-bold text-orange-700 mt-0.5">
+                    {users.find((u) => u.id === viewTarget.transfer_to)?.name || viewTarget.transfer_to}
+                  </p>
                 </div>
-              </div>
-              <div className="flex flex-col items-end gap-2">
-                <Badge value={viewTarget.call_type} />
-                <div className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                  <MdCalendarToday size={16} className="text-slate-300" />
-                  {new Date(viewTarget.createdAt).toLocaleDateString("default", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="p-6 bg-slate-50 rounded-[1.5rem] border border-slate-100">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
-                  <MdFolder size={16} /> Project
-                </p>
-                <p className="text-lg font-black text-slate-800">{viewTarget.Project?.name || "—"}</p>
-                <p className="text-xs font-bold text-[#132ea7] uppercase tracking-widest mt-1">Subtype: {viewTarget.call_subtype || "General"}</p>
-              </div>
-              <div className="p-6 bg-slate-50 rounded-[1.5rem] border border-slate-100">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
-                  <MdPhone size={16} /> Contact Details
-                </p>
-                <Badge value={viewTarget.receive_type} />
-                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-2">
-                  Employee: {viewTarget.User?.name || "—"} ({viewTarget.User?.employee_id})
-                </p>
-              </div>
-            </div>
-
-            {(viewTarget.call_summary || viewTarget.remarks) && (
-              <div className="p-10 bg-[#132ea7] rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden">
-                <div className="relative z-10 space-y-6">
-                  {viewTarget.call_summary && (
-                    <div>
-                      <p className="text-[11px] font-black text-white/50 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
-                        <MdInfoOutline size={18} className="text-white/30" /> Executive Summary
-                      </p>
-                      <p className="text-xl font-medium leading-relaxed opacity-95 italic whitespace-pre-wrap">"{viewTarget.call_summary}"</p>
-                    </div>
-                  )}
-                  {viewTarget.remarks && (
-                    <div>
-                      <p className="text-[11px] font-black text-white/50 uppercase tracking-[0.2em] mb-3">Remarks</p>
-                      <p className="text-base font-medium leading-relaxed opacity-80 whitespace-pre-wrap">{viewTarget.remarks}</p>
-                    </div>
-                  )}
-                </div>
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-[100px]" />
-                <div className="absolute bottom-0 left-0 w-48 h-48 bg-sky-500/10 rounded-full blur-[80px]" />
               </div>
             )}
 
-            <div className="flex items-center justify-end pt-4">
-              <Button variant="ghost" onClick={() => setViewTarget(null)} className="text-slate-400 font-black uppercase tracking-[0.2em] text-xs">Close</Button>
+            {/* Follow-up info */}
+            {/* {viewTarget.follow_up_date && (
+              <div className="flex items-center gap-3 p-4 bg-purple-50 rounded-2xl border border-purple-100">
+                <MdCalendarToday size={20} className="text-purple-500 shrink-0" />
+                <div>
+                  <p className="text-xs font-black text-purple-600 uppercase tracking-widest">Follow-up Scheduled</p>
+                  <p className="text-sm font-bold text-purple-700 mt-0.5">
+                    {new Date(viewTarget.follow_up_date).toLocaleString("default", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                  </p>
+                </div>
+              </div>
+            )} */}
+
+            {/* Parent call */}
+            {viewTarget.parent_call_id && (
+              <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <MdPhone size={18} className="text-slate-400 shrink-0" />
+                <div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Follow-up for original call</p>
+                  <p className="text-xs font-bold text-[#132ea7] mt-0.5 font-mono">
+                    {calls.find((c) => c.id === viewTarget.parent_call_id)?.display_id || viewTarget.parent_call_id}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Summary */}
+            {viewTarget.call_summary && (
+              <div className="bg-[#132ea7] rounded-2xl p-6 text-white">
+                <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-2 flex items-center gap-2">
+                  <MdInfoOutline size={14} /> Summary
+                </p>
+                <p className="font-medium leading-relaxed opacity-90 italic">"{viewTarget.call_summary}"</p>
+              </div>
+            )}
+
+            {/* Remarks log */}
+            {viewTarget.remarks && Array.isArray(viewTarget.remarks) && viewTarget.remarks.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  Remarks ({viewTarget.remarks.length})
+                </p>
+                <div className="space-y-2 max-h-[180px] overflow-y-auto custom-scrollbar">
+                  {[...viewTarget.remarks].reverse().map((r, i) => (
+                    <div key={i} className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                      <p className="text-sm font-bold text-slate-700">{r.text}</p>
+                      <div className="flex justify-between mt-1.5">
+                        <p className="text-[10px] font-black text-slate-400 uppercase">{r.added_by_name}</p>
+                        <p className="text-[10px] font-bold text-slate-300">
+                          {new Date(r.created_at).toLocaleString("default", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end pt-2">
+              <Button variant="ghost" onClick={() => setViewTarget(null)} className="font-black uppercase tracking-widest text-xs">Close</Button>
             </div>
           </div>
         )}
@@ -467,6 +793,8 @@ const Calls = () => {
         onCancel={() => setConfirmDelete(null)}
         loading={deleting}
       />
+
+    
     </div>
   );
 };

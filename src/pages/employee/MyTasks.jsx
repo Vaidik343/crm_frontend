@@ -4,6 +4,7 @@ import { useProject } from "../../context/ProjectContext";
 import { useCall } from "../../context/CallContext";
 import { useTeam } from "../../context/TeamContext";
 import { useAuth } from "../../context/AuthContext";
+
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
@@ -12,14 +13,16 @@ import Textarea from "../../components/ui/Textarea";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
 import Spinner from "../../components/ui/Spinner";
 import Badge, { DueDateBadge } from "../../components/ui/Badge";
-import { MdAdd, MdAssignment, MdEdit, MdDelete, MdFolder, MdVisibility, MdCalendarToday, MdInfoOutline } from "react-icons/md";
+import { MdAdd, MdAssignment, MdEdit, MdDelete, MdFolder, MdVisibility, MdCalendarToday, MdInfoOutline, MdComment } from "react-icons/md";
+import { useUser } from "../../context/UserContext";
 
 const initialForm = {
   task:        "",
   description: "",
-  team_id:     "",
+  // team_id:     "",
   project_id:  "",
   call_id:     "",
+  assigned_to: "",
   due_date:    "",
   status:      "ongoing",
 };
@@ -28,10 +31,9 @@ const MyTasks = () => {
   const { tasks, loading, page, setPage, totalPages, getAllTasks, createTask, updateTask, deleteTask } = useTask();
   const { projects, getAllProjects } = useProject();
   const { calls, getAllCalls } = useCall();
-  const { teams, getAllTeams } = useTeam();
-  console.log("🚀 ~ MyTasks ~ getAllTeams:", getAllTeams)
-  console.log("🚀 ~ MyTasks ~ teams:", teams)
+  // const { teams, getAllTeams } = useTeam();  
   const { user } = useAuth();
+  const {users, getAllUsers} = useUser();
 
   const [showModal, setShowModal]     = useState(false);
   const [editTarget, setEditTarget]   = useState(null);
@@ -47,38 +49,21 @@ const MyTasks = () => {
     getAllTasks?.(page);
     getAllProjects?.();
     getAllCalls?.();
-    getAllTeams?.();
+    // getAllTeams?.();
+    getAllUsers?.();
   }, [page]);
 
-  // ── Derived: project that belongs to selected team ────────────────────────
-  const selectedTeam = useMemo(
-    () => teams.find((t) => t.id === form.team_id),
-    [teams, form.team_id]
-  );
-
-  // Employee can only assign to themselves — no assigned_to field in employee layout
-  // team members for selected team (for info only, not used in create)
-  const teamMembers = useMemo(() => {
-    if (!selectedTeam) return [];
-    return selectedTeam.team_memberships || selectedTeam.TeamMembers || [];
-  }, [selectedTeam]);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleChange = (e) => {
     const { name, value } = e.target;
-    // When team changes, reset project
-    if (name === "team_id") {
-      setForm((prev) => ({ ...prev, team_id: value, project_id: "" }));
-    } else {
-      setForm((prev) => ({ ...prev, [name]: value }));
-    }
-    if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: "" }));
+         setForm((prev) => ({ ...prev, [name]: value }));
+         if(fieldErrors[name]) setFieldErrors((prev) =>({...prev, [name]: ""}));
   };
 
   const validate = () => {
     const errors = {};
     if (!form.task.trim()) errors.task    = "Task name is required";
-    if (!form.team_id)     errors.team_id = "Team is required";
     return errors;
   };
 
@@ -124,16 +109,17 @@ const MyTasks = () => {
           description: form.description || null,
           due_date:    form.due_date || null,
           status:      form.status,
+           remark:      form.remark || undefined,
         });
         setAlert({ type: "success", message: "Task updated successfully" });
       } else {
         const payload = {
           task:        form.task,
           description: form.description || null,
-          team_id:     form.team_id,
           project_id:  form.project_id || null,
           call_id:     form.call_id || null,
           due_date:    form.due_date || null,
+            remark:      form.remark      || undefined,
           // assigned_to omitted → defaults to req.user.id (self-assign)
         };
         await createTask(payload);
@@ -180,7 +166,7 @@ const MyTasks = () => {
           <p className="text-slate-500 font-bold text-base">Total Tasks: {tasks.length}</p>
         </div>
         <Button variant="primary" className="shadow-lg shadow-[#132ea7]/20 py-3 px-8 rounded h-[52px] font-black uppercase tracking-widest text-sm" onClick={openCreate}>
-          <MdAdd size={22} /> Add New Task
+          <MdAdd size={22} /> New Task
         </Button>
       </div>
 
@@ -189,15 +175,16 @@ const MyTasks = () => {
       {/* Table */}
       {/* Desktop Table */}
 <div className="hidden md:block">
-      <div className="bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
+      <div className="bg-white w-[80dvw] rounded-[2rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/50">
                 <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Task</th>
                 <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Status</th>
-                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Team</th>
+                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Assigned</th>
                 <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Project</th>
+                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">From Call</th>
                 <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Due Date</th>
                 <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</th>
               </tr>
@@ -209,41 +196,82 @@ const MyTasks = () => {
                 </tr>
               )}
               {tasks.map((task) => (
-                <tr key={task.id} className="hover:bg-slate-50/80 transition-colors group">
-                  <td className="px-10 py-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-[#132ea7] text-white flex items-center justify-center font-black shadow-lg shadow-[#132ea7]/10">
-                        <MdAssignment size={18} />
+                 <tr key={task.id} className="hover:bg-slate-50/80 transition-colors group">
+
+                  {/* Display ID */}
+                  <td className="px-6 py-5">
+                    <span className="px-3 py-1 bg-[#132ea7]/10 text-[#132ea7] rounded-lg text-[10px] font-black font-mono">
+                      {task.display_id || "—"}
+                    </span>
+                  </td>
+
+                  {/* Task */}
+                  <td className="px-6 py-5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-[#132ea7] text-white flex items-center justify-center shrink-0 shadow-lg shadow-[#132ea7]/10">
+                        <MdAssignment size={16} />
                       </div>
                       <div>
-                        <div className="font-black text-slate-800 text-lg leading-tight">{task.task}</div>
+                        <div className="font-black text-slate-800 leading-tight">{task.task}</div>
                         {task.description && (
-                          <div className="text-xs font-bold text-slate-400 mt-1 truncate max-w-[200px] italic">{task.description}</div>
+                          <div className="text-xs font-bold text-slate-400 mt-0.5 truncate max-w-[180px] italic">{task.description}</div>
                         )}
                       </div>
                     </div>
                   </td>
-                  <td className="px-8 py-6"><Badge value={task.status} /></td>
-                  <td className="px-8 py-6">
-                    <span className="text-sm font-black text-slate-600">{task.team?.name || "—"}</span>
+
+                  {/* Status */}
+                  <td className="px-6 py-5"><Badge value={task.status} /></td>
+
+                  {/* Assigned to */}
+                  <td className="px-6 py-5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-[#132ea7] font-black text-[10px]">
+                        {task.assignee?.name?.charAt(0) || "?"}
+                      </div>
+                      <div>
+                        <p className="text-xs font-black text-slate-700">{task.assignee?.name || "—"}</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase">{task.assignee?.employee_id || ""}</p>
+                      </div>
+                    </div>
                   </td>
-                  <td className="px-8 py-6">
-                    <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
-                      <MdFolder className="text-slate-300" size={18} />
+
+                  {/* Project */}
+                  <td className="px-6 py-5">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
+                      <MdFolder className="text-slate-300" size={16} />
                       {task.project?.name || "—"}
                     </div>
                   </td>
-                  <td className="px-8 py-6"><DueDateBadge dueDate={task.due_date} /></td>
-                  <td className="px-10 py-6 text-right">
-                    <div className="flex items-center justify-end gap-3">
-                      <button onClick={() => setViewTarget(task)} className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all" title="View Detail">
-                        <MdVisibility size={20} />
+
+                  {/* From Call */}
+                  <td className="px-6 py-5">
+                    {task.call?.display_id ? (
+                      <span className="px-2 py-1 bg-orange-50 text-orange-500 rounded-lg text-[10px] font-black font-mono">
+                        ← {task.call.display_id}
+                      </span>
+                    ) : (
+                      <span className="text-slate-300 text-xs font-bold">—</span>
+                    )}
+                  </td>
+
+                  {/* Due */}
+                  <td className="px-6 py-5"><DueDateBadge dueDate={task.due_date} /></td>
+
+                  {/* Actions */}
+                  <td className="px-6 py-5 text-right">
+                    <div className="flex items-center justify-end gap-2">
+                      <button onClick={() => setViewTarget(task)} className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all">
+                        <MdVisibility size={18} />
                       </button>
-                      <button onClick={() => openEdit(task)} className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all" title="Edit">
-                        <MdEdit size={20} />
+                      <button onClick={() => { setRemarksTarget(task); setRemarkText(""); }} className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all">
+                        <MdComment size={18} />
                       </button>
-                      <button onClick={() => setConfirmDelete(task)} className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:bg-red-500/10 hover:text-red-500 transition-all" title="Delete">
-                        <MdDelete size={20} />
+                      <button onClick={() => openEdit(task)} className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all">
+                        <MdEdit size={18} />
+                      </button>
+                      <button onClick={() => setConfirmDelete(task)} className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all">
+                        <MdDelete size={18} />
                       </button>
                     </div>
                   </td>
@@ -291,223 +319,236 @@ const MyTasks = () => {
 
 
 {/* Mobile Cards */}
-<div className="d-block d-md-none space-y-4">
-  {tasks.length === 0 ? (
-    <div className="bg-white  p-4 text-center text-slate-400 font-bold">
-      No tasks found.
-    </div>
-  ) : (
-    tasks.map((task) => (
-      <div
-        key={task.id}
-        className="bg-white  p-4 border border-slate-100 shadow-sm"
-      >
-        {/* Header */}
-        <div className="flex items-start justify-between gap-3 mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-3 bg-[#132ea7] text-white flex items-center justify-center">
-              <MdAssignment size={20} />
-            </div>
-
-            <div>
-              <h4 className="font-black text-slate-800 text-base leading-tight">
-                {task.task}
-              </h4>
-
-              {task.description && (
-                <p className="text-xs text-slate-400 mt-1">
-                  {task.description}
-                </p>
-              )}
-            </div>
-          </div>
-
-          <Badge value={task.status} />
-        </div>
-
-        {/* Info */}
-        <div className="space-y-3 text-sm">
-          {/* Assignee */}
-          <div className="flex items-center justify-between">
-            <span className="text-slate-400 font-bold uppercase text-[10px]">
-              Assigned
-            </span>
-
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-[#132ea7] font-black text-[10px]">
-                {task.assignee?.name?.charAt(0) || "?"}
+  <div className="md:hidden space-y-4">
+        {tasks.length === 0 ? (
+          <div className="bg-white rounded-2xl p-8 text-center text-slate-400 font-bold">No tasks found.</div>
+        ) : (
+          tasks.map((task) => (
+            <div key={task.id} className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm">
+              <div className="flex items-start justify-between gap-3 mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#132ea7] text-white flex items-center justify-center shrink-0">
+                    <MdAssignment size={18} />
+                  </div>
+                  <div>
+                    <p className="font-black text-slate-800 leading-tight">{task.task}</p>
+                    <p className="text-[10px] font-black text-slate-400 font-mono mt-0.5">{task.display_id}</p>
+                  </div>
+                </div>
+                <Badge value={task.status} />
               </div>
-
-              <span className="font-bold text-slate-700">
-                {task.assignee?.name || "—"}
-              </span>
+              <div className="space-y-2 text-sm mb-4">
+                <div className="flex justify-between">
+                  <span className="text-slate-400 font-bold uppercase text-[10px]">Project</span>
+                  <span className="font-bold text-slate-700">{task.project?.name || "—"}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400 font-bold uppercase text-[10px]">Due</span>
+                  <DueDateBadge dueDate={task.due_date} />
+                </div>
+                {task.call?.display_id && (
+                  <div className="flex justify-between">
+                    <span className="text-slate-400 font-bold uppercase text-[10px]">From Call</span>
+                    <span className="font-black text-orange-500 font-mono text-xs">← {task.call.display_id}</span>
+                  </div>
+                )}
+              </div>
+              <div className="flex gap-2 pt-3 border-t border-slate-100">
+                <button onClick={() => setViewTarget(task)} className="flex-1 h-10 rounded-xl bg-slate-50 text-slate-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all">
+                  <MdVisibility size={16} /> View
+                </button>
+                <button onClick={() => { setRemarksTarget(task); setRemarkText(""); }} className="flex-1 h-10 rounded-xl bg-slate-50 text-slate-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all">
+                  <MdComment size={16} /> Remarks
+                </button>
+                <button onClick={() => openEdit(task)} className="flex-1 h-10 rounded-xl bg-[#132ea7]/10 text-[#132ea7] font-bold flex items-center justify-center gap-1.5 text-xs">
+                  <MdEdit size={16} /> Edit
+                </button>
+                <button onClick={() => setConfirmDelete(task)} className="flex-1 h-10 rounded-xl bg-red-50 text-red-500 font-bold flex items-center justify-center gap-1.5 text-xs">
+                  <MdDelete size={16} /> Delete
+                </button>
+              </div>
             </div>
-          </div>
-
-          {/* Team */}
-          <div className="flex items-center justify-between">
-            <span className="text-slate-400 font-bold uppercase text-[10px]">
-              Team
-            </span>
-
-            <span className="font-bold text-slate-700">
-              {task.team?.name || "—"}
-            </span>
-          </div>
-
-          {/* Project */}
-          <div className="flex items-center justify-between">
-            <span className="text-slate-400 font-bold uppercase text-[10px]">
-              Project
-            </span>
-
-            <span className="font-bold text-slate-700">
-              {task.project?.name || "—"}
-            </span>
-          </div>
-
-          {/* Due Date */}
-          <div className="flex items-center justify-between">
-            <span className="text-slate-400 font-bold uppercase text-[10px]">
-              Due
-            </span>
-
-            <DueDateBadge dueDate={task.due_date} />
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div className="flex items-center gap-3 mt-5 pt-4 border-t border-slate-100">
-          <button
-            onClick={() => openEdit(task)}
-            className="flex-1 h-11 rounded-3 bg-[#132ea7]/10 text-[#132ea7] font-bold flex items-center justify-center gap-2"
-          >
-            <MdEdit size={18} />
-            Edit
-          </button>
-
-          <button
-            onClick={() => setConfirmDelete(task)}
-            className="flex-1 h-11 rounded-3 bg-red-50 text-red-500 font-bold flex items-center justify-center gap-2"
-          >
-            <MdDelete size={18} />
-            Delete
-          </button>
-        </div>
+          ))
+        )}
       </div>
-    ))
-  )}
-</div>
 
 
       {/* Create / Edit Modal */}
-      <Modal show={showModal} onClose={closeModal} title={editTarget ? "Edit Task" : "Create New Task"} size="lg">
-        <form onSubmit={handleSubmit} noValidate className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+         <Modal show={showModal} onClose={closeModal} title={editTarget ? "Edit Task" : "New Task"} size="lg">
+        <form onSubmit={handleSubmit} noValidate className="space-y-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-            {/* Task Name */}
             <div className="md:col-span-2">
               <Input label="Task Name" name="task" value={form.task} onChange={handleChange}
                 error={fieldErrors.task} placeholder="e.g. Fix login bug" required />
             </div>
 
-            {/* Team — required, shown only on create */}
+            {/* Assign to — only on create */}
             {!editTarget && (
               <div className="space-y-1.5">
                 <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
-                  Team <span className="text-red-500">*</span>
+                  Assign To <span className="text-slate-300 font-bold normal-case tracking-normal">(blank = self)</span>
                 </label>
-                <select name="team_id" value={form.team_id} onChange={handleChange}
-                  className={`w-full bg-slate-50 border ${fieldErrors.team_id ? "border-red-500" : "border-slate-100"} rounded-2xl px-5 py-3.5 text-base font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all outline-none`}
-                >
-                  <option value="">Select Team</option>
-                  {teams.map((t) => (
-                    <option key={t.id} value={t.id}>{t.name}</option>
+                <select name="assigned_to" value={form.assigned_to} onChange={handleChange}
+                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all">
+                  <option value="">Self Assign</option>
+                  {users.map((u) => (
+                    <option key={u.id} value={u.id}>{u.name} ({u.employee_id})</option>
                   ))}
                 </select>
-                {fieldErrors.team_id && <p className="text-red-500 text-[10px] font-bold mt-1 ml-1 uppercase">{fieldErrors.team_id}</p>}
               </div>
             )}
 
-            {/* Project — filtered by selected team's project */}
+            {/* Project — only on create */}
             {!editTarget && (
               <div className="space-y-1.5">
                 <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">Project</label>
                 <select name="project_id" value={form.project_id} onChange={handleChange}
-                  disabled={!form.team_id}
-                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-base font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all outline-none disabled:opacity-50"
-                >
+                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all">
                   <option value="">No Project</option>
-                  {/* Only show the project belonging to selected team */}
-                  {selectedTeam?.project_id && projects.filter((p) => p.id === selectedTeam.project_id).map((p) => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
+                  {projects.map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}{p.code ? ` (${p.code})` : ""}</option>
                   ))}
                 </select>
-                {form.team_id && !selectedTeam?.project_id && (
-                  <p className="text-amber-500 text-[10px] font-bold mt-1 ml-1 uppercase">This team has no linked project</p>
-                )}
               </div>
             )}
 
-            {/* Linked Call */}
+            {/* Linked call — only on create */}
             {!editTarget && (
               <div className="space-y-1.5">
                 <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">Linked Call (Optional)</label>
                 <select name="call_id" value={form.call_id} onChange={handleChange}
-                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-base font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all outline-none"
-                >
+                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all">
                   <option value="">No Linked Call</option>
                   {calls.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.caller_name} — {c.call_type} ({new Date(c.createdAt).toLocaleDateString()})
+                      {c.display_id ? `[${c.display_id}] ` : ""}{c.caller_name} — {c.call_type}
                     </option>
-                  ))} 
+                  ))}
                 </select>
               </div>
             )}
 
-            {/* Due Date */}
             <Input label="Due Date" name="due_date" type="date" value={form.due_date} onChange={handleChange} />
 
-            {/* Status — only on edit */}
-            {editTarget && (
-              <div className="md:col-span-2 space-y-1.5">
-                <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">Status</label>
-                <div className="flex flex-wrap gap-3">
-                  {["ongoing", "closed"].map((s) => (
-                    <button key={s} type="button" onClick={() => setForm((prev) => ({ ...prev, status: s }))}
-                      className={`px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${form.status === s ? "bg-[#132ea7] text-white shadow-lg shadow-[#132ea7]/20" : "bg-slate-100 text-slate-400 hover:bg-slate-200"}`}
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
+            {/* Status */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">Status</label>
+              <div className="flex flex-wrap gap-2">
+                {(editTarget ? ["open", "ongoing", "closed"] : ["open", "ongoing"]).map((s) => (
+                  <button key={s} type="button"
+                    onClick={() => setForm((prev) => ({ ...prev, status: s }))}
+                    className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all
+                      ${form.status === s ? "bg-[#132ea7] text-white shadow-lg shadow-[#132ea7]/20" : "bg-slate-100 text-slate-400 hover:bg-slate-200"}`}>
+                    {s}
+                  </button>
+                ))}
               </div>
-            )}
+            </div>
 
-            {/* Description */}
             <div className="md:col-span-2">
-              <Textarea label="Description" name="description" value={form.description} onChange={handleChange}
-                placeholder="Define the scope and requirements..." rows={3} />
+              <Textarea label="Description" name="description" value={form.description}
+                onChange={handleChange} placeholder="Scope and requirements..." rows={3} />
+            </div>
+
+            <div className="md:col-span-2">
+              <Textarea label="Initial Remark (optional)" name="remark" value={form.remark}
+                onChange={handleChange} placeholder="Add a note..." rows={2} />
             </div>
           </div>
 
-          {/* Info box — self assign note */}
+          {/* Prefix info */}
           {!editTarget && (
-            <div className="bg-[#132ea7]/5 border border-[#132ea7]/10 rounded-2xl px-5 py-4">
-              <p className="text-xs font-black text-[#132ea7] uppercase tracking-widest">
-                This task will be self-assigned to you
+            <div className={`rounded-2xl px-5 py-3 border ${form.assigned_to ? "bg-amber-50 border-amber-100" : "bg-[#132ea7]/5 border-[#132ea7]/10"}`}>
+              <p className={`text-xs font-black uppercase tracking-widest ${form.assigned_to ? "text-amber-600" : "text-[#132ea7]"}`}>
+                {form.assigned_to
+                  ? "Assigning to another employee — Display ID prefix: TA"
+                  : "Self-assigning — Display ID prefix: T"}
               </p>
             </div>
           )}
 
-          <div className="flex gap-4 pt-6 border-t border-slate-50">
+          <div className="flex gap-4 pt-5 border-t border-slate-50">
             <Button variant="ghost" className="flex-1 font-black uppercase tracking-widest text-sm" onClick={closeModal} disabled={submitting}>Cancel</Button>
             <Button type="submit" variant="primary" className="flex-[2] h-14 shadow-xl shadow-[#132ea7]/20 font-black uppercase tracking-[0.2em] text-sm" loading={submitting}>
               {editTarget ? "Update Task" : "Create Task"}
             </Button>
           </div>
         </form>
+      </Modal>
+
+
+ {/* View Details Modal */}
+      <Modal show={!!viewTarget} onClose={() => setViewTarget(null)} title="Task Details" size="lg">
+        {viewTarget && (
+          <div className="space-y-5 py-2">
+            <div className="flex items-start gap-4 pb-5 border-b border-slate-100">
+              <div className="w-14 h-14 rounded-2xl bg-[#132ea7] text-white flex items-center justify-center shrink-0 shadow-xl shadow-[#132ea7]/20">
+                <MdAssignment size={26} />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <h3 className="text-xl font-black text-slate-800">{viewTarget.task}</h3>
+                  <Badge value={viewTarget.status} />
+                </div>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 font-mono">
+                  {viewTarget.display_id || "—"}
+                </p>
+                {viewTarget.call?.display_id && (
+                  <p className="text-[10px] font-black text-orange-500 font-mono mt-0.5">
+                    ← from call: {viewTarget.call.display_id}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { label: "Assigned To",  value: viewTarget.assignee?.name || "—" },
+                { label: "Assigned By",  value: viewTarget.assigner?.name || "—" },
+                { label: "Project",      value: viewTarget.project?.name || "—" },
+                { label: "Due Date",     value: viewTarget.due_date ? new Date(viewTarget.due_date).toLocaleDateString() : "—" },
+                { label: "Start Date",   value: viewTarget.start_date ? new Date(viewTarget.start_date).toLocaleDateString() : "—" },
+                // { label: "Created",      value: new Date(viewTarget.createdAt).toLocaleDateString() },
+              ].map((item) => (
+                <div key={item.label} className="bg-slate-50 rounded-2xl p-4">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{item.label}</p>
+                  <p className="font-black text-slate-700 text-sm">{item.value}</p>
+                </div>
+              ))}
+            </div>
+
+            {viewTarget.description && (
+              <div className="bg-[#132ea7] rounded-2xl p-6 text-white">
+                <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-2">Description</p>
+                <p className="font-medium leading-relaxed opacity-90">{viewTarget.description}</p>
+              </div>
+            )}
+
+            {viewTarget.remarks && Array.isArray(viewTarget.remarks) && viewTarget.remarks.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Remarks ({viewTarget.remarks.length})</p>
+                <div className="space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar">
+                  {[...viewTarget.remarks].reverse().map((r, i) => (
+                    <div key={i} className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                      <p className="text-sm font-bold text-slate-700">{r.text}</p>
+                      <div className="flex justify-between mt-1.5">
+                        <p className="text-[10px] font-black text-slate-400 uppercase">{r.added_by_name}</p>
+                        {/* <p className="text-[10px] font-bold text-slate-300">
+                          {new Date(r.created_at).toLocaleString("default", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                        </p> */}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end pt-2">
+              <Button variant="ghost" onClick={() => setViewTarget(null)} className="font-black uppercase tracking-widest text-xs">Close</Button>
+            </div>
+          </div>
+        )}
       </Modal>
 
       <ConfirmDialog
@@ -518,81 +559,7 @@ const MyTasks = () => {
         loading={deleting}
       />
 
-      {/* View Details Modal */}
-      <Modal show={!!viewTarget} onClose={() => setViewTarget(null)} title="Task Details" size="lg">
-        {viewTarget && (() => {
-          const linkedCall = viewTarget.call_id ? calls.find(c => c.id === viewTarget.call_id) : null;
-          return (
-            <div className="space-y-8 py-4">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 pb-8 border-b border-slate-50">
-                <div className="flex items-center gap-5">
-                  <div className="w-20 h-20 rounded-[2rem] bg-[#132ea7] text-white flex items-center justify-center font-black text-3xl shadow-2xl shadow-[#132ea7]/20">
-                    <MdAssignment size={32} />
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-black text-slate-800 leading-tight">{viewTarget.task}</h3>
-                    <div className="flex items-center gap-2 mt-2">
-                      <Badge value={viewTarget.status} />
-                      <div className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5 ml-2">
-                        <MdCalendarToday size={16} className="text-slate-300" />
-                        Due Date: <DueDateBadge dueDate={viewTarget.due_date} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="p-6 bg-slate-50 rounded-[1.5rem] border border-slate-100">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
-                    <MdFolder size={16} /> Association details
-                  </p>
-                  <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">
-                    Team: <span className="font-black text-slate-800">{viewTarget.team?.name || "—"}</span>
-                  </p>
-                  <p className="text-sm font-bold text-slate-500 uppercase tracking-wider mt-1">
-                    Project: <span className="font-black text-[#132ea7]">{viewTarget.project?.name || "—"}</span>
-                  </p>
-                </div>
-                <div className="p-6 bg-slate-50 rounded-[1.5rem] border border-slate-100">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
-                    <MdAssignment size={16} /> Assignment & Source
-                  </p>
-                  <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">
-                    Assignee: <span className="font-black text-slate-800">{viewTarget.assignee?.name || user?.name || "Self"}</span>
-                  </p>
-                  {linkedCall && (
-                    <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest mt-2 border-t border-slate-200/60 pt-2">
-                      Linked Call: {linkedCall.caller_name} ({linkedCall.call_subtype})
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              {viewTarget.description && (
-                <div className="p-10 bg-[#132ea7] rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden">
-                  <div className="relative z-10 space-y-6">
-                    <div>
-                      <p className="text-[11px] font-black text-white/50 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
-                        <MdInfoOutline size={18} className="text-white/30" /> Detailed Description
-                      </p>
-                      <p className="text-xl font-medium leading-relaxed opacity-95 italic whitespace-pre-wrap">
-                        {viewTarget.description}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-[100px]" />
-                  <div className="absolute bottom-0 left-0 w-48 h-48 bg-sky-500/10 rounded-full blur-[80px]" />
-                </div>
-              )}
-
-              <div className="flex items-center justify-end pt-4">
-                <Button variant="ghost" onClick={() => setViewTarget(null)} className="text-slate-400 font-black uppercase tracking-[0.2em] text-xs">Close</Button>
-              </div>
-            </div>
-          );
-        })()}
-      </Modal>
+     
     </div>
   );
 };
