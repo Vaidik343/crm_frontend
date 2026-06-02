@@ -175,16 +175,17 @@ const MyTasks = () => {
       {/* Table */}
       {/* Desktop Table */}
 <div className="hidden md:block">
-      <div className="bg-white w-[80dvw] rounded-[2rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
+      <div className="bg-white w-[95vw] lg:w-[85vw] xl:w-[80vw] relative left-1/2 -translate-x-1/2 rounded-[2rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/50">
+                              <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Display Id</th>
                 <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Task</th>
                 <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Status</th>
                 <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Assigned</th>
                 <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Project</th>
-                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">From Call</th>
+
                 <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Due Date</th>
                 <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</th>
               </tr>
@@ -245,7 +246,7 @@ const MyTasks = () => {
                   </td>
 
                   {/* From Call */}
-                  <td className="px-6 py-5">
+                  {/* <td className="px-6 py-5">
                     {task.call?.display_id ? (
                       <span className="px-2 py-1 bg-orange-50 text-orange-500 rounded-lg text-[10px] font-black font-mono">
                         ← {task.call.display_id}
@@ -253,7 +254,7 @@ const MyTasks = () => {
                     ) : (
                       <span className="text-slate-300 text-xs font-bold">—</span>
                     )}
-                  </td>
+                  </td> */}
 
                   {/* Due */}
                   <td className="px-6 py-5"><DueDateBadge dueDate={task.due_date} /></td>

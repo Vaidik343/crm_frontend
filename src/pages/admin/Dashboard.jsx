@@ -15,12 +15,16 @@ const Dashboard = () => {
   const [data, setData]       = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState("");
+  const [fromDate, setFromDate] = useState("");
+  
+  const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
         setLoading(true);
-        const { data: res } = await api.get(ENDPOINTS.DASHBOARD.ALL);
+        const params = fromDate ? { from: fromDate } : {};
+        const { data: res } = await api.get(ENDPOINTS.DASHBOARD.ALL, { params });
         setData(res);
       } catch (err) {
         setError(err?.response?.data?.message || "Failed to load dashboard");
@@ -29,7 +33,7 @@ const Dashboard = () => {
       }
     };
     fetchDashboard();
-  }, []);
+  }, [fromDate]);
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
@@ -48,13 +52,35 @@ const Dashboard = () => {
           </h2>
           <p className="text-slate-500 font-bold text-base">System performance is optimal. Here's your daily summary.</p>
         </div>
-        <div className="flex items-center gap-4 bg-white p-3 px-5 rounded-[1.5rem] border border-slate-100 shadow-xl shadow-slate-200/50">
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-500">
-             <MdCheckCircle size={24} />
+        
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-2 bg-white p-2 px-4 rounded-[1.5rem] border border-slate-100 shadow-sm">
+            <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Date Range:</span>
+            <input
+              type="date"
+              max={today}
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              className="text-sm font-bold text-slate-700 bg-slate-50 border-none rounded-xl px-3 py-1 outline-none focus:ring-2 focus:ring-[#132ea7]/20"
+            />
+            {fromDate && (
+              <button 
+                onClick={() => setFromDate('')}
+                className="text-xs font-bold text-[#132ea7] hover:underline px-2"
+              >
+                Reset to Today
+              </button>
+            )}
           </div>
-          <div>
-            <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-1">System Status</p>
-            <p className="text-base font-black text-emerald-600 uppercase tracking-widest">Active & Secure</p>
+
+          <div className="flex items-center gap-4 bg-white p-3 px-5 rounded-[1.5rem] border border-slate-100 shadow-xl shadow-slate-200/50">
+            <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-500">
+               <MdCheckCircle size={24} />
+            </div>
+            <div>
+              <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-1">System Status</p>
+              <p className="text-base font-black text-emerald-600 uppercase tracking-widest">Active & Secure</p>
+            </div>
           </div>
         </div>
       </div>
@@ -83,21 +109,21 @@ const Dashboard = () => {
           value={data?.totals?.calls} 
           icon={<MdPhone size={28} />} 
           color="info"
-          description="Calls & Meetings"
+          description={fromDate ? `Since ${fromDate}` : "Today"}
         />
         <StatCard 
           label="Total Task" 
           value={data?.totals?.tasks} 
           icon={<MdCheckCircle size={28} />} 
           color="primary"
-          description="Assigned"
+          description={fromDate ? `Since ${fromDate}` : "Today"}
         />
         <StatCard 
           label="Work Archives" 
           value={data?.totals?.work_logs} 
           icon={<MdBook size={28} />} 
           color="warning"
-          description="Daily Submissions"
+          description={fromDate ? `Since ${fromDate}` : "Today"}
         />
       </div>
 
@@ -110,13 +136,136 @@ const Dashboard = () => {
             Task Status <span className="text-slate-300 font-bold text-xs tracking-widest uppercase ml-1">Real-time</span>
           </h3>
           <div className="flex flex-wrap items-center gap-4 md:gap-8">
-            {Object.entries(data?.task_status_breakdown || {}).map(([status, count]) => (
-              <div key={status} className="flex items-center gap-3">
-                <div className="w-2 h-2 rounded-full bg-[#132ea7]" />
-                <span className="text-xs font-black capitalize tracking-widest text-slate-400">{status}</span>
-                <span className="text-xl font-black text-[#132ea7]">{count}</span>
+            {Object.entries(data?.task_status_breakdown || {}).map(([status, count]) => {
+              if (status === "due" && count > 0) {
+                return (
+                  <div key={status} className="flex items-center gap-2 bg-orange-500 text-white shadow-lg shadow-orange-500/20 px-4 py-2 rounded-[1rem] animate-pulse">
+                    <span className="text-xs font-black uppercase tracking-widest">Due Today</span>
+                    <span className="text-lg font-black border-l border-white/20 pl-2 ml-1">{count}</span>
+                  </div>
+                );
+              }
+              if (status === "overdue" && count > 0) {
+                return (
+                  <div key={status} className="flex items-center gap-2 bg-red-500 text-white shadow-lg shadow-red-500/20 px-4 py-2 rounded-[1rem]">
+                    <span className="text-xs font-black uppercase tracking-widest">Overdue</span>
+                    <span className="text-lg font-black border-l border-white/20 pl-2 ml-1">{count}</span>
+                  </div>
+                );
+              }
+
+              const statusConfig = {
+                open:    { color: 'text-[#132ea7]', dot: 'bg-[#132ea7]', label: 'Open' },
+                ongoing: { color: 'text-slate-500', dot: 'bg-slate-400', label: 'Ongoing' },
+                closed:  { color: 'text-emerald-600', dot: 'bg-emerald-500', label: 'Closed' },
+                due:     { color: 'text-orange-500', dot: 'bg-orange-400', label: 'Due Today' },
+                overdue: { color: 'text-red-500',    dot: 'bg-red-500',    label: 'Overdue' },
+              };
+              const config = statusConfig[status] || { color: 'text-slate-500', dot: 'bg-slate-500', label: status };
+              return (
+                <div key={status} className="flex items-center gap-3">
+                  <div className={`w-2 h-2 rounded-full ${config.dot}`} />
+                  <span className="text-xs font-black capitalize tracking-widest text-slate-400">{config.label}</span>
+                  <span className={`text-xl font-black ${config.color}`}>{count}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ── Calls Center ───────────────────────────────── */}
+        <div className="space-y-6">
+          <h3 className="text-xl font-black text-slate-800 flex items-center gap-3">
+            <span className="w-2 h-8 bg-[#132ea7] rounded-full" />
+            Calls Center
+          </h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white rounded-[1.5rem] p-6 border border-slate-100 shadow-xl shadow-slate-200/30 flex items-center justify-between transition-all hover:shadow-2xl hover:-translate-y-1">
+              <div>
+                <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Total Calls</p>
+                <p className="text-3xl font-black text-slate-800">{data?.calls_section?.total_calls ?? 0}</p>
               </div>
-            ))}
+              <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center">
+                <MdPhone size={24} />
+              </div>
+            </div>
+            <div className="bg-white rounded-[1.5rem] p-6 border border-slate-100 shadow-xl shadow-slate-200/30 flex items-center justify-between transition-all hover:shadow-2xl hover:-translate-y-1">
+              <div>
+                <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Today's Calls</p>
+                <p className="text-3xl font-black text-slate-800">{data?.calls_section?.today_count ?? 0}</p>
+              </div>
+              <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center">
+                <MdPhone size={24} />
+              </div>
+            </div>
+            <div className="bg-white rounded-[1.5rem] p-6 border border-slate-100 shadow-xl shadow-slate-200/30 flex items-center justify-between transition-all hover:shadow-2xl hover:-translate-y-1">
+              <div>
+                <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Task-Linked Calls</p>
+                <p className="text-3xl font-black text-slate-800">{data?.calls_section?.task_call_count ?? 0}</p>
+              </div>
+              <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center">
+                <MdPhone size={24} />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-xl shadow-slate-200/30">
+              <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-6">Today's Call List</h4>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse min-w-max">
+                  <thead>
+                    <tr className="border-b border-slate-100">
+                      <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Caller</th>
+                      <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Number</th>
+                      <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Type</th>
+                      <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Employee</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50">
+                    {data?.calls_section?.today_calls?.length > 0 ? data.calls_section.today_calls.map((c) => (
+                      <tr key={c.id}>
+                        <td className="py-4 text-xs font-bold text-slate-700">{c.caller_name || 'N/A'}</td>
+                        <td className="py-4 text-xs font-bold text-slate-500">{c.phone_number || 'N/A'}</td>
+                        <td className="py-4"><span className="px-2 py-1 bg-slate-100 text-slate-500 rounded text-[10px] font-black uppercase">{c.call_type || 'N/A'}</span></td>
+                        <td className="py-4 text-xs font-bold text-[#132ea7]">{c.caller?.name || 'N/A'}</td>
+                      </tr>
+                    )) : (
+                      <tr><td colSpan="4" className="py-6 text-center text-xs font-bold text-slate-400">No calls today</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-xl shadow-slate-200/30">
+              <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-6">Task-Linked Calls</h4>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse min-w-max">
+                  <thead>
+                    <tr className="border-b border-slate-100">
+                      <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Caller</th>
+                      <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Type</th>
+                      <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Employee</th>
+                      <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Project</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-50">
+                    {data?.calls_section?.task_calls?.length > 0 ? data.calls_section.task_calls.slice(0, 10).map((c) => (
+                      <tr key={c.id}>
+                        <td className="py-4 text-xs font-bold text-slate-700">{c.caller_name || 'N/A'}</td>
+                        <td className="py-4"><span className="px-2 py-1 bg-slate-100 text-slate-500 rounded text-[10px] font-black uppercase">{c.call_type || 'N/A'}</span></td>
+                        <td className="py-4 text-xs font-bold text-[#132ea7]">{c.caller?.name || 'N/A'}</td>
+                        <td className="py-4 text-xs font-bold text-emerald-600">{c.project?.name || 'N/A'}</td>
+                      </tr>
+                    )) : (
+                      <tr><td colSpan="4" className="py-6 text-center text-xs font-bold text-slate-400">No task-linked calls</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
 

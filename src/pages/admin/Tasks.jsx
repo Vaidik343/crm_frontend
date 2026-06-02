@@ -19,6 +19,7 @@ import {
   MdDelete,
   MdFolder,
   MdPerson,
+  MdVisibility
 } from "react-icons/md";
 
 const initialForm = {
@@ -132,13 +133,18 @@ const Tasks = () => {
     try {
       setSubmitting(true);
       if (editTarget) {
-        await updateTask(editTarget.id, {
+       const updated =  await updateTask(editTarget.id, {
           task: form.task,
           description: form.description || null,
           due_date: form.due_date || null,
           status: form.status,
           remarks:      form.remarks || undefined,
         });
+
+        if(viewTarget?.id === editTarget.id)
+        {
+          setViewTarget(updated.task ||updated)
+        }
         setAlert({ type: "success", message: "Task updated successfully" });
       } else {
         const payload = {
@@ -249,25 +255,25 @@ if (updated) {
               <thead>
                 <tr className="bg-slate-50/50">
                 <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Display ID</th>
-                  <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
+                  <th className="px-10 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em]">
                     Task
                   </th>
-                  <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
+                  <th className="px-8 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em]">
                     Status
                   </th>
-                  <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
-                    Assigned To
+                  <th className="px-8 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em]">
+                    Assigned By
                   </th>
-                  <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Assigned By</th>
+                  <th className="px-6 py-5 text-md font-black text-slate-400 uppercase tracking-[0.2em]">Assigned To</th>
 
 
-                  <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
+                  <th className="px-8 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em]">
                     Project
                   </th>
-                  <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
+                  <th className="px-8 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em]">
                     Due Date
                   </th>
-                  <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-right">
+                  <th className="px-10 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em] text-right">
                     Actions
                   </th>
                 </tr>
@@ -290,7 +296,7 @@ if (updated) {
                   >
  {/* Display ID */}
                     <td className="px-6 py-5">
-                    <span className="px-3 py-1 bg-[#132ea7]/10 text-[#132ea7] rounded-lg text-[10px] font-black uppercase tracking-widest font-mono">
+                    <span className="px-3 py-1 bg-[#132ea7]/10 text-[#132ea7] rounded-lg text-[11px] font-black uppercase tracking-widest font-mono">
                       {task.display_id || "—"}
                     </span>
                   </td>
@@ -327,11 +333,12 @@ if (updated) {
                       <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-[#132ea7] font-black text-[10px]">
                         {task.assigner?.name?.charAt(0) || "?"}
                       </div>
-                      <p className="text-xs font-black text-slate-700">{task.assigner?.name || "—"}</p>
+                      <p className="text-sm font-black text-slate-700">{task.assigner?.name || "—"}</p>
                     </div>
                   </td>
 
 
+{/* assign to */}
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-2">
                         <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-[#132ea7] font-black text-[10px]">
@@ -347,6 +354,8 @@ if (updated) {
                         </div>
                       </div>
                     </td>
+
+
                     {/* <td className="px-8 py-6">
                       <span className="text-sm font-black text-slate-600">
                         {task.team?.name || "—"}
@@ -528,6 +537,9 @@ if (updated) {
 
               {/* Actions */}
               <div className="flex items-center gap-3 mt-5 pt-4 border-t border-slate-100">
+                 <button onClick={() => setViewTarget(call)} title="View" className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all">
+                                        <MdVisibility size={18} />
+                                      </button>
                 <button
                   onClick={() => openEdit(task)}
                   className="flex-1 h-11 rounded-3 bg-[#132ea7]/10 text-[#132ea7] font-bold flex items-center justify-center gap-2"
