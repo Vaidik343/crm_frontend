@@ -32,7 +32,7 @@ export const ENDPOINTS = {
         // member routes
         ADD_MEMBERS: (id) =>   `/projects/${id}/members`,
         UPDATE_MEMBER_ROLE: (id) => `/projects/members/${id}`,
-        REMOVE_MEMBER: (memberId)=> `/members/${memberId}`,
+        REMOVE_MEMBER: (memberId)=> `projects/members/${memberId}`,
 
     },
 

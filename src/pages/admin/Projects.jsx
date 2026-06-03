@@ -41,6 +41,7 @@ const Projects = () => {
   const [showModal, setShowModal] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
   const [form, setForm] = useState(initialForm);
+  
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [alert, setAlert] = useState({ type: "", message: "" });
@@ -53,7 +54,7 @@ const Projects = () => {
 
   // Inline add-member state (mirrors Team.jsx)
   const [addingToProject, setAddingToProject] = useState(null);
-  const [selectedUsers, setSelectedUsers]     = useState([]);
+  const [selectedUsers, setSelectedUsers]     = useState({}); // { userId: roleId }
   const [addingMember, setAddingMember]       = useState(false);
   const [removingMember, setRemovingMember]   = useState(null);
 
@@ -75,24 +76,40 @@ const Projects = () => {
   };
 
   const toggleSelectUser = (userId) => {
-    setSelectedUsers((prev) =>
-      prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
-    );
+    setSelectedUsers((prev) => {
+      const next = { ...prev };
+      if (next[userId] !== undefined) {
+        delete next[userId];
+      } else {
+        next[userId] = "";
+      }
+      return next;
+    });
   };
 
+  const handleUserRoleChange = (userId, roleId) => {
+    setSelectedUsers((prev) => ({
+      ...prev,
+      [userId]: roleId,
+    }));
+  };
+
+    
   const handleAddProjectMembers = async () => {
-    if (!addingToProject || selectedUsers.length === 0) return;
+    const userIds = Object.keys(selectedUsers);
+    if (!addingToProject || userIds.length === 0) return;
     try {
       setAddingMember(true);
       await addMemberToProject(
         addingToProject.id,
-        selectedUsers.map((user_id) => ({ user_id }))
+        userIds.map((user_id) => ({ user_id, role_id: selectedUsers[user_id] || null }))
       );
-      setAlert({ type: "success", message: `${selectedUsers.length} member(s) added to project` });
+      setAlert({ type: "success", message: `${userIds.length} member(s) added to project` });
       setAddingToProject(null);
-      setSelectedUsers([]);
+      setSelectedUsers({});
       await getAllProjects(page);
     } catch (err) {
+      console.log("🚀 ~ handleAddProjectMembers ~ err:", err)
       setAlert({ type: "danger", message: err?.response?.data?.message || "Failed to add members" });
     } finally {
       setAddingMember(false);
@@ -120,7 +137,7 @@ const Projects = () => {
 const STATUS_COLORS = {
   planning:  "bg-slate-100 text-slate-600",
   active:    "bg-emerald-100 text-emerald-700",
-  on_hold:   "bg-amber-100 text-amber-700",
+  // on_hold:   "bg-amber-100 text-amber-700",
   testing:   "bg-purple-100 text-purple-700",
   completed: "bg-blue-100 text-blue-700",
 };
@@ -213,7 +230,10 @@ const handleProjectTypeChange = (
   };
 
   const validate = () => {
+    
     const errors = {};
+    
+    
     if (!form.name.trim()) errors.name = "Project name is required";
 
     if(!form.tech_details.trim())
@@ -225,7 +245,7 @@ const handleProjectTypeChange = (
     }
     return errors;
   };
-
+  
   const openCreate = () => {
     setEditTarget(null);
     setForm(initialForm);
@@ -234,6 +254,7 @@ const handleProjectTypeChange = (
   };
 
   const openEdit = (project) => {
+    
     setEditTarget(project);
    setForm({
   name: project.name || "",
@@ -242,11 +263,11 @@ const handleProjectTypeChange = (
   tech_details: project.tech_details || "",
   development_status: project.development_status || "",
   remark: "",
+   members: [], 
 });
     setFieldErrors({});
     setShowModal(true);
   };
-
   const closeModal = () => {
     setShowModal(false);
     setEditTarget(null);
@@ -267,7 +288,7 @@ const handleProjectTypeChange = (
   description: form.description || null,
   project_types: form.project_types,
   tech_details: form.tech_details,
-  development_status: form.development_status || null,
+  development_status: form.development_status || "active",
   remark: form.remark || null,
 });
         setAlert({ type: "success", message: "Project configuration updated" });
@@ -277,7 +298,7 @@ await createProject({
   description: form.description || null,
   project_types: form.project_types,
   tech_details: form.tech_details,
-  development_status: form.development_status || null,
+  development_status: form.development_status || "active" ,
   remark: form.remark || null,
 });
         setAlert({ type: "success", message: "New project" });
@@ -361,14 +382,16 @@ await createProject({
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50/50">
-                  <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Project </th>
-                  <th className="px-6 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Code </th>
-                  <th className="px-6 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Type </th>
-                  <th className="px-6 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Lead</th>
-                  <th className="px-6 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Status</th>
-                  <th className="px-6 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Members</th>
-                  <th className="px-6 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Deployment Date</th>
-                  <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</th>
+                  <th className="px-10 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Project </th>
+                  <th className="px-6 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Code </th>
+                  {/* <th className="px-6 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Type </th> */}
+                  {/* <th className="px-6 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Lead</th> */}
+                  <th className="px-6 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Status</th>
+                  <th className="px-6 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Members</th>
+                  <th className="px-6 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Status</th>
+                  <th className="px-6 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Created By</th>
+                  <th className="px-6 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Deployment Date</th>
+                  <th className="px-10 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
@@ -398,17 +421,17 @@ await createProject({
 
 
   {/* Type */}
-                      <td className="px-6 py-5">
+                      {/* <td className="px-6 py-5">
                         <div className="flex flex-wrap gap-1">
                           {(Array.isArray(project.project_type) ? project.project_type : []).map((t) => (
                             <span key={t} className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md text-[10px] font-black uppercase">{t}</span>
                           ))}
                           {(!project.project_type || !project.project_type.length) && <span className="text-slate-300 text-xs font-bold">—</span>}
                         </div>
-                      </td>
+                      </td> */}
 
                       {/* Tech */}
-                      <td className="px-6 py-5">
+                      {/* <td className="px-6 py-5">
                         <div className="flex flex-wrap gap-1 max-w-[180px]">
                           {(Array.isArray(project.tech) ? project.tech : []).slice(0, 3).map((t) => (
                             <span key={t.name} className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md text-[10px] font-black">
@@ -420,7 +443,7 @@ await createProject({
                           )}
                           {(!project.tech || !project.tech.length) && <span className="text-slate-300 text-xs font-bold">—</span>}
                         </div>
-                      </td>
+                      </td> */}
 
                       {/* Dev status */}
                       <td className="px-6 py-5">
@@ -445,6 +468,8 @@ await createProject({
                     <td className="px-6 py-6">
                       <Badge value={project.is_active ? "active" : "inactive"} />
                     </td>
+
+                    {/* project created */}
                     <td className="px-6 py-6">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-black text-[10px] uppercase">
@@ -558,43 +583,64 @@ await createProject({
                                     <>
                                       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 max-h-56 overflow-y-auto custom-scrollbar">
                                         {availableEmps.map((emp) => {
-                                          const isSelected = selectedUsers.includes(emp.id);
+                                          const isSelected = selectedUsers[emp.id] !== undefined;
                                           return (
-                                            <button
+                                            <div
                                               key={emp.id}
-                                              onClick={() => toggleSelectUser(emp.id)}
-                                              className={`flex items-center gap-2 p-3 rounded-xl border text-left transition-all ${
+                                              className={`flex flex-col gap-2 p-3 rounded-xl border transition-all ${
                                                 isSelected
-                                                  ? "bg-[#132ea7] border-[#132ea7] text-white"
-                                                  : "bg-slate-50 border-slate-200 text-slate-700 hover:border-[#132ea7]/30"
+                                                  ? "bg-slate-50 border-[#132ea7]/30 shadow-sm"
+                                                  : "bg-white border-slate-200 hover:border-[#132ea7]/30"
                                               }`}
                                             >
-                                              <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs flex-shrink-0 ${
-                                                isSelected ? "bg-white/20 text-white" : "bg-white text-[#132ea7]"
-                                              }`}>
-                                                {emp.name?.charAt(0)}
+                                              <div 
+                                                className="flex items-center gap-2 cursor-pointer"
+                                                onClick={() => toggleSelectUser(emp.id)}
+                                              >
+                                                <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-black text-xs flex-shrink-0 ${
+                                                  isSelected ? "bg-[#132ea7] text-white" : "bg-slate-100 text-[#132ea7]"
+                                                }`}>
+                                                  {emp.name?.charAt(0)}
+                                                </div>
+                                                <div className="min-w-0 flex-1">
+                                                  <p className={`text-xs font-black truncate ${isSelected ? "text-[#132ea7]" : "text-slate-700"}`}>
+                                                    {emp.name}
+                                                  </p>
+                                                  <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                                                    {emp.employee_id}
+                                                  </p>
+                                                </div>
+                                                {isSelected ? (
+                                                  <MdCheckCircle size={18} className="text-[#132ea7] flex-shrink-0" />
+                                                ) : (
+                                                  <div className="w-[18px] h-[18px] border-2 border-slate-200 rounded-full flex-shrink-0" />
+                                                )}
                                               </div>
-                                              <div className="min-w-0 flex-1">
-                                                <p className={`text-xs font-black truncate ${isSelected ? "text-white" : "text-slate-700"}`}>
-                                                  {emp.name}
-                                                </p>
-                                                <p className={`text-[10px] font-bold uppercase tracking-widest ${isSelected ? "text-white/70" : "text-slate-400"}`}>
-                                                  {emp.employee_id}
-                                                </p>
-                                              </div>
-                                              {isSelected && <MdCheckCircle size={15} className="flex-shrink-0" />}
-                                            </button>
+                                              
+                                              {isSelected && (
+                                                <div className="mt-1 animate-in fade-in slide-in-from-top-1 duration-200" onClick={(e) => e.stopPropagation()}>
+                                                  <Select
+                                                    value={selectedUsers[emp.id]}
+                                                    onChange={(e) => handleUserRoleChange(emp.id, e.target.value)}
+                                                    options={[
+                                                      { label: "Select Role", value: "" },
+                                                      ...roles.map(r => ({ label: r.name, value: r.id }))
+                                                    ]}
+                                                  />
+                                                </div>
+                                              )}
+                                            </div>
                                           );
                                         })}
                                       </div>
                                       <div className="flex items-center justify-between pt-3 border-t border-slate-100">
                                         <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
-                                          {selectedUsers.length} selected
+                                          {Object.keys(selectedUsers).length} selected
                                         </p>
                                         <div className="flex gap-3">
                                           <button
                                             className="px-4 py-2 text-xs font-black text-slate-500 uppercase tracking-widest hover:bg-slate-100 rounded-xl transition-all"
-                                            onClick={() => { setAddingToProject(null); setSelectedUsers([]); }}
+                                            onClick={() => { setAddingToProject(null); setSelectedUsers({}); }}
                                           >
                                             Cancel
                                           </button>
@@ -603,9 +649,9 @@ await createProject({
                                             className="px-5 py-2 text-xs font-black uppercase tracking-widest h-auto"
                                             onClick={handleAddProjectMembers}
                                             loading={addingMember}
-                                            disabled={selectedUsers.length === 0}
+                                            disabled={Object.keys(selectedUsers).length === 0}
                                           >
-                                            Add {selectedUsers.length > 0 ? `(${selectedUsers.length})` : ""}
+                                            Add {Object.keys(selectedUsers).length > 0 ? `(${Object.keys(selectedUsers).length})` : ""}
                                           </Button>
                                         </div>
                                       </div>
@@ -712,11 +758,13 @@ await createProject({
   value={form.development_status}
   onChange={handleChange}
   options={[
-    { label: "Planning", value: "Planning" },
-    { label: "In Progress", value: "In Progress" },
-    { label: "Testing", value: "Testing" },
-    { label: "Completed", value: "Completed" },
+    
+    { label: "Active", value: "active" },
+    { label: "Planning", value: "planning" },
+    { label: "Testing", value: "testing" },
+    { label: "Completed", value: "completed" },
   ]}
+  required
 />
 
 
@@ -777,7 +825,7 @@ await createProject({
 </div>
 
 
-<div className="border rounded-2xl p-4">
+{/* <div className="border rounded-2xl p-4">
   <h3 className="font-bold mb-4">
     Project Members
   </h3>
@@ -828,7 +876,8 @@ await createProject({
   >
     Add Member
   </Button>
-</div>
+</div> */}
+
 
            <Textarea
   label="Add Remark"
@@ -850,7 +899,7 @@ await createProject({
       {/* Delete confirm */}
       <ConfirmDialog
         show={!!confirmDelete}
-        message={`This action will permanently purge "${confirmDelete?.name}" from the central database. This will fail if there are active intelligence logs (calls) linked to this project.`}
+        message={`This action will delete "${confirmDelete?.name}" . This will fail if there are active intelligence logs (calls) linked to this project.`}
         onConfirm={handleDelete}
         onCancel={() => setConfirmDelete(null)}
         loading={deleting}

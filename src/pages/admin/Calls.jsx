@@ -291,14 +291,14 @@ const [showNewRemark, setShowNewRemark] = useState(false);
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/50">
-                <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap">Caller Info</th>
-                 <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Display ID</th>
-                <th className="px-6 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Employee</th>
-                <th className="px-6 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap">Project</th>
-   <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Type</th>
-                <th className="px-6 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Medium</th>
-                <th className="px-6 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Date</th>
-                <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</th>
+                <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Display ID</th>
+                <th className="px-10 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap">Caller Info</th>
+                <th className="px-8 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em]">Employee</th>
+                <th className="px-8 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap">Project</th>
+                <th className="px-8 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em]">Type</th>
+                <th className="px-8 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em]">Medium</th>
+                <th className="px-8 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em]">Date</th>
+                <th className="px-10 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</th>
               </tr>
             </thead>
 
@@ -306,75 +306,77 @@ const [showNewRemark, setShowNewRemark] = useState(false);
             <tbody className="divide-y divide-slate-50">
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="text-center text-slate-400 py-16 font-medium italic text-lg uppercase tracking-widest">No communication logs archived.</td>
+                  <td colSpan={8} className="text-center text-slate-400 py-16 font-medium italic text-lg uppercase tracking-widest">No communication logs archived.</td>
                 </tr>
               )}
               {filtered.map((call) => (
                 <tr key={call.id} className="hover:bg-slate-50/80 transition-colors group">
 
+                  {/* Display ID */}
+                  <td className="px-6 py-5">
+                    <span className="px-3 py-1 bg-[#132ea7]/10 text-[#132ea7] rounded-lg text-[11px] font-black uppercase tracking-widest font-mono">
+                      {call.display_id || "—"}
+                    </span>
+                  </td>
 
                   {/* Caller */}
-                  <td className="px-6 py-5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-2xl bg-slate-50 text-[#132ea7] flex items-center justify-center font-black shadow-inner group-hover:bg-[#132ea7] group-hover:text-white transition-all">
+                  <td className="px-10 py-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-[#132ea7] text-white flex items-center justify-center font-black shadow-lg shadow-[#132ea7]/10">
                         {call.caller_name?.charAt(0) || <MdPhone size={18} />}
                       </div>
                       <div>
-                        <div className="font-black text-slate-800 leading-tight">{call.caller_name}</div>
+                        <div className="font-black text-slate-800 text-lg leading-tight">{call.caller_name}</div>
                         {call.caller_number && (
-                          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{call.caller_number}</div>
+                          <div className="text-xs font-bold text-slate-400 mt-1">
+                            {call.caller_number}
+                          </div>
                         )}
                       </div>
                     </div>
                   </td>
-                  {/* Display ID */}
-                  <td className="px-6 py-5">
-                    <span className="px-3 py-1 bg-[#132ea7]/10 text-[#132ea7] rounded-lg text-[10px] font-black uppercase tracking-widest font-mono">
-                      {call.display_id || "—"}
-                    </span>
-                  </td>
+                  
                   {/* Employee */}
-                  <td className="px-6 py-5">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-[#132ea7] font-black text-[10px]">
-                        {call.caller?.name?.charAt(0) || call.User?.name?.charAt(0) || "—"}
+                  <td className="px-8 py-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[#132ea7] font-black text-[10px]">
+                        {call.caller?.name?.charAt(0) || call.User?.name?.charAt(0) || "?"}
                       </div>
                       <div>
-                        <p className="text-xs font-black text-slate-600">{call.caller?.name || call.User?.name || "—"}</p>
+                        <p className="text-sm font-black text-slate-700">{call.caller?.name || call.User?.name || "—"}</p>
                         <p className="text-[10px] font-bold text-slate-400 uppercase">{call.caller?.employee_id || call.User?.employee_id || ""}</p>
                       </div>
                     </div>
                   </td>
 
                   {/* Project */}
-                  <td className="px-6 py-5">
-                    <div className="flex items-center gap-1.5 text-xs font-black text-slate-600">
-                      <MdFolder className="text-slate-300" size={16} />
+                  <td className="px-8 py-6">
+                    <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
+                      <MdFolder className="text-slate-300" size={18} />
                       {call.project?.name || call.Project?.name || "—"}
                     </div>
                   </td>
 
                   {/* Type */}
-                  <td className="px-6 py-5">
-                    <div className="flex flex-col gap-1">
-                      <Badge value={call.call_type} />
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
-                        {call.call_subtype}
-                      </span>
+                  <td className="px-8 py-6">
+                    <div className="flex flex-col gap-1.5">
+                      <div>
+                        <Badge value={call.call_type} />
+                      </div>
                       {/* Flags */}
-                      <div className="flex gap-1 flex-wrap mt-0.5">
+                      <div className="flex gap-1.5 flex-wrap">
                         {call.is_task && (
-                          <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-[9px] font-black uppercase flex items-center gap-1">
-                            <MdAssignment size={10} /> Task
+                          <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md text-[10px] font-black uppercase flex items-center gap-1">
+                            <MdAssignment size={12} /> Task
                           </span>
                         )}
                         {call.transfer_to && (
-                          <span className="px-1.5 py-0.5 bg-orange-50 text-orange-600 rounded text-[9px] font-black uppercase flex items-center gap-1">
-                            <MdTransferWithinAStation size={10} /> Transfer
+                          <span className="px-2 py-0.5 bg-orange-50 text-orange-600 rounded-md text-[10px] font-black uppercase flex items-center gap-1">
+                            <MdTransferWithinAStation size={12} /> Transfer
                           </span>
                         )}
                         {call.parent_call_id && (
-                          <span className="px-1.5 py-0.5 bg-purple-50 text-purple-600 rounded text-[9px] font-black uppercase">
+                          <span className="px-2 py-0.5 bg-purple-50 text-purple-600 rounded-md text-[10px] font-black uppercase">
                             Follow-up
                           </span>
                         )}
@@ -383,30 +385,29 @@ const [showNewRemark, setShowNewRemark] = useState(false);
                   </td>
 
                   {/* Medium */}
-                  <td className="px-6 py-5"><Badge value={call.receive_type} /></td>
+                  <td className="px-8 py-6">
+                    <Badge value={call.receive_type} />
+                  </td>
 
                   {/* Date */}
-                  <td className="px-6 py-5">
-                    <div className="flex items-center gap-2 text-xs font-black text-slate-700">
-                      <MdCalendarToday className="text-slate-300" size={14} />
+                  <td className="px-8 py-6">
+                    <div className="flex items-center gap-2 text-sm font-black text-slate-700">
+                      <MdCalendarToday className="text-slate-300" size={16} />
                       {new Date(call.createdAt).toLocaleDateString("default", { month: "short", day: "numeric", year: "numeric" })}
                     </div>
                   </td>
 
                   {/* Actions */}
-                  <td className="px-6 py-5 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button onClick={() => setViewTarget(call)} title="View" className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all">
-                        <MdVisibility size={18} />
+                  <td className="px-10 py-6 text-right">
+                    <div className="flex items-center justify-end gap-3">
+                      <button onClick={() => setViewTarget(call)} title="View" className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all">
+                        <MdVisibility size={20} />
                       </button>
-                      {/* <button onClick={() => { setRemarksTarget(call); setRemarkText(""); }} title="Remarks" className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all">
-                        <MdComment size={18} />
-                      </button> */}
-                      <button onClick={() => openEdit(call)} title="Edit" className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 transition-all">
-                        <MdEdit size={18} />
+                      <button onClick={() => openEdit(call)} title="Edit" className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 transition-all">
+                        <MdEdit size={20} />
                       </button>
-                      <button onClick={() => setConfirmDelete(call)} title="Delete" className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all">
-                        <MdDelete size={18} />
+                      <button onClick={() => setConfirmDelete(call)} title="Delete" className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all">
+                        <MdDelete size={20} />
                       </button>
                     </div>
                   </td>

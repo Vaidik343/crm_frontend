@@ -25,6 +25,7 @@ const initialForm = {
   assigned_to: "",
   due_date:    "",
   status:      "ongoing",
+          remarks:      "",
 };
 
 const MyTasks = () => {
@@ -34,6 +35,7 @@ const MyTasks = () => {
   // const { teams, getAllTeams } = useTeam();  
   const { user } = useAuth();
   const {users, getAllUsers} = useUser();
+  console.log("🚀 ~ MyTasks ~ users:", users)
 
   const [showModal, setShowModal]     = useState(false);
   const [editTarget, setEditTarget]   = useState(null);
@@ -44,6 +46,7 @@ const MyTasks = () => {
   const [alert, setAlert]             = useState({ type: "", message: "" });
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [deleting, setDeleting]       = useState(false);
+  const [showNewRemark, setShowNewRemark] = useState(false);
 
   useEffect(() => {
     getAllTasks?.(page);
@@ -79,11 +82,13 @@ const MyTasks = () => {
     setForm({
       task:        task.task || "",
       description: task.description || "",
-      team_id:     task.team_id || "",
+      assigned_to: task.assigned_to || "",
+      // team_id:     task.team_id || "",
       project_id:  task.project_id || "",
       call_id:     task.call_id || "",
       due_date:    task.due_date ? new Date(task.due_date).toISOString().split("T")[0] : "",
       status:      task.status || "ongoing",
+              remarks:      "",
     });
     setFieldErrors({});
     setShowModal(true);
@@ -107,22 +112,25 @@ const MyTasks = () => {
         await updateTask(editTarget.id, {
           task:        form.task,
           description: form.description || null,
+                assigned_to: form.assigned_to || "",
           due_date:    form.due_date || null,
           status:      form.status,
-           remark:      form.remark || undefined,
+           remarks:      form.remarks || undefined,
         });
         setAlert({ type: "success", message: "Task updated successfully" });
       } else {
-        const payload = {
-          task:        form.task,
-          description: form.description || null,
-          project_id:  form.project_id || null,
-          call_id:     form.call_id || null,
-          due_date:    form.due_date || null,
-            remark:      form.remark      || undefined,
-          // assigned_to omitted → defaults to req.user.id (self-assign)
-        };
-        await createTask(payload);
+const payload = {
+  task:        form.task,
+  description: form.description || null,
+  project_id:  form.project_id  || null,
+  call_id:     form.call_id     || null,
+  assigned_to: form.assigned_to || null,
+  due_date:    form.due_date    || null,
+  status:      form.status      || "ongoing",
+  remarks:      form.remarks      || undefined,
+};
+await createTask(payload);
+        // await createTask(payload);
         setAlert({ type: "success", message: "Task created successfully" });
       }
       closeModal();
@@ -156,7 +164,7 @@ const MyTasks = () => {
   );
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-700">
+    <div className="space-y-8 px-5 animate-in fade-in duration-700">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -175,19 +183,19 @@ const MyTasks = () => {
       {/* Table */}
       {/* Desktop Table */}
 <div className="hidden md:block">
-      <div className="bg-white w-[95vw] lg:w-[85vw] xl:w-[80vw] relative left-1/2 -translate-x-1/2 rounded-[2rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
+      <div className="bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/50">
-                              <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Display Id</th>
-                <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Task</th>
-                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Status</th>
-                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Assigned</th>
-                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Project</th>
-
-                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Due Date</th>
-                <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</th>
+                <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Display ID</th>
+                <th className="px-10 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em]">Task</th>
+                <th className="px-8 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em]">Status</th>
+                <th className="px-8 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em]">Assigned By</th>
+                <th className="px-8 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em]">Assigned To</th>
+                <th className="px-8 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em]">Project</th>
+                <th className="px-8 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em]">Due Date</th>
+                <th className="px-10 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -201,78 +209,74 @@ const MyTasks = () => {
 
                   {/* Display ID */}
                   <td className="px-6 py-5">
-                    <span className="px-3 py-1 bg-[#132ea7]/10 text-[#132ea7] rounded-lg text-[10px] font-black font-mono">
+                    <span className="px-3 py-1 bg-[#132ea7]/10 text-[#132ea7] rounded-lg text-[11px] font-black uppercase tracking-widest font-mono">
                       {task.display_id || "—"}
                     </span>
                   </td>
 
                   {/* Task */}
-                  <td className="px-6 py-5">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-xl bg-[#132ea7] text-white flex items-center justify-center shrink-0 shadow-lg shadow-[#132ea7]/10">
-                        <MdAssignment size={16} />
+                  <td className="px-10 py-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-[#132ea7] text-white flex items-center justify-center font-black shadow-lg shadow-[#132ea7]/10">
+                        <MdAssignment size={18} />
                       </div>
                       <div>
-                        <div className="font-black text-slate-800 leading-tight">{task.task}</div>
+                        <div className="font-black text-slate-800 text-lg leading-tight">{task.task}</div>
                         {task.description && (
-                          <div className="text-xs font-bold text-slate-400 mt-0.5 truncate max-w-[180px] italic">{task.description}</div>
+                          <div className="text-xs font-bold text-slate-400 mt-1 truncate max-w-[200px] italic">{task.description}</div>
                         )}
                       </div>
                     </div>
                   </td>
 
                   {/* Status */}
-                  <td className="px-6 py-5"><Badge value={task.status} /></td>
+                  <td className="px-8 py-6"><Badge value={task.status} /></td>
+
+                  {/* Assigned by */}
+                  <td className="px-8 py-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[#132ea7] font-black text-[10px]">
+                        {task.assigner?.name?.charAt(0) || "?"}
+                      </div>
+                      <div className="text-sm font-black text-slate-700">{task.assigner?.name || "—"}</div>
+                    </div>
+                  </td>
 
                   {/* Assigned to */}
-                  <td className="px-6 py-5">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-[#132ea7] font-black text-[10px]">
+                  <td className="px-8 py-6">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[#132ea7] font-black text-[10px]">
                         {task.assignee?.name?.charAt(0) || "?"}
                       </div>
-                      <div>
-                        <p className="text-xs font-black text-slate-700">{task.assignee?.name || "—"}</p>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase">{task.assignee?.employee_id || ""}</p>
+                      <div className="text-sm font-black text-slate-600">
+                        {task.assignee?.name || "—"}
+                        <div className="text-[10px] font-bold text-slate-400 uppercase">{task.assignee?.employee_id || ""}</div>
                       </div>
                     </div>
                   </td>
 
                   {/* Project */}
-                  <td className="px-6 py-5">
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-500">
-                      <MdFolder className="text-slate-300" size={16} />
+                  <td className="px-8 py-6">
+                    <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
+                      <MdFolder className="text-slate-300" size={18} />
                       {task.project?.name || "—"}
                     </div>
                   </td>
 
-                  {/* From Call */}
-                  {/* <td className="px-6 py-5">
-                    {task.call?.display_id ? (
-                      <span className="px-2 py-1 bg-orange-50 text-orange-500 rounded-lg text-[10px] font-black font-mono">
-                        ← {task.call.display_id}
-                      </span>
-                    ) : (
-                      <span className="text-slate-300 text-xs font-bold">—</span>
-                    )}
-                  </td> */}
-
                   {/* Due */}
-                  <td className="px-6 py-5"><DueDateBadge dueDate={task.due_date} /></td>
+                  <td className="px-8 py-6"><DueDateBadge dueDate={task.due_date} /></td>
 
                   {/* Actions */}
-                  <td className="px-6 py-5 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button onClick={() => setViewTarget(task)} className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all">
-                        <MdVisibility size={18} />
+                  <td className="px-10 py-6 text-right">
+                    <div className="flex items-center justify-end gap-3">
+                      <button onClick={() => setViewTarget(task)} title="View" className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all">
+                        <MdVisibility size={20} />
                       </button>
-                      <button onClick={() => { setRemarksTarget(task); setRemarkText(""); }} className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all">
-                        <MdComment size={18} />
+                      <button onClick={() => openEdit(task)} title="Edit" className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all">
+                        <MdEdit size={20} />
                       </button>
-                      <button onClick={() => openEdit(task)} className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all">
-                        <MdEdit size={18} />
-                      </button>
-                      <button onClick={() => setConfirmDelete(task)} className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all">
-                        <MdDelete size={18} />
+                      <button onClick={() => setConfirmDelete(task)} title="Delete" className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:bg-red-500/10 hover:text-red-500 transition-all">
+                        <MdDelete size={20} />
                       </button>
                     </div>
                   </td>
@@ -357,9 +361,6 @@ const MyTasks = () => {
               <div className="flex gap-2 pt-3 border-t border-slate-100">
                 <button onClick={() => setViewTarget(task)} className="flex-1 h-10 rounded-xl bg-slate-50 text-slate-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all">
                   <MdVisibility size={16} /> View
-                </button>
-                <button onClick={() => { setRemarksTarget(task); setRemarkText(""); }} className="flex-1 h-10 rounded-xl bg-slate-50 text-slate-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all">
-                  <MdComment size={16} /> Remarks
                 </button>
                 <button onClick={() => openEdit(task)} className="flex-1 h-10 rounded-xl bg-[#132ea7]/10 text-[#132ea7] font-bold flex items-center justify-center gap-1.5 text-xs">
                   <MdEdit size={16} /> Edit
@@ -447,14 +448,59 @@ const MyTasks = () => {
               </div>
             </div>
 
-            <div className="md:col-span-2">
-              <Textarea label="Description" name="description" value={form.description}
-                onChange={handleChange} placeholder="Scope and requirements..." rows={3} />
-            </div>
+            {/* Remarks section in edit modal */}
+            <div className="md:col-span-2 space-y-3">
+              <div className="flex items-center justify-between ml-1">
+                <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
+                  Remarks
+                </label>
+                {/* + button to toggle new remark input */}
+                <button
+                  type="button"
+                  onClick={() => setShowNewRemark((prev) => !prev)}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-[#132ea7]/10 text-[#132ea7] rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#132ea7]/20 transition-all"
+                >
+                  <MdAdd size={14} />
+                  {showNewRemark ? "Cancel" : "Add Remark"}
+                </button>
+              </div>
 
-            <div className="md:col-span-2">
-              <Textarea label="Initial Remark (optional)" name="remark" value={form.remark}
-                onChange={handleChange} placeholder="Add a note..." rows={2} />
+              {/* Existing remarks log */}
+              {Array.isArray(editTarget?.remarks) && editTarget.remarks.length > 0 ? (
+                <div className="space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar">
+                  {[...editTarget.remarks].reverse().map((r, i) => (
+                    <div key={i} className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                      <p className="text-sm font-bold text-slate-700">{r.text}</p>
+                      <div className="flex justify-between mt-1.5">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                          {r.added_by_name}
+                        </p>
+                        <p className="text-[10px] font-bold text-slate-300">
+                          {new Date(r.created_at).toLocaleString("default", {
+                            month: "short", day: "numeric",
+                            hour: "2-digit", minute: "2-digit"
+                          })}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                editTarget && (
+                  <p className="text-xs font-bold text-slate-400 text-center py-3">No remarks yet</p>
+                )
+              )}
+
+              {/* New remark input — shown when + is clicked, or always on create */}
+              {(showNewRemark || !editTarget) && (
+                <Textarea
+                  name="remarks"
+                  value={form.remarks || ""}
+                  onChange={handleChange}
+                  placeholder={editTarget ? "Add a new remark..." : "Add an initial remark..."}
+                  rows={2}
+                />
+              )}
             </div>
           </div>
 
@@ -535,9 +581,9 @@ const MyTasks = () => {
                       <p className="text-sm font-bold text-slate-700">{r.text}</p>
                       <div className="flex justify-between mt-1.5">
                         <p className="text-[10px] font-black text-slate-400 uppercase">{r.added_by_name}</p>
-                        {/* <p className="text-[10px] font-bold text-slate-300">
+                        <p className="text-[10px] font-bold text-slate-300">
                           {new Date(r.created_at).toLocaleString("default", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
-                        </p> */}
+                        </p>
                       </div>
                     </div>
                   ))}

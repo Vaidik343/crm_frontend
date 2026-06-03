@@ -63,13 +63,12 @@ const updateTask = useCallback(async (id, payload) => {
       ENDPOINTS.TASKS.UPDATE(id),
       payload
     );
+    console.log("🚀 ~ TaskProvider ~ response:", response)
 
     console.log("UPDATE TASK RESPONSE:", response.data);
 
     const updatedTask =
-      response.data.task ||
-      response.data.data ||
-      response.data;
+      response.data.task || response.data.data || response.data;
 
     setTasks((prev) =>
       prev.map((t) =>
@@ -79,6 +78,8 @@ const updateTask = useCallback(async (id, payload) => {
 
     return updatedTask;
   } catch (error) {
+    
+  console.log("🚀 ~ TaskProvider ~ error:", error)
     throw error;
   }
 }, []);

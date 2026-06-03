@@ -150,7 +150,7 @@ const EmployeeLayout = () => {
 
             {/* Page Content */}
             <main className="flex-1 p-8">
-                <div className="max-w-7xl mx-auto">
+                <div className="max-w-6md mx-auto">
                     <Outlet />
                 </div>
             </main>

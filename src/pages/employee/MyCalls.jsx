@@ -109,6 +109,15 @@ const MyCalls = () => {
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
 
+
+
+    const [remarksTarget, setRemarksTarget] = useState(null);
+  const [remarkText, setRemarkText]       = useState("");
+  const [remarkSubmitting, setRemarkSubmitting] = useState(false);
+  const [showNewRemark, setShowNewRemark] = useState(false);
+  
+
+
   useEffect(() => {
     getAllCalls?.(page);
     getAllProjects?.();
@@ -197,7 +206,7 @@ const MyCalls = () => {
       call_subtype: call.call_subtype || "",
       receive_type: call.receive_type || "",
       call_summary: call.call_summary || "",
-      remarks: call.remarks || "",
+      remarks: "",
       is_task: call.is_task || false,
       is_follow_up: false,
       transfer_to: "",
@@ -295,7 +304,7 @@ const MyCalls = () => {
     );
 
   return (
-    <div className="space-y-10 animate-in fade-in duration-700">
+    <div className="space-y-10 px-5 animate-in fade-in duration-700">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -335,14 +344,14 @@ const MyCalls = () => {
       />
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/30 flex items-center gap-6">
+      <div className="grid grid-cols-1  md:grid-cols-3 gap-6">
+        <div className="bg-white p-8  rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/30 flex items-center gap-6">
           <div className="w-16 h-16 rounded-2xl bg-sky-50 text-sky-500 flex items-center justify-center">
             <MdPhone size={32} />
           </div>
           <div>
             <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
-              Total Logs
+              Total Calls
             </p>
             <p className="text-3xl font-black text-slate-800">{calls.length}</p>
           </div>
@@ -385,17 +394,19 @@ const MyCalls = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
+      <div className="bg-white  rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/50">
-                <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
+
+              <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
                   Timestamp
                 </th>
                 <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
                   Display ID
                 </th>
+                  
                 <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
                   Caller
                 </th>
@@ -449,7 +460,7 @@ const MyCalls = () => {
                   </td>
 
                    <td className="px-6 py-5">
-                    <span className="px-3 py-1 bg-[#132ea7]/10 text-[#132ea7] rounded-lg text-[10px] font-black font-mono">
+                    <span className="px-3 py-1 bg-[#132ea7]/10 text-[#132ea7] rounded-lg text-[12px] font-black font-mono">
                       {call.display_id || "—"}
                     </span>
                   </td>
@@ -469,15 +480,15 @@ const MyCalls = () => {
                   <td className="px-8 py-6">
                     <div className="flex items-center gap-2 text-sm font-black text-slate-600">
                       <MdFolder className="text-[#132ea7]" size={16} />
-                      {call.Project?.name || "—"}
+                      {call.project?.name || "—"}
                     </div>
                   </td>
 <td className="px-6 py-5">
                     <div className="flex flex-col gap-1">
                       <Badge value={call.call_type} />
-                      <span className="text-[10px] font-black text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
+                      {/* <span className="text-[10px] font-black text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
                         {call.call_subtype}
-                      </span>
+                      </span> */}
                       <div className="flex gap-1 flex-wrap mt-0.5">
                         {call.is_task && (
                           <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-[9px] font-black uppercase flex items-center gap-1">
@@ -503,7 +514,7 @@ const MyCalls = () => {
                     </span>
                   </td>
 
-                  <td className="px-6 py-5">
+                  {/* <td className="px-6 py-5">
                     <div className="flex items-center gap-2 text-xs font-black text-slate-700">
                       <MdCalendarToday className="text-slate-300" size={14} />
                       {new Date(call.createdAt).toLocaleDateString("default", {
@@ -512,7 +523,7 @@ const MyCalls = () => {
                         year: "numeric",
                       })}
                     </div>
-                  </td>
+                  </td> */}
 
 
                   <td className="px-10 py-6 text-right">
@@ -666,16 +677,73 @@ const MyCalls = () => {
               />
             </div>
 
-            <div className="md:col-span-2">
-              <Textarea
-                label="Employee Remarks"
-                name="remarks"
-                value={form.remarks}
-                onChange={handleChange}
-                placeholder="Any additional notes or action items..."
-                rows={2}
-              />
-            </div>
+                      {/* Remarks section in edit modal */}
+<div className="md:col-span-2 space-y-3">
+  <div className="flex items-center justify-between ml-1">
+    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
+      Remarks
+    </label>
+    {/* + button to toggle new remark input */}
+    <button
+      type="button"
+      onClick={() => setShowNewRemark((prev) => !prev)}
+      className="flex items-center gap-1 px-3 py-1.5 bg-[#132ea7]/10 text-[#132ea7] rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#132ea7]/20 transition-all"
+    >
+      <MdAdd size={14} />
+      {showNewRemark ? "Cancel" : "Add Remark"}
+    </button>
+  </div>
+
+  {/* Existing remarks log */}
+  {Array.isArray(editTarget?.remarks) && editTarget.remarks.length > 0 ? (
+    <div className="space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar">
+      {[...editTarget.remarks].reverse().map((r, i) => (
+        <div key={i} className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+          <p className="text-sm font-bold text-slate-700">{r.text}</p>
+          <div className="flex justify-between mt-1.5">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              {r.added_by_name}
+            </p>
+            <p className="text-[10px] font-bold text-slate-300">
+              {new Date(r.created_at).toLocaleString("default", {
+                month: "short", day: "numeric",
+                hour: "2-digit", minute: "2-digit"
+              })}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  ) : (
+    editTarget && (
+      <p className="text-xs font-bold text-slate-400 text-center py-3">No remarks yet</p>
+    )
+  )}
+
+  {/* New remark input — shown when + is clicked */}
+  {showNewRemark && (
+    <Textarea
+      name="remark"
+      value={form.remark}
+      onChange={handleChange}
+      placeholder="Add a new remark..."
+      rows={2}
+    />
+  )}
+
+  {/* On create — always show the textarea */}
+  {!editTarget && (
+    <Textarea
+      label="Initial Remark (optional)"
+      name="remark"
+      value={form.remark}
+      onChange={handleChange}
+      placeholder="Add a remark..."
+      rows={2}
+    />
+  )}
+</div>
+
 
             {/* New fields — create only */}
             {!editTarget && (
@@ -976,7 +1044,7 @@ const MyCalls = () => {
             )}
 
             {viewTarget.remarks &&
-              Array.isArray(viewTarget.remarks) &&
+              Array.isArray(viewTarget?.remarks) &&
               viewTarget.remarks.length > 0 && (
                 <div className="space-y-2">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
