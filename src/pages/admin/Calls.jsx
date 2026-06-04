@@ -14,7 +14,7 @@ import Input from "../../components/ui/Input";
 import Select from "../../components/ui/Select";
 import Textarea from "../../components/ui/Textarea";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
-import { MdEdit, MdDelete, MdComment, MdAssignment , MdVisibility, MdTransferWithinAStation ,MdPhone, MdFolder, MdCalendarToday, MdInfoOutline, MdAdd } from "react-icons/md";
+import { MdEdit, MdDelete, MdSearch,MdComment, MdAssignment , MdVisibility, MdTransferWithinAStation ,MdPhone, MdFolder, MdCalendarToday, MdInfoOutline, MdAdd } from "react-icons/md";
 
 const CALL_TYPES = {
   inquiry:   ["inquiry", "follow-back"],
@@ -92,6 +92,7 @@ const Calls = () => {
   const [alert, setAlert]                 = useState({ type: "", message: "" });
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [deleting, setDeleting]           = useState(false);
+  const [search, setSearch] = useState("");
 
   const [remarksTarget, setRemarksTarget] = useState(null);
 const [remarkText, setRemarkText]       = useState("");
@@ -123,6 +124,23 @@ const [showNewRemark, setShowNewRemark] = useState(false);
   const filtered = filter === "all" ? calls : calls.filter((c) => c.call_type === filter);
 
   const expectedPrefix = getExpectedPrefix(form);
+
+//filter
+
+const searchData = search.toLowerCase().trim();
+
+const filteredCalls = (calls || []).filter((c) => {
+  const matchesType =
+    filter === "all" || c.call_type === filter;
+
+  const matchesSearch =
+    !searchData ||
+    c.caller_name?.toLowerCase().includes(searchData) ||
+    c.display_id?.toLowerCase().includes(searchData) ||
+    c.project?.name?.toLowerCase().includes(searchData);
+
+  return matchesType && matchesSearch;
+});
 
 
   // ── Handlers ──────────────────────────────────────────────────────────────
@@ -277,6 +295,19 @@ const [showNewRemark, setShowNewRemark] = useState(false);
               <option key={o.value} value={o.value}>{o.label}</option>
             ))}
           </select>
+
+            <div className="relative w-full md:w-95">
+                              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                                <MdSearch size={20} />
+                              </div>
+                              <input
+                                type="text"
+                                className="w-full bg-white border border-slate-200 rounded-2xl pl-12 pr-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/10 focus:border-[#132ea7] transition-all shadow-sm"
+                                placeholder="Search Tasks Display Id and Projects..."
+                                value={search}
+onChange={(e) => setSearch(e.target.value)}
+                              />
+                            </div>
           <Button variant="primary" className="shadow-lg shadow-[#132ea7]/20 px-6 rounded font-black uppercase tracking-widest text-sm whitespace-nowrap h-[52px]" onClick={openCreate}>
             <MdAdd size={20} className="mr-1" /> Log New Call
           </Button>
@@ -304,12 +335,12 @@ const [showNewRemark, setShowNewRemark] = useState(false);
 
 
             <tbody className="divide-y divide-slate-50">
-              {filtered.length === 0 && (
+              {filteredCalls.length === 0 && (
                 <tr>
                   <td colSpan={8} className="text-center text-slate-400 py-16 font-medium italic text-lg uppercase tracking-widest">No communication logs archived.</td>
                 </tr>
               )}
-              {filtered.map((call) => (
+              {filteredCalls.map((call) => (
                 <tr key={call.id} className="hover:bg-slate-50/80 transition-colors group">
 
                   {/* Display ID */}
@@ -523,7 +554,7 @@ const [showNewRemark, setShowNewRemark] = useState(false);
   )}
 
   {/* On create — always show the textarea */}
-  {!editTarget && (
+  {/* {!editTarget && (
     <Textarea
       label="Initial Remark (optional)"
       name="remark"
@@ -532,7 +563,7 @@ const [showNewRemark, setShowNewRemark] = useState(false);
       placeholder="Add a remark..."
       rows={2}
     />
-  )}
+  )} */}
 </div>
 
             {/* ── New fields — only on create ────────────────────── */}

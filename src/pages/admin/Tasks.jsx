@@ -19,7 +19,8 @@
     MdDelete,
     MdFolder,
     MdPerson,
-    MdVisibility
+    MdVisibility,
+    MdSearch 
   } from "react-icons/md";
 
   const initialForm = {
@@ -58,7 +59,7 @@
     const [alert, setAlert] = useState({ type: "", message: "" });
     const [confirmDelete, setConfirmDelete] = useState(null);
     const [deleting, setDeleting] = useState(false);
-
+    const [filter, setFilter] = useState("");
 
       const [remarksTarget, setRemarksTarget] = useState(null);
     const [remarkText, setRemarkText]       = useState("");
@@ -72,8 +73,18 @@
       getAllCalls?.();
     }, [page]);
 
-    
+    // filter
+const search = filter.toLowerCase().trim();
 
+const filtered = search
+  ? (tasks || []).filter((t) =>
+      t.task?.toLowerCase().includes(search) ||
+      t.display_id?.toLowerCase().includes(search) ||
+      // t.assignee?.name?.toLowerCase().includes(search) ||
+      // t.assigner?.name?.toLowerCase().includes(search) ||
+      t.project?.name?.toLowerCase().includes(search)
+    )
+  : (tasks || []);
     // ── Handlers ──────────────────────────────────────────────────────────────
     const handleChange = (e) => {
       const { name, value } = e.target;
@@ -97,7 +108,7 @@
       setFieldErrors({});
       setShowModal(true);
     };
-
+ 
     const openEdit = (task) => {
 
   //     console.log("RAW TASK:", task);
@@ -219,7 +230,20 @@
             <p className="text-slate-500 font-bold text-base">
               Total Tasks: {tasks.length}
             </p>
-          </div>
+          </div> 
+
+          <div className="relative w-full md:w-95">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                      <MdSearch size={20} />
+                    </div>
+                    <input
+                      type="text"
+                      className="w-full bg-white border border-slate-200 rounded-2xl pl-12 pr-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/10 focus:border-[#132ea7] transition-all shadow-sm"
+                      placeholder="Search Tasks Display Id and Projects..."
+                      value={filter}
+                      onChange={(e) => setFilter(e.target.value)}
+                    />
+                  </div>
           <Button
             variant="primary"
             className="shadow-lg shadow-[#132ea7]/20 py-3 px-8 rounded h-[52px] font-black uppercase tracking-widest text-sm"
@@ -267,7 +291,7 @@
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
-                  {tasks.length === 0 && (
+                  {filtered.length === 0 && (
                     <tr>
                       <td
                         colSpan={7}
@@ -277,7 +301,7 @@
                       </td>
                     </tr>
                   )}
-                  {tasks.map((task) => (
+                  {filtered.map((task) => (
                     <tr
                       key={task.id}
                       className="hover:bg-slate-50/80 transition-colors group"
@@ -755,7 +779,7 @@
                   { label: "Project", value: viewTarget.project?.name || "—" },
                   { label: "Due Date", value: viewTarget.due_date ? new Date(viewTarget.due_date).toLocaleDateString() : "—" },
                   { label: "Start Date", value: viewTarget.start_date ? new Date(viewTarget.start_date).toLocaleDateString() : "—" },
-                  { label: "Created", value: new Date(viewTarget.createdAt).toLocaleDateString() },
+                  // { label: "Created", value: new Date(viewTarget.createdAt).toLocaleDateString() },
                 ].map((item) => (
                   <div key={item.label} className="bg-slate-50 rounded-2xl p-4">
                     <p className="text-[12px] font-black text-slate-400 uppercase tracking-widest mb-1">{item.label}</p>

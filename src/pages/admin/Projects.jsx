@@ -11,7 +11,7 @@ import Spinner from "../../components/ui/Spinner";
 import Badge from "../../components/ui/Badge";
 
 
-import { MdAdd, MdGroup , MdChevronRight , MdBusinessCenter, MdCalendarToday, MdEdit, MdDelete, MdPerson, MdPowerSettingsNew, MdFolder, MdPersonAdd, MdPersonRemove, MdCheckCircle } from "react-icons/md";
+import { MdAdd, MdGroup , MdAssignment , MdVisibility, MdSearch, MdChevronRight , MdBusinessCenter, MdCalendarToday, MdEdit, MdDelete, MdPerson, MdPowerSettingsNew, MdFolder, MdPersonAdd, MdPersonRemove, MdCheckCircle } from "react-icons/md";
 import { useRole } from './../../context/RoleContext';
 import Select from './../../components/ui/Select';
 import { useUser } from './../../context/UserContext';
@@ -40,14 +40,14 @@ const Projects = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
+  const [viewTarget, setViewTarget] = useState(null);
   const [form, setForm] = useState(initialForm);
-  
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [alert, setAlert] = useState({ type: "", message: "" });
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
-
+  const [filter, setFilter] = useState("");
 
     // Expanded rows (members inline)
   const [expandedRow, setExpandedRow] = useState(null);
@@ -59,11 +59,28 @@ const Projects = () => {
   const [removingMember, setRemovingMember]   = useState(null);
 
 
+    const [remarksTarget, setRemarksTarget] = useState(null);
+    const [remarkText, setRemarkText]       = useState("");
+    const [remarkSubmitting, setRemarkSubmitting] = useState(false);
+    const [showNewRemark, setShowNewRemark] = useState(false);
+
+
   useEffect(() => {
     getAllProjects?.(page);
     getAllRoles?.();
      getAllUsers?.();
   }, [page]);
+
+
+  // filter
+const search = filter.toLowerCase().trim()
+
+const filtered = search 
+? (projects || []).filter((p) =>
+  p.name?.toLowerCase().includes(search) ||
+  p.code?.toLowerCase().includes(search)
+) 
+ : (projects || [])
 
 
   // ── Inline Member Helpers (Team.jsx-style) ──────────────────────────────
@@ -283,7 +300,7 @@ const handleProjectTypeChange = (
     try {
       setSubmitting(true);
       if (editTarget) {
-        await updateProject(editTarget.id, {
+      const updated = await updateProject(editTarget.id, {
   name: form.name,
   description: form.description || null,
   project_types: form.project_types,
@@ -291,7 +308,12 @@ const handleProjectTypeChange = (
   development_status: form.development_status || "active",
   remark: form.remark || null,
 });
-        setAlert({ type: "success", message: "Project configuration updated" });
+
+if(viewTarget?.id === editTarget.id)
+{
+  setViewTarget(updated.name || updated)
+}
+        setAlert({ type: "success", message: "Project updated successfully" });
       } else {
 await createProject({
   name: form.name,
@@ -355,6 +377,20 @@ await createProject({
           <p className="text-slate-500 font-bold text-base">Total Projects: {projects.length} </p>
         </div>
 
+        <div className="relative w-full md:w-95">
+                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
+                      <MdSearch size={20} />
+                    </div>
+                    <input
+                      type="text"
+                      className="w-full bg-white border border-slate-200 rounded-2xl pl-12 pr-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/10 focus:border-[#132ea7] transition-all shadow-sm"
+                      placeholder="Search Project name and Code..."
+                      value={filter}
+                      onChange={(e) => setFilter(e.target.value)}
+                    />
+                  </div>
+
+
         <Button variant="primary" className="shadow-lg shadow-[#132ea7]/20 py-3.5 px-8 rounded h-[52px] font-black uppercase tracking-widest text-sm" onClick={openCreate}>
           <MdAdd size={22} />
           New Project
@@ -368,7 +404,7 @@ await createProject({
       />
 
       {/* Projects Display */}
-      {projects.length === 0 ? (
+      {filtered.length === 0 ? (
         <div className="bg-white rounded-[2.5rem] p-16 text-center border border-dashed border-slate-200 shadow-2xl shadow-slate-200/40">
           <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-300 shadow-inner">
             <MdBusinessCenter size={40} />
@@ -395,7 +431,7 @@ await createProject({
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {projects.map((project) => (
+                {filtered.map((project) => (
                   <>
                   <tr key={project.id} className={`hover:bg-slate-50/80 transition-colors group ${!project.is_active ? "opacity-60" : ""}`}>
                     <td className="px-10 py-6">
@@ -486,6 +522,9 @@ await createProject({
                     </td>
                     <td className="px-10 py-6 text-right">
                       <div className="flex items-center justify-end gap-2">
+                          <button onClick={() => setViewTarget(project)} title="View" className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all">
+                                                                  <MdVisibility size={18} />
+                                                                </button>
                         <button
                           onClick={() => openEdit(project)}
                           title="Edit Project"
@@ -663,6 +702,25 @@ await createProject({
 
                           </div>
                         </td>
+                         <td className="px-10 py-6 text-right">
+                                                <div className="flex items-center justify-end gap-3">
+                                                                  <button onClick={() => setViewTarget(project)} title="View" className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all">
+                                                                  <MdVisibility size={18} />
+                                                                </button>
+                                                  <button
+                                                    onClick={() => openEdit(project)}
+                                                    className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all"
+                                                  >
+                                                    <MdEdit size={20} />
+                                                  </button>
+                                                  <button
+                                                    onClick={() => setConfirmDelete(project)}
+                                                    className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:bg-red-500/10 hover:text-red-500 transition-all"
+                                                  >
+                                                    <MdDelete size={20} />
+                                                  </button>
+                                                </div>
+                                              </td>
                       </tr>
                     )}
 
@@ -878,14 +936,72 @@ await createProject({
   </Button>
 </div> */}
 
+                   {/* Remarks section in edit modal */}
+  <div className="md:col-span-2 space-y-3">
+    <div className="flex items-center justify-between ml-1">
+      <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
+        Remarks
+      </label>
+      {/* + button to toggle new remark input */}
+      <button
+        type="button"
+        onClick={() => setShowNewRemark((prev) => !prev)}
+        className="flex items-center gap-1 px-3 py-1.5 bg-[#132ea7]/10 text-[#132ea7] rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#132ea7]/20 transition-all"
+      >
+        <MdAdd size={14} />
+        {showNewRemark ? "Cancel" : "Add Remark"}
+      </button>
+    </div>
 
-           <Textarea
-  label="Add Remark"
-  name="remark"
-  value={form.remark}
-  onChange={handleChange}
-  rows={2}
-/>
+    {/* Existing remarks log */}
+    {Array.isArray(editTarget?.remarks) && editTarget.remarks.length > 0 ? (
+      <div className="space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar">
+        {[...editTarget.remarks].reverse().map((r, i) => (
+          <div key={i} className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+            <p className="text-sm font-bold text-slate-700">{r.text}</p>
+            <div className="flex justify-between mt-1.5">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                {r.added_by_name}
+              </p>
+              <p className="text-[10px] font-bold text-slate-300">
+                {new Date(r.created_at).toLocaleString("default", {
+                  month: "short", day: "numeric",
+                  hour: "2-digit", minute: "2-digit"
+                })}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    ) : (
+      editTarget && (
+        <p className="text-xs font-bold text-slate-400 text-center py-3">No remarks yet</p>
+      )
+    )}
+
+    {/* New remark input — shown when + is clicked */}
+    {showNewRemark && (
+      <Textarea
+        name="remark"
+        value={form.remark}
+        onChange={handleChange}
+        placeholder="Add a new remark..."
+        rows={2}
+      />
+    )}
+
+    {/* On create — always show the textarea */}
+    {/* {!editTarget && (
+      <Textarea
+        label="Initial Remark (optional)"
+        name="remark"
+        value={form.remark}
+        onChange={handleChange}
+        placeholder="Add a remark..."
+        rows={2}
+      />
+    )} */}
+  </div>
           </div>
           <div className="flex gap-4 pt-8 border-t border-slate-50">
             <Button variant="ghost" className="flex-1 font-black uppercase tracking-widest text-sm" onClick={closeModal} disabled={submitting}>Abort</Button>
@@ -895,6 +1011,140 @@ await createProject({
           </div>
         </form>
       </Modal>
+
+
+        {/* ── View Modal ───────────────────────────────────────────── */}
+        <Modal show={!!viewTarget} onClose={() => setViewTarget(null)} title="Project Details" size="lg">
+          {viewTarget && (
+            <div className="space-y-6 py-2">
+
+              {/* Header */}
+              <div className="flex items-start gap-4 pb-5 border-b border-slate-100">
+                <div className="w-14 h-14 rounded-2xl bg-[#132ea7] text-white flex items-center justify-center shrink-0 shadow-xl shadow-[#132ea7]/20">
+                  <MdAssignment size={26} />
+                </div>
+                <div className="flex-1">
+                  {/* <div className="flex items-center gap-3 flex-wrap">
+                    <h3 className="text-xl font-black text-slate-800">{viewTarget.task}</h3>
+                    <Badge value={viewTarget.status} />
+                  </div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 font-mono">
+                    {viewTarget.display_id || "No display ID"}
+                  </p> */}
+
+                  <div className="flex items-center gap-3 flex-wrap">
+                   <h3 className="text-xl font-black text-slate-800">
+  {viewTarget.name}
+</h3>
+
+                    <Badge value={viewTarget.development_status} />
+                  </div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 font-mono">
+  {viewTarget.code}
+</p>
+                </div>
+              </div>
+
+              <div className="bg-slate-50 rounded-2xl p-5">
+  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
+    Project Types
+  </p>
+
+  <div className="flex flex-wrap gap-2">
+    {Object.entries(viewTarget.project_types || {}).map(
+      ([type, subtypes]) =>
+        subtypes.map((sub) => (
+          <span
+            key={`${type}-${sub}`}
+            className="px-3 py-1 rounded-lg bg-[#132ea7]/10 text-[#132ea7] text-xs font-bold"
+          >
+            {type} / {sub}
+          </span>
+        ))
+    )}
+  </div>
+</div>
+
+
+
+              {/* Info grid */}
+              {/* <div className="grid grid-cols-2 gap-4">
+                {[
+                  { label: "Name", value: viewTarget.name || "—" },
+                  { label: "Assigned By", value: viewTarget.assigner?.name || "—" },
+                  { label: "Project", value: viewTarget.project?.name || "—" },
+                  { label: "Due Date", value: viewTarget.due_date ? new Date(viewTarget.due_date).toLocaleDateString() : "—" },
+                  { label: "Start Date", value: viewTarget.start_date ? new Date(viewTarget.start_date).toLocaleDateString() : "—" },
+                  // { label: "Created", value: new Date(viewTarget.createdAt).toLocaleDateString() },
+                ].map((item) => (
+                  <div key={item.label} className="bg-slate-50 rounded-2xl p-4">
+                    <p className="text-[12px] font-black text-slate-400 uppercase tracking-widest mb-1">{item.label}</p>
+                    <p className="font-black text-slate-700 text-sm">{item.value}</p>
+                  </div>
+                ))}
+              </div> */}
+
+
+              {/* tech_details */}
+              {viewTarget.tech_details && (
+                <div className="bg-[#132ea7] rounded-2xl p-6 text-white">
+                  <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-2"> Technical Details</p>
+                   {Array.isArray(viewTarget.tech_details) ? (
+    <div className="flex flex-wrap gap-2">
+      {viewTarget.tech_details.map((tech, index) => (
+        <span
+          key={index}
+          className="px-3 py-1 rounded-lg bg-white/10 text-sm"
+        >
+          {tech.name}
+          {tech.version ? ` (${tech.version})` : ""}
+        </span>
+      ))}
+    </div>
+  ) : (
+    <p>{viewTarget.tech_details}</p>
+  )}
+                </div>
+              )}
+
+              {/* Description */}
+              {viewTarget.description && (
+                <div className="bg-[#132ea7] rounded-2xl p-6 text-white">
+                  <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-2">Description</p>
+                  <p className="font-medium leading-relaxed opacity-90">{viewTarget.description}</p>
+                </div>
+              )}
+
+            {/* Remarks log */}
+              {viewTarget.remarks && Array.isArray(viewTarget.remarks) && viewTarget.remarks.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    Remarks ({viewTarget.remarks.length})
+                  </p>
+                  <div className="space-y-2 max-h-[180px] overflow-y-auto custom-scrollbar">
+                    {[...viewTarget.remarks].reverse().map((r, i) => (
+                      <div key={i} className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                        <p className="text-sm font-bold text-slate-700">{r.text}</p>
+                        <div className="flex justify-between mt-1.5">
+                          <p className="text-[10px] font-black text-slate-400 uppercase">{r.added_by_name}</p>
+                          <p className="text-[10px] font-bold text-slate-300">
+                            {new Date(r.created_at).toLocaleString("default", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-end pt-2">
+                <Button variant="ghost" onClick={() => setViewTarget(null)} className="font-black uppercase tracking-widest text-xs">Close</Button>
+              </div>
+            </div>
+          )}
+        </Modal>
+
+
 
       {/* Delete confirm */}
       <ConfirmDialog

@@ -180,8 +180,8 @@ const Dashboard = () => {
             Calls Center
           </h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-[1.5rem] p-6 border border-slate-100 shadow-xl shadow-slate-200/30 flex items-center justify-between transition-all hover:shadow-2xl hover:-translate-y-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* <div className="bg-white rounded-[1.5rem] p-6 border border-slate-100 shadow-xl shadow-slate-200/30 flex items-center justify-between transition-all hover:shadow-2xl hover:-translate-y-1">
               <div>
                 <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Total Calls</p>
                 <p className="text-3xl font-black text-slate-800">{data?.calls_section?.total_calls ?? 0}</p>
@@ -189,7 +189,7 @@ const Dashboard = () => {
               <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center">
                 <MdPhone size={24} />
               </div>
-            </div>
+            </div> */}
             <div className="bg-white rounded-[1.5rem] p-6 border border-slate-100 shadow-xl shadow-slate-200/30 flex items-center justify-between transition-all hover:shadow-2xl hover:-translate-y-1">
               <div>
                 <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Today's Calls</p>
@@ -210,10 +210,10 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-xl shadow-slate-200/30">
+          <div className="grid grid-cols-1 lg:grid-cols-2  gap-6">
+            <div className="bg-white rounded-[2rem]  p-8 border border-slate-100 shadow-xl shadow-slate-200/30">
               <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-6">Today's Call List</h4>
-              <div className="overflow-x-auto">
+              <div className="overflow-auto max-h-[450px] scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
                 <table className="w-full text-left border-collapse min-w-max">
                   <thead>
                     <tr className="border-b border-slate-100">
@@ -239,9 +239,9 @@ const Dashboard = () => {
               </div>
             </div>
 
-            <div className="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-xl shadow-slate-200/30">
+            <div className="bg-white  rounded-[2rem]  p-8 border border-slate-100 shadow-xl shadow-slate-200/30">
               <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-6">Task-Linked Calls</h4>
-              <div className="overflow-x-auto">
+              <div className="overflow-auto max-h-[450px] scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
                 <table className="w-full text-left border-collapse min-w-max">
                   <thead>
                     <tr className="border-b border-slate-100">
@@ -268,6 +268,122 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
+
+        {/* ── Tasks Center ───────────────────────────────── */}
+<div className="space-y-6">
+  <h3 className="text-xl font-black text-slate-800 flex items-center gap-3">
+    <span className="w-2 h-8 bg-emerald-500 rounded-full" />
+    Tasks Center
+    <span className="text-slate-300 font-bold text-xs tracking-widest uppercase ml-1">
+      {fromDate ? `From ${fromDate}` : "Today"}
+    </span>
+  </h3>
+
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="bg-white rounded-[1.5rem] p-6 border border-slate-100 shadow-xl shadow-slate-200/30 flex items-center justify-between">
+      <div>
+        <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
+          {fromDate ? "Range Tasks" : "Today's Tasks"}
+        </p>
+        <p className="text-3xl font-black text-slate-800">{data?.tasks_section?.today_count ?? 0}</p>
+      </div>
+      <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center">
+        <MdCheckCircle size={24} />
+      </div>
+    </div>
+  </div>
+
+  <div className="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-xl shadow-slate-200/30">
+    <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-6">
+      {fromDate ? `Tasks (${fromDate} → Today)` : "Today's Tasks"}
+    </h4>
+    <div className="overflow-x-auto">
+      <table className="w-full text-left border-collapse min-w-max">
+        <thead>
+          <tr className="border-b border-slate-100">
+            <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Display ID</th>
+            <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Task</th>
+            <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Status</th>
+            <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Assigned To</th>
+            <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Project</th>
+            <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Due</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-50">
+          {data?.tasks_section?.today_tasks?.length > 0
+            ? data.tasks_section.today_tasks.slice(0, 10).map((t) => (
+              <tr key={t.id}>
+                <td className="py-4 text-[10px] font-black text-[#132ea7] font-mono">{t.display_id || "—"}</td>
+                <td className="py-4 text-xs font-bold text-slate-700">{t.task}</td>
+                <td className="py-4"><Badge value={t.status} /></td>
+                <td className="py-4 text-xs font-bold text-[#132ea7]">{t.assignee?.name || "—"}</td>
+                <td className="py-4 text-xs font-bold text-emerald-600">{t.project?.name || "—"}</td>
+                <td className="py-4 text-xs font-bold text-slate-500">
+                  {t.due_date ? new Date(t.due_date).toLocaleDateString() : "—"}
+                </td>
+              </tr>
+            ))
+            : <tr><td colSpan="6" className="py-6 text-center text-xs font-bold text-slate-400">No tasks</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+{/* ── WorkLogs Center ────────────────────────────── */}
+<div className="space-y-6">
+  <h3 className="text-xl font-black text-slate-800 flex items-center gap-3">
+    <span className="w-2 h-8 bg-amber-500 rounded-full" />
+    Work Logs Center
+    <span className="text-slate-300 font-bold text-xs tracking-widest uppercase ml-1">
+      {fromDate ? `From ${fromDate}` : "Today"}
+    </span>
+  </h3>
+
+  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="bg-white rounded-[1.5rem] p-6 border border-slate-100 shadow-xl shadow-slate-200/30 flex items-center justify-between">
+      <div>
+        <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">
+          {fromDate ? "Range Logs" : "Today's Logs"}
+        </p>
+        <p className="text-3xl font-black text-slate-800">{data?.worklogs_section?.today_count ?? 0}</p>
+      </div>
+      <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center">
+        <MdBook size={24} />
+      </div>
+    </div>
+  </div>
+
+  <div className="bg-white rounded-[2rem] p-8 border border-slate-100 shadow-xl shadow-slate-200/30">
+    <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-6">
+      {fromDate ? `Work Logs (${fromDate} → Today)` : "Today's Work Logs"}
+    </h4>
+    <div className="overflow-x-auto">
+      <table className="w-full text-left border-collapse min-w-max">
+        <thead>
+          <tr className="border-b border-slate-100">
+            <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Employee</th>
+            <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Description</th>
+            <th className="pb-4 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Date</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-50">
+          {data?.worklogs_section?.today_logs?.length > 0
+            ? data.worklogs_section.today_logs.slice(0, 10).map((l) => (
+              <tr key={l.id}>
+                <td className="py-4 text-xs font-bold text-[#132ea7]">{l.User?.name || "—"}</td>
+                <td className="py-4 text-xs font-bold text-slate-700 max-w-[300px] truncate">{l.description}</td>
+                <td className="py-4 text-xs font-bold text-slate-500">{l.date}</td>
+              </tr>
+            ))
+            : <tr><td colSpan="3" className="py-6 text-center text-xs font-bold text-slate-400">No work logs</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
 
         {/* ── Last 7 days Activity ─────────────────────── */}
         <div className="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-2xl shadow-slate-200/40">

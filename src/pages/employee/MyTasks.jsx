@@ -15,6 +15,7 @@ import Spinner from "../../components/ui/Spinner";
 import Badge, { DueDateBadge } from "../../components/ui/Badge";
 import { MdAdd, MdAssignment, MdEdit, MdDelete, MdFolder, MdVisibility, MdCalendarToday, MdInfoOutline, MdComment } from "react-icons/md";
 import { useUser } from "../../context/UserContext";
+import ExportBar from "../../components/ui/ExportBar";
 
 const initialForm = {
   task:        "",
@@ -173,6 +174,7 @@ await createTask(payload);
           </h2>
           <p className="text-slate-500 font-bold text-base">Total Tasks: {tasks.length}</p>
         </div>
+        <ExportBar type="tasks"/>
         <Button variant="primary" className="shadow-lg shadow-[#132ea7]/20 py-3 px-8 rounded h-[52px] font-black uppercase tracking-widest text-sm" onClick={openCreate}>
           <MdAdd size={22} /> New Task
         </Button>

@@ -13,6 +13,7 @@ import Input from "../../components/ui/Input";
 import Select from "../../components/ui/Select";
 import Textarea from "../../components/ui/Textarea";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
+import ExportBar from "../../components/ui/ExportBar";
 
 
 import {
@@ -125,7 +126,7 @@ const MyCalls = () => {
   }, [page]);
 
 
-  // right now its just display name which is good but is code needs then use claudes code
+  // right now its just display name which is good but if code needs then use claudes code
   const projectOptions = projects.map((p) => ({ value: p.id, label: p.name }));
   console.log("🚀 ~ MyCalls ~ projectOptions:", projectOptions);
 
@@ -301,10 +302,10 @@ const MyCalls = () => {
           Accessing comms archives...
         </p>
       </div>
-    );
+    ); 
 
   return (
-    <div className="space-y-10 px-5 animate-in fade-in duration-700">
+    <div className="space-y-10 px-5  animate-in fade-in duration-700">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -327,6 +328,8 @@ const MyCalls = () => {
               </option>
             ))}
           </select>
+
+          <ExportBar type="calls"/>
           <Button
             variant="primary"
             className="shadow-lg shadow-[#132ea7]/20 px-6 rounded font-black uppercase tracking-widest text-sm whitespace-nowrap h-[52px]"
@@ -732,7 +735,7 @@ const MyCalls = () => {
   )}
 
   {/* On create — always show the textarea */}
-  {!editTarget && (
+  {/* {!editTarget && (
     <Textarea
       label="Initial Remark (optional)"
       name="remark"
@@ -741,7 +744,7 @@ const MyCalls = () => {
       placeholder="Add a remark..."
       rows={2}
     />
-  )}
+  )} */}
 </div>
 
 

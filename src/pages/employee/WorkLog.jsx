@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useWorkLog } from "../../context/WorkLogContext";
+import { useProject } from "../../context/ProjectContext";
 import Button from "../../components/ui/Button";
 import Alert from "../../components/ui/Alert";
 import Modal from "../../components/ui/Modal";
@@ -7,9 +8,13 @@ import Input from "../../components/ui/Input";
 import Textarea from "../../components/ui/Textarea";
 import Spinner from "../../components/ui/Spinner";
 import {MdBook, MdVisibility, MdCalendarToday, MdPerson, MdAccessTime, MdOutlineSpeakerNotes, MdAdd, MdEdit } from "react-icons/md";
+import Select from "../../components/ui/Select";
+import ExportBar from "../../components/ui/ExportBar";
 
 const initialForm = { 
   description: "",
+  project_id: "",
+  remarks: "",
   date: new Date().toISOString().split("T")[0], // today's date as default
 };
 
@@ -17,6 +22,9 @@ const WorkLog = () => {
   const { workLogs = [], loading,page,
       totalPages,
       setPage, getAllWorkLogs, createWorkLog, updateWorkLog } = useWorkLog();
+const {projects, getAllProjects} = useProject();
+console.log("🚀 ~ WorkLog ~ projects:", projects)
+
 
   const [showModal, setShowModal] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
@@ -26,8 +34,19 @@ const WorkLog = () => {
   const [submitting, setSubmitting] = useState(false);
   const [alert, setAlert] = useState({ type: "", message: "" });
 
+  
+    const [remarksTarget, setRemarksTarget] = useState(null);
+  const [remarkText, setRemarkText]       = useState("");
+  const [remarkSubmitting, setRemarkSubmitting] = useState(false);
+  const [showNewRemark, setShowNewRemark] = useState(false);
+
+  //project options
+  const projectOptions = projects.map((p) => ({ value: p.id, label: p.name }));
+  console.log("🚀 ~ WorkLog ~ projectOptions:", projectOptions)
+
   useEffect(() => {
     getAllWorkLogs?.(page);
+    getAllProjects?.()
   }, [page]);
 
   const totalEntries = workLogs.length;
@@ -55,6 +74,7 @@ const WorkLog = () => {
   const validate = () => {
     const errors = {};
     if (!form.description.trim()) errors.description = "Description is required";
+    if (!form.project_id) errors.project_id = "Project is required";
     if (!form.date) errors.date = "Date is required";
     return errors;
   };
@@ -68,7 +88,7 @@ const WorkLog = () => {
 
   const openEdit = (log) => {
     setEditTarget(log);
-    setForm({ description: log.description, date: log.date });
+    setForm({ description: log.description, date: log.date, project_id:log.project_id, remarks:log.remarks });
     setFieldErrors({});
     setShowModal(true);
   };
@@ -120,8 +140,10 @@ const WorkLog = () => {
           <p className="text-slate-500 font-bold text-base">Your daily work journal</p>
         </div>
         
+        <ExportBar type="work-logs"/>
+
         <Button variant="primary" className="shadow-lg shadow-[#132ea7]/20 py-3 px-8 rounded h-[52px] font-black uppercase tracking-widest text-sm flex items-center justify-center gap-2" onClick={openCreate}>
-          <MdAdd size={22} /> Add Entry
+          <MdAdd size={22} /> Add Work
         </Button>
       </div>
 
@@ -272,6 +294,19 @@ const WorkLog = () => {
               error={fieldErrors.date}
               required
             />
+
+              <div className="md:col-span-2">
+              <Select
+                label="Project"
+                name="project_id"
+                value={form.project_id}
+                onChange={handleChange}
+                options={projectOptions}
+                error={fieldErrors.project_id}
+                placeholder="Select associated project..."
+                required
+              />
+            </div>
             <Textarea
               label="What did you do today?"
               name="description"
@@ -284,6 +319,74 @@ const WorkLog = () => {
               required
             />
           </div>
+
+                                {/* Remarks section in edit modal */}
+<div className="md:col-span-2 space-y-3">
+  <div className="flex items-center justify-between ml-1">
+    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
+      Remarks
+    </label>
+    {/* + button to toggle new remark input */}
+    <button
+      type="button"
+      onClick={() => setShowNewRemark((prev) => !prev)}
+      className="flex items-center gap-1 px-3 py-1.5 bg-[#132ea7]/10 text-[#132ea7] rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#132ea7]/20 transition-all"
+    >
+      <MdAdd size={14} />
+      {showNewRemark ? "Cancel" : "Add Remark"}
+    </button>
+  </div>
+
+  {/* Existing remarks log */}
+  {Array.isArray(editTarget?.remarks) && editTarget.remarks.length > 0 ? (
+    <div className="space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar">
+      {[...editTarget.remarks].reverse().map((r, i) => (
+        <div key={i} className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+          <p className="text-sm font-bold text-slate-700">{r.text}</p>
+          <div className="flex justify-between mt-1.5">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+              {r.added_by_name}
+            </p>
+            <p className="text-[10px] font-bold text-slate-300">
+              {new Date(r.created_at).toLocaleString("default", {
+                month: "short", day: "numeric",
+                hour: "2-digit", minute: "2-digit"
+              })}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  ) : (
+    editTarget && (
+      <p className="text-xs font-bold text-slate-400 text-center py-3">No remarks yet</p>
+    )
+  )}
+
+  {/* New remark input — shown when + is clicked */}
+  {showNewRemark && (
+    <Textarea
+      name="remark"
+      value={form.remark}
+      onChange={handleChange}
+      placeholder="Add a new remark..."
+      rows={2}
+    />
+  )}
+
+  {/* On create — always show the textarea */}
+  {/* {!editTarget && (
+    <Textarea
+      label="Initial Remark (optional)"
+      name="remark"
+      value={form.remark}
+      onChange={handleChange}
+      placeholder="Add a remark..."
+      rows={2}
+    />
+  )} */}
+</div>
+
           <div className="flex gap-4 pt-4 border-t border-slate-50">
             <Button variant="ghost" className="flex-1 font-black uppercase tracking-widest text-sm" onClick={closeModal} disabled={submitting}>
               Cancel
@@ -335,6 +438,41 @@ const WorkLog = () => {
                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-[100px]" />
                <div className="absolute bottom-0 left-0 w-48 h-48 bg-sky-500/10 rounded-full blur-[80px]" />
             </div>
+
+            {viewTarget.remarks &&
+              Array.isArray(viewTarget?.remarks) &&
+              viewTarget.remarks.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    Remarks ({viewTarget.remarks.length})
+                  </p>
+                  <div className="space-y-2 max-h-[180px] overflow-y-auto custom-scrollbar">
+                    {[...viewTarget.remarks].reverse().map((r, i) => (
+                      <div
+                        key={i}
+                        className="p-3 bg-slate-50 rounded-xl border border-slate-100"
+                      >
+                        <p className="text-sm font-bold text-slate-700">
+                          {r.text}
+                        </p>
+                        <div className="flex justify-between mt-1.5">
+                          <p className="text-[10px] font-black text-slate-400 uppercase">
+                            {r.added_by_name}
+                          </p>
+                          <p className="text-[10px] font-bold text-slate-300">
+                            {new Date(r.created_at).toLocaleString("default", {
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
             <div className="flex items-center justify-end pt-4">
                <Button variant="ghost" onClick={() => setViewTarget(null)} className="text-slate-400 font-black uppercase tracking-[0.2em] text-xs">Close Archives</Button>

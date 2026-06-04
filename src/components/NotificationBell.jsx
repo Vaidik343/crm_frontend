@@ -24,10 +24,21 @@ const NotificationBell = () => {
     if (!user?.id) return;
 
     socketRef.current = io(import.meta.env.VITE_API_URL || "http://localhost:7015", {
-      transports: ["websocket"],
-    });
-
+  transports: ["websocket", "polling"],  // ← add polling as fallback
+  reconnection: true,
+  reconnectionAttempts: 5,
+});
     socketRef.current.emit("join", user.id);
+
+
+    socketRef.current.on("connect", () => {
+  console.log("✅ Socket connected:", socketRef.current.id);
+  socketRef.current.emit("join", user.id);  // move join here, not outside
+});
+
+socketRef.current.on("connect_error", (err) => {
+  console.error("Socket connection error:", err.message);
+});
 
     socketRef.current.on("notification", (notification) => {
       setNotifications((prev) => [notification, ...prev]);

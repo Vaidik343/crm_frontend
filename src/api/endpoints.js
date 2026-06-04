@@ -14,7 +14,8 @@ export const ENDPOINTS = {
         ALL: "/dashboard"
     },
     EXPORT: {
-        ALL: "/export"
+        ALL: "/export",
+        MINE: "/export/mine"
     },
     PERMISSIONS: {
         ALL: '/permissions',
