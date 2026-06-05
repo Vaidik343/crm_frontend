@@ -26,7 +26,7 @@ const initialForm = {
   assigned_to: "",
   due_date:    "",
   status:      "ongoing",
-          remarks:      "",
+          remark:      "",
 };
 
 const MyTasks = () => {
@@ -41,6 +41,7 @@ const MyTasks = () => {
   const [showModal, setShowModal]     = useState(false);
   const [editTarget, setEditTarget]   = useState(null);
   const [viewTarget, setViewTarget]   = useState(null);
+  console.log("🚀 ~ MyTasks ~ viewTarget:", viewTarget)
   const [form, setForm]               = useState(initialForm);
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting]   = useState(false);
@@ -89,7 +90,7 @@ const MyTasks = () => {
       call_id:     task.call_id || "",
       due_date:    task.due_date ? new Date(task.due_date).toISOString().split("T")[0] : "",
       status:      task.status || "ongoing",
-              remarks:      "",
+              remark:      "",
     });
     setFieldErrors({});
     setShowModal(true);
@@ -116,7 +117,7 @@ const MyTasks = () => {
                 assigned_to: form.assigned_to || "",
           due_date:    form.due_date || null,
           status:      form.status,
-           remarks:      form.remarks || undefined,
+           remark:      form.remark || undefined,
         });
         setAlert({ type: "success", message: "Task updated successfully" });
       } else {
@@ -128,7 +129,7 @@ const payload = {
   assigned_to: form.assigned_to || null,
   due_date:    form.due_date    || null,
   status:      form.status      || "ongoing",
-  remarks:      form.remarks      || undefined,
+  remarks:      form.remark     || undefined,
 };
 await createTask(payload);
         // await createTask(payload);
@@ -494,12 +495,12 @@ await createTask(payload);
               )}
 
               {/* New remark input — shown when + is clicked, or always on create */}
-              {(showNewRemark || !editTarget) && (
+              {showNewRemark  && (
                 <Textarea
-                  name="remarks"
-                  value={form.remarks || ""}
+                  name="remark"
+                  value={form.remark || ""}
                   onChange={handleChange}
-                  placeholder={editTarget ? "Add a new remark..." : "Add an initial remark..."}
+                  placeholder= "Add a new remark..." 
                   rows={2}
                 />
               )}
@@ -573,25 +574,27 @@ await createTask(payload);
                 <p className="font-medium leading-relaxed opacity-90">{viewTarget.description}</p>
               </div>
             )}
-
-            {viewTarget.remarks && Array.isArray(viewTarget.remarks) && viewTarget.remarks.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Remarks ({viewTarget.remarks.length})</p>
-                <div className="space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar">
-                  {[...viewTarget.remarks].reverse().map((r, i) => (
-                    <div key={i} className="p-3 bg-slate-50 rounded-xl border border-slate-100">
-                      <p className="text-sm font-bold text-slate-700">{r.text}</p>
-                      <div className="flex justify-between mt-1.5">
-                        <p className="text-[10px] font-black text-slate-400 uppercase">{r.added_by_name}</p>
-                        <p className="text-[10px] font-bold text-slate-300">
-                          {new Date(r.created_at).toLocaleString("default", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
-                        </p>
+ {/* Remarks log */}
+              {viewTarget.remarks && Array.isArray(viewTarget.remarks) && viewTarget.remarks.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    Remarks ({viewTarget.remarks.length})
+                  </p>
+                  <div className="space-y-2 max-h-[180px] overflow-y-auto custom-scrollbar">
+                    {[...viewTarget.remarks].reverse().map((r, i) => (
+                      <div key={i} className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                        <p className="text-sm font-bold text-slate-700">{r.text}</p>
+                        <div className="flex justify-between mt-1.5">
+                          <p className="text-[10px] font-black text-slate-400 uppercase">{r.added_by_name}</p>
+                          <p className="text-[10px] font-bold text-slate-300">
+                            {new Date(r.created_at).toLocaleString("default", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
 
             <div className="flex justify-end pt-2">
               <Button variant="ghost" onClick={() => setViewTarget(null)} className="font-black uppercase tracking-widest text-xs">Close</Button>
@@ -612,5 +615,6 @@ await createTask(payload);
     </div>
   );
 };
+
 
 export default MyTasks;

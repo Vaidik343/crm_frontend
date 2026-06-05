@@ -29,6 +29,7 @@ import MyDashboard from './pages/employee/MyDashboard';
 // import MyTeams from './pages/employee/MyTeam';
 
 // import MyProject from './pages/employee/MyProjects';
+import MyProjects from './pages/employee/MyProjects';
 
 const App = () => {
 
@@ -90,7 +91,7 @@ const App = () => {
   <Route path="teams/:id/dashboard" element={<TeamDashboard />} /> */}
  
    {/* project */}
-   {/* <Route path="projects" element={<MyProjects />} /> */}
+   <Route path="projects" element={<MyProjects />} />
 
   <Route index element={<Navigate to="tasks" replace />} />
 </Route>
@@ -100,7 +101,7 @@ const App = () => {
         path="/"
         element={
           isAuthenticated
-            ? <Navigate to={isAdmin ? "/admin/dashboard" : "/employee/tasks"} replace />
+            ? <Navigate to={isAdmin ? "/admin/dashboard" : "/employee/myDashboard"} replace />
             : <Navigate to="/login" replace />
         }
       />

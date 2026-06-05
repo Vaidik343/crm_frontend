@@ -11,19 +11,19 @@ import {
 
 // ── Stat Card ─────────────────────────────────────────────────────────────────
 const StatCard = ({ label, value, icon, accent, textAccent, dark }) => (
-  <div className={`rounded-[1.5rem] p-6 flex items-center gap-5 ${
+  <div className={`rounded-[2rem] p-8 flex items-center gap-6 ${
     dark
-      ? "bg-[#132ea7] shadow-lg shadow-[#132ea7]/20"
-      : "bg-white border border-slate-100 shadow-lg"
+      ? "bg-[#132ea7] shadow-2xl shadow-[#132ea7]/30"
+      : "bg-white border border-slate-100 shadow-2xl shadow-slate-200/40"
   }`}>
-    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 ${accent}`}>
+    <div className={`w-16 h-16 rounded-[1.25rem] flex items-center justify-center flex-shrink-0 shadow-inner ${accent}`}>
       {icon}
     </div>
     <div>
-      <p className={`text-[10px] font-black uppercase tracking-[0.2em] mb-1 ${dark ? "text-white/60" : "text-slate-400"}`}>
+      <p className={`text-xs font-black uppercase tracking-[0.2em] mb-1.5 ${dark ? "text-white/70" : "text-slate-400"}`}>
         {label}
       </p>
-      <p className={`text-3xl font-black ${dark ? "text-white" : "text-slate-800"}`}>
+      <p className={`text-4xl font-black tracking-tight ${dark ? "text-white" : "text-slate-800"}`}>
         {value ?? 0}
       </p>
     </div>
@@ -46,28 +46,28 @@ const ProgressBar = ({ open, ongoing, closed, total }) => {
 const TaskRow = ({ task }) => {
   const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== "closed";
   return (
-    <div className="flex items-start justify-between gap-4 py-4 border-b border-slate-50 last:border-0 group">
-      <div className="flex items-start gap-3 flex-1 min-w-0">
-        <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
+    <div className="flex items-center justify-between gap-4 py-5 border-b border-slate-50 last:border-0 group hover:bg-slate-50/50 px-2 rounded-2xl transition-all">
+      <div className="flex items-start gap-4 flex-1 min-w-0">
+        <div className={`w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 shadow-sm ${
           task.status === "closed"  ? "bg-emerald-400" :
           task.status === "ongoing" ? "bg-[#132ea7]"   : "bg-slate-300"
         }`} />
         <div className="min-w-0 flex-1">
-          <p className="font-black text-slate-700 text-sm truncate group-hover:text-[#132ea7] transition-colors">{task.task}</p>
-          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+          <p className="font-black text-slate-800 text-md truncate group-hover:text-[#132ea7] transition-colors">{task.task}</p>
+          <div className="flex items-center gap-3 mt-1 flex-wrap">
             {task.project?.name && (
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
-                <MdFolder size={10} className="text-slate-300" />
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                <MdFolder size={12} className="text-slate-300" />
                 {task.project.name}
               </span>
             )}
             {task.due_date && (
               <>
-                <span className="text-slate-200 text-[10px]">•</span>
-                <span className={`text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 ${
+                <span className="text-slate-200 text-xs">•</span>
+                <span className={`text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 ${
                   isOverdue ? "text-red-500" : "text-slate-400"
                 }`}>
-                  <MdCalendarToday size={10} />
+                  <MdCalendarToday size={12} />
                   {isOverdue ? "Overdue" : `Due ${new Date(task.due_date).toLocaleDateString("default", { month: "short", day: "numeric" })}`}
                 </span>
               </>
@@ -180,49 +180,51 @@ const MyDashboard = () => {
 
       {/* ── Task Progress Bar ── */}
       {ts.total > 0 && (
-        <div className="bg-white rounded-[1.5rem] border border-slate-100 shadow-lg px-8 py-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Task Overview</h3>
-            <div className="flex items-center gap-5">
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-slate-300" />
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Open ({ts.open})</span>
+        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-2xl shadow-slate-200/40 px-10 py-8">
+          <div className="flex items-center justify-between mb-5">
+            <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Task Overview</h3>
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-slate-300 shadow-inner" />
+                <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Open ({ts.open})</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-[#132ea7]" />
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Ongoing ({ts.ongoing})</span>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-[#132ea7] shadow-inner" />
+                <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Ongoing ({ts.ongoing})</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-2 h-2 rounded-full bg-emerald-400" />
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Done ({ts.closed})</span>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-emerald-400 shadow-inner" />
+                <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Done ({ts.closed})</span>
               </div>
             </div>
           </div>
-          <ProgressBar open={ts.open} ongoing={ts.ongoing} closed={ts.closed} total={ts.total} />
+          <div className="h-2.5">
+            <ProgressBar open={ts.open} ongoing={ts.ongoing} closed={ts.closed} total={ts.total} />
+          </div>
         </div>
       )}
 
       {/* ── Main Grid: Tasks + Teams ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
         {/* My Tasks */}
-        <div className="lg:col-span-2 bg-white rounded-[2rem] border border-slate-100 shadow-lg overflow-hidden">
-          <div className="flex items-center justify-between px-8 py-5 border-b border-slate-50">
-            <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">My Tasks</h3>
-            <div className="flex items-center gap-3">
+        <div className="lg:col-span-2 bg-white rounded-[2rem] border border-slate-100 shadow-2xl shadow-slate-200/40 overflow-hidden">
+          <div className="flex items-center justify-between px-10 py-6 border-b-2 border-slate-50">
+            <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">My Tasks</h3>
+            <div className="flex items-center gap-4">
               {[
-                { label: "Open", value: ts.open, color: "text-slate-600 bg-slate-50" },
-                { label: "Ongoing", value: ts.ongoing, color: "text-[#132ea7] bg-[#132ea7]/5" },
-                { label: "Done", value: ts.closed, color: "text-emerald-600 bg-emerald-50" },
+                { label: "Open", value: ts.open, color: "text-slate-600 bg-slate-50 border border-slate-100" },
+                { label: "Ongoing", value: ts.ongoing, color: "text-[#132ea7] bg-[#132ea7]/5 border border-[#132ea7]/10" },
+                { label: "Done", value: ts.closed, color: "text-emerald-600 bg-emerald-50 border border-emerald-100" },
               ].map((s) => (
-                <div key={s.label} className={`flex flex-col items-center px-3 py-1.5 rounded-xl ${s.color}`}>
-                  <span className={`text-lg font-black`}>{s.value ?? 0}</span>
-                  <span className="text-[9px] font-black uppercase tracking-widest opacity-70">{s.label}</span>
+                <div key={s.label} className={`flex flex-col items-center px-4 py-2 rounded-xl ${s.color}`}>
+                  <span className={`text-xl font-black`}>{s.value ?? 0}</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest opacity-80">{s.label}</span>
                 </div>
               ))}
             </div>
           </div>
-          <div className="px-8 py-2">
+          <div className="px-8 py-4">
             {!my_tasks?.length ? (
               <div className="text-center py-12 text-slate-300 font-bold uppercase tracking-widest text-sm">
                 <MdTask size={32} className="mx-auto mb-3 opacity-30" />
@@ -239,14 +241,14 @@ const MyDashboard = () => {
         </div>
 
         {/* My Teams */}
-        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-lg overflow-hidden">
-          <div className="px-8 py-5 border-b border-slate-50">
-            <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
+        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-2xl shadow-slate-200/40 overflow-hidden">
+          <div className="px-10 py-6 border-b-2 border-slate-50 flex items-center justify-between">
+            <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">
               My Teams
-              <span className="ml-2 bg-slate-100 text-slate-500 text-[9px] px-2 py-0.5 rounded-full font-black">{my_teams?.length ?? 0}</span>
             </h3>
+            <span className="bg-slate-100 text-slate-500 text-xs px-3 py-1 rounded-full font-black">{my_teams?.length ?? 0}</span>
           </div>
-          <div className="p-4">
+          <div className="p-6">
             {!my_teams?.length ? (
               <div className="text-center py-10 text-slate-300 font-bold uppercase tracking-widest text-sm">
                 <MdGroup size={28} className="mx-auto mb-2 opacity-30" />
@@ -283,15 +285,15 @@ const MyDashboard = () => {
       </div>
 
       {/* ── Bottom Grid: Tasks by Project + Recent Calls ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
         {/* Tasks by Project */}
-        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-lg overflow-hidden">
-          <div className="px-8 py-5 border-b border-slate-50 flex items-center justify-between">
-            <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Tasks by Project</h3>
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{my_projects?.length ?? 0} projects</span>
+        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-2xl shadow-slate-200/40 overflow-hidden">
+          <div className="px-10 py-6 border-b-2 border-slate-50 flex items-center justify-between">
+            <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Tasks by Project</h3>
+            <span className="text-xs font-black text-slate-400 uppercase tracking-widest">{my_projects?.length ?? 0} projects</span>
           </div>
-          <div className="p-6">
+          <div className="p-8">
             {!tasks_by_project?.length ? (
               <div className="text-center py-10 text-slate-300 font-bold uppercase tracking-widest text-sm">
                 <MdFolder size={28} className="mx-auto mb-2 opacity-30" />
@@ -328,16 +330,16 @@ const MyDashboard = () => {
         </div>
 
         {/* Recent Calls */}
-        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-lg overflow-hidden">
-          <div className="px-8 py-5 border-b border-slate-50 flex items-center justify-between">
-            <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Recent Calls</h3>
+        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-2xl shadow-slate-200/40 overflow-hidden">
+          <div className="px-10 py-6 border-b-2 border-slate-50 flex items-center justify-between">
+            <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Recent Calls</h3>
             <div className="flex items-center gap-3">
-              <span className="text-[9px] font-black text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg uppercase tracking-widest">{cs.inquiry ?? 0} Inquiry</span>
-              <span className="text-[9px] font-black text-[#132ea7] bg-[#132ea7]/10 px-2 py-1 rounded-lg uppercase tracking-widest">{cs.request ?? 0} Request</span>
-              <span className="text-[9px] font-black text-red-500 bg-red-50 px-2 py-1 rounded-lg uppercase tracking-widest">{cs.complaint ?? 0} Complaint</span>
+              <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-1.5 rounded-xl uppercase tracking-widest">{cs.inquiry ?? 0} Inquiry</span>
+              <span className="text-[10px] font-black text-[#132ea7] bg-[#132ea7]/10 border border-[#132ea7]/20 px-2.5 py-1.5 rounded-xl uppercase tracking-widest">{cs.request ?? 0} Request</span>
+              <span className="text-[10px] font-black text-red-500 bg-red-50 border border-red-100 px-2.5 py-1.5 rounded-xl uppercase tracking-widest">{cs.complaint ?? 0} Complaint</span>
             </div>
           </div>
-          <div className="p-4">
+          <div className="p-6">
             {!my_calls?.length ? (
               <div className="text-center py-10 text-slate-300 font-bold uppercase tracking-widest text-sm">
                 <MdPhone size={28} className="mx-auto mb-2 opacity-30" />

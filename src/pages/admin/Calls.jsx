@@ -323,6 +323,7 @@ onChange={(e) => setSearch(e.target.value)}
             <thead>
               <tr className="bg-slate-50/50">
                 <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Display ID</th>
+                {/* <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Register Time</th> */}
                 <th className="px-10 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap">Caller Info</th>
                 <th className="px-8 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em]">Employee</th>
                 <th className="px-8 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap">Project</th>
@@ -350,6 +351,24 @@ onChange={(e) => setSearch(e.target.value)}
                     </span>
                   </td>
 
+{/* <td className="px-10 py-6">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-slate-50 text-[#132ea7] flex items-center justify-center shadow-inner group-hover:bg-[#132ea7] group-hover:text-white transition-all">
+                        <MdCalendarToday size={18} />
+                      </div>
+                      <div>
+                        <div className="font-black text-slate-800 text-base">
+                          {new Date(call.createdAt).toLocaleDateString()}
+                        </div>
+                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                          {new Date(call.createdAt).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </td> */}
                   {/* Caller */}
                   <td className="px-10 py-6">
                     <div className="flex items-center gap-4">

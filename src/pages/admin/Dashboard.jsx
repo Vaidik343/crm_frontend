@@ -8,7 +8,9 @@ import Alert from "../../components/ui/Alert";
 import { MdPeople, MdPhone, MdCheckCircle, MdBook ,MdGroups } from "react-icons/md";
 import Export from "./Export";
 
+
 import StatCard from "../../components/ui/StatCard";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -16,6 +18,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState("");
   const [fromDate, setFromDate] = useState("");
+  const navigate = useNavigate();
   
   const today = new Date().toISOString().split('T')[0];
 
@@ -95,14 +98,16 @@ const Dashboard = () => {
           icon={<MdPeople size={28} />} 
           color="secondary"
           description="Active Employees"
+          onClick = {() => navigate('/admin/employees')}
         />
 
         <StatCard
-  label="Total Teams"
-  value={data?.totals?.teams}
+  label="Total Projects"
+  value={data?.totals?.projects}
   icon={<MdGroups size={28} />}
   color="success"
   description="Active Teams"
+  onClick = {() => navigate('/admin/projects')}
 />
         <StatCard 
           label="Total Calls" 
@@ -110,6 +115,7 @@ const Dashboard = () => {
           icon={<MdPhone size={28} />} 
           color="info"
           description={fromDate ? `Since ${fromDate}` : "Today"}
+          onClick = {() => navigate('/admin/calls')}
         />
         <StatCard 
           label="Total Task" 
@@ -117,6 +123,7 @@ const Dashboard = () => {
           icon={<MdCheckCircle size={28} />} 
           color="primary"
           description={fromDate ? `Since ${fromDate}` : "Today"}
+          onClick = {() => navigate('/admin/tasks')}
         />
         <StatCard 
           label="Work Archives" 
@@ -124,6 +131,7 @@ const Dashboard = () => {
           icon={<MdBook size={28} />} 
           color="warning"
           description={fromDate ? `Since ${fromDate}` : "Today"}
+          onClick = {() => navigate('/admin/work-logs')}
         />
       </div>
 
@@ -174,7 +182,7 @@ const Dashboard = () => {
         </div>
 
         {/* ── Calls Center ───────────────────────────────── */}
-        <div className="space-y-6">
+        <div className="space-y-6 ">
           <h3 className="text-xl font-black text-slate-800 flex items-center gap-3">
             <span className="w-2 h-8 bg-[#132ea7] rounded-full" />
             Calls Center
@@ -210,7 +218,8 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2  gap-6">
+
+          <div className="grid grid-cols-1   md:grid-cols-2  gap-6">
             <div className="bg-white rounded-[2rem]  p-8 border border-slate-100 shadow-xl shadow-slate-200/30">
               <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-6">Today's Call List</h4>
               <div className="overflow-auto max-h-[450px] scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
@@ -241,7 +250,7 @@ const Dashboard = () => {
 
             <div className="bg-white  rounded-[2rem]  p-8 border border-slate-100 shadow-xl shadow-slate-200/30">
               <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-6">Task-Linked Calls</h4>
-              <div className="overflow-auto max-h-[450px] scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
+              <div className="overflow-auto max-h-[350px] scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
                 <table className="w-full text-left border-collapse min-w-max">
                   <thead>
                     <tr className="border-b border-slate-100">
@@ -267,6 +276,7 @@ const Dashboard = () => {
               </div>
             </div>
           </div>
+
         </div>
 
         {/* ── Tasks Center ───────────────────────────────── */}
@@ -297,7 +307,7 @@ const Dashboard = () => {
     <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-6">
       {fromDate ? `Tasks (${fromDate} → Today)` : "Today's Tasks"}
     </h4>
-    <div className="overflow-x-auto">
+    <div className="overflow-auto max-h-[400px] scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
       <table className="w-full text-left border-collapse min-w-max">
         <thead>
           <tr className="border-b border-slate-100">
@@ -359,7 +369,7 @@ const Dashboard = () => {
     <h4 className="text-sm font-black text-slate-800 uppercase tracking-widest mb-6">
       {fromDate ? `Work Logs (${fromDate} → Today)` : "Today's Work Logs"}
     </h4>
-    <div className="overflow-x-auto">
+    <div className="overflow-auto max-h-[350px] scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
       <table className="w-full text-left border-collapse min-w-max">
         <thead>
           <tr className="border-b border-slate-100">

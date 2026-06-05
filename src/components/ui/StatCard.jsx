@@ -1,6 +1,6 @@
 import React from 'react';
 
-const StatCard = ({ label, value, icon, color = "primary", description }) => {
+const StatCard = ({ label, value, icon, color = "primary", description, onClick }) => {
   const colorMap = {
     primary: "border-l-[#e98937]",
     secondary: "border-l-[#0d6efd]",
@@ -26,7 +26,7 @@ const StatCard = ({ label, value, icon, color = "primary", description }) => {
   };
 
   return (
-    <div className={`relative overflow-hidden group bg-white border border-slate-100 border-l-4 ${colorMap[color] || colorMap.primary} shadow-xl shadow-slate-200/50 rounded-[1.5rem] p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl`}>
+    <div onClick={onClick} className={`relative overflow-hidden group bg-white border border-slate-100 border-l-4 ${colorMap[color] || colorMap.primary} shadow-xl shadow-slate-200/50 rounded-[1.5rem] p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${onClick ? "cursor-pointer" : ""}`}>
       <div className="relative z-10 flex items-center justify-between">
         <div>
           <p className="text-slate-400 text-xs font-black uppercase tracking-widest mb-1">{label}</p>
