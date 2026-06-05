@@ -311,17 +311,14 @@ const filtered = search
                       <span className="px-3 py-1 bg-[#132ea7]/10 text-[#132ea7] rounded-lg text-[11px] font-black uppercase tracking-widest font-mono">
                         {task.display_id || "—"}
                       </span>
-                    </td>
+                    </td> 
+
                       <td className="px-10 py-6">
                         <div className="flex items-center gap-4">
                           <div className="w-10 h-10 rounded-xl bg-[#132ea7] text-white flex items-center justify-center font-black shadow-lg shadow-[#132ea7]/10">
                             <MdAssignment size={18} />
                           </div>
                           <div>
-
-
-                    
-
                             {/* task */}
                             <div className="font-black text-slate-800 text-lg leading-tight">
                               {task.task}

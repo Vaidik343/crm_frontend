@@ -58,8 +58,8 @@ const App = () => {
   <Route path='employees' element={<Employees />} />
   <Route path='roles' element={<Roles />} />
   <Route path='projects' element={<Projects />} />
-  <Route path='tasks' element={<Tasks />} />
   <Route path='calls' element={<Calls />} />
+  <Route path='tasks' element={<Tasks />} />
   <Route path='permissions' element={<Permissions />} />
   <Route path='work-logs' element={<AdminWorkLogs />} />
 
@@ -78,8 +78,8 @@ const App = () => {
     </ProtectedRoute>
   }
 >
-  <Route path="tasks" element={<MyTasks />} />
   <Route path="calls" element={<MyCalls />} />
+  <Route path="tasks" element={<MyTasks />} />
   <Route path="work-logs" element={<WorkLog />} />
   <Route path="password" element={<ChangePassword />} />
 

@@ -41,7 +41,7 @@ const ExportBar = ({ type }) => {
       <button
         onClick={() => download("", "")}
         disabled={downloading}
-        className="flex items-center gap-2 px-4 py-2 bg-[#132ea7] text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-[#0f2490] transition-all disabled:opacity-50"
+        className="flex items-center gap-2 px-4 py-2 bg-[#132ea7] text-white rounded text-xs font-black uppercase tracking-widest hover:bg-[#0f2490] transition-all disabled:opacity-50"
       >
         <MdCalendarToday size={14} />
         Today
@@ -65,7 +65,7 @@ const ExportBar = ({ type }) => {
       <button
         onClick={() => download(from, today)}
         disabled={!from || downloading}
-        className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-emerald-600 transition-all disabled:opacity-40"
+        className="flex items-center gap-2 px-4 py-2 bg-[#132ea7] text-white rounded text-xs font-black uppercase tracking-widest hover:bg-emerald-600 transition-all disabled:opacity-70"
       >
         <MdDownload size={14} />
         {downloading ? "Downloading..." : `Download (${from || "—"} → ${today})`}

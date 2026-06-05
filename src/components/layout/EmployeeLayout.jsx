@@ -8,11 +8,11 @@ import { useState } from "react";
 import NotificationBell from "../NotificationBell";
 
 const navItems = [
+    { to: "/employee/MyDashboard", label: "Dashboard", icon: <MdDashboard size={18} /> },
     { to: "/employee/tasks", label: "My Tasks", icon: <MdTask size={18} /> },
     { to: "/employee/calls", label: "My Calls", icon: <MdPhone size={18} /> },
     { to: "/employee/work-logs", label: "Work Log", icon: <MdBook size={18} /> },
     { to: "/employee/password", label: "Password", icon: <MdLock size={18} /> },
-    { to: "/employee/MyDashboard", label: "Dashboard", icon: <MdDashboard size={18} /> },
     { to: "/employee/projects", label: "Projects", icon: <MdFolder size={18} /> },
     //   {to: "/Team", label:"Team", }
 ];
@@ -22,7 +22,7 @@ const EmployeeLayout = () => {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+        <div className="min-h-screen bg-slate-50 flex flex-col ">
             {/* Top Navbar - Modernized Horizontal Layout */}
          <nav className="bg-[#132ea7] border-b border-slate-200 sticky top-0 z-50 shadow-sm">
 

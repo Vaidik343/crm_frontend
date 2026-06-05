@@ -1,8 +1,7 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { useTask } from "../../context/TaskContext";
 import { useProject } from "../../context/ProjectContext";
 import { useCall } from "../../context/CallContext";
-import { useTeam } from "../../context/TeamContext";
 import { useAuth } from "../../context/AuthContext";
 
 import Input from "../../components/ui/Input";
@@ -20,9 +19,6 @@ import {
   MdDelete,
   MdFolder,
   MdVisibility,
-  MdCalendarToday,
-  MdInfoOutline,
-  MdComment,
 } from "react-icons/md";
 import { useUser } from "../../context/UserContext";
 import ExportBar from "../../components/ui/ExportBar";
@@ -30,13 +26,12 @@ import ExportBar from "../../components/ui/ExportBar";
 const initialForm = {
   task: "",
   description: "",
-  // team_id:     "",
   project_id: "",
   call_id: "",
   assigned_to: "",
   due_date: "",
   status: "ongoing",
-  remark: "",
+  remarks: "",
 };
 
 const MyTasks = () => {
@@ -53,15 +48,12 @@ const MyTasks = () => {
   } = useTask();
   const { projects, getAllProjects } = useProject();
   const { calls, getAllCalls } = useCall();
-  // const { teams, getAllTeams } = useTeam();
   const { user } = useAuth();
   const { users, getAllUsers } = useUser();
-  console.log("🚀 ~ MyTasks ~ users:", users);
 
   const [showModal, setShowModal] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
   const [viewTarget, setViewTarget] = useState(null);
-  console.log("🚀 ~ MyTasks ~ viewTarget:", viewTarget);
   const [form, setForm] = useState(initialForm);
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -74,11 +66,10 @@ const MyTasks = () => {
     getAllTasks?.(page);
     getAllProjects?.();
     getAllCalls?.();
-    // getAllTeams?.();
     getAllUsers?.();
   }, [page]);
 
-  // ── Handlers ──────────────────────────────────────────────────────────────
+  // ── Handlers ────────────────────────────────────────────────────────────
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -104,14 +95,13 @@ const MyTasks = () => {
       task: task.task || "",
       description: task.description || "",
       assigned_to: task.assigned_to || "",
-      // team_id:     task.team_id || "",
       project_id: task.project_id || "",
       call_id: task.call_id || "",
       due_date: task.due_date
         ? new Date(task.due_date).toISOString().split("T")[0]
         : "",
       status: task.status || "ongoing",
-      remark: "",
+      remarks: "",
     });
     setFieldErrors({});
     setShowModal(true);
@@ -142,11 +132,11 @@ const MyTasks = () => {
           assigned_to: form.assigned_to || "",
           due_date: form.due_date || null,
           status: form.status,
-          remark: form.remark || undefined,
+          remarks: form.remarks || undefined,
         });
         setAlert({ type: "success", message: "Task updated successfully" });
       } else {
-        const payload = {
+        await createTask({
           task: form.task,
           description: form.description || null,
           project_id: form.project_id || null,
@@ -154,10 +144,8 @@ const MyTasks = () => {
           assigned_to: form.assigned_to || null,
           due_date: form.due_date || null,
           status: form.status || "ongoing",
-          remarks: form.remark || undefined,
-        };
-        await createTask(payload);
-        // await createTask(payload);
+          remarks: form.remarks || undefined,
+        });
         setAlert({ type: "success", message: "Task created successfully" });
       }
       closeModal();
@@ -234,7 +222,7 @@ const MyTasks = () => {
     </div>
   );
 
-  // loading state
+  // ── Loading state ────────────────────────────────────────────────────────
   if (loading && !tasks.length)
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
@@ -246,11 +234,11 @@ const MyTasks = () => {
     );
 
   return (
-    <div className="space-y-8 px-4 animate-in fade-in duration-700">
-      {/* Header */}
+    <div className="space-y-8 px-4 sm:px-5 animate-in fade-in duration-700">
+      {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-2 uppercase">
+          <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-1 uppercase">
             Task <span className="text-[#132ea7]">Board</span>
           </h2>
           <p className="text-slate-500 font-bold text-base">
@@ -258,7 +246,7 @@ const MyTasks = () => {
           </p>
         </div>
 
-        {/* export + btn*/}
+        {/* ExportBar + New Task button sit together and wrap on very small screens */}
         <div className="flex flex-wrap items-center gap-3 sm:justify-end">
           <ExportBar type="tasks" />
           <Button
@@ -277,8 +265,7 @@ const MyTasks = () => {
         onClose={() => setAlert({ type: "", message: "" })}
       />
 
-      {/* Table */}
-      {/* Desktop Table */}
+      {/* ── Desktop Table (md and above) ── */}
       <div className="hidden md:block">
         <div className="bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
           <div className="overflow-x-auto custom-scrollbar">
@@ -335,7 +322,7 @@ const MyTasks = () => {
                     </td>
 
                     {/* Task */}
-                    <td className="px-6 py-5">
+                    <td className="px-10 py-6">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-[#132ea7] text-white flex items-center justify-center font-black shadow-lg shadow-[#132ea7]/10">
                           <MdAssignment size={18} />
@@ -345,7 +332,7 @@ const MyTasks = () => {
                             {task.task}
                           </div>
                           {task.description && (
-                            <div className="text-xs  text-slate-400 mt-1 truncate max-w-[200px] italic">
+                            <div className="text-xs font-bold text-slate-400 mt-1 truncate max-w-[200px] italic">
                               {task.description}
                             </div>
                           )}
@@ -358,7 +345,7 @@ const MyTasks = () => {
                       <Badge value={task.status} />
                     </td>
 
-                    {/* Assigned by */}
+                    {/* Assigned By */}
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[#132ea7] font-black text-[10px]">
@@ -370,7 +357,7 @@ const MyTasks = () => {
                       </div>
                     </td>
 
-                    {/* Assigned to */}
+                    {/* Assigned To */}
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[#132ea7] font-black text-[10px]">
@@ -430,13 +417,12 @@ const MyTasks = () => {
             </table>
           </div>
 
-          {/* pagination */}
-
+          {/* Desktop pagination */}
           <Pagination />
         </div>
       </div>
 
-      {/* Mobile Cards */}
+      {/* ── Mobile Cards (below md) ── */}
       <div className="md:hidden space-y-4">
         {tasks.length === 0 ? (
           <div className="bg-white rounded-2xl p-8 text-center text-slate-400 font-bold">
@@ -448,11 +434,12 @@ const MyTasks = () => {
               key={task.id}
               className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-3"
             >
-              <div className="flex items-start justify-between gap-3 mb-4">
+              {/* Top row: icon + name + status */}
+              <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  {/* <div className="w-10 h-10 rounded-xl bg-[#132ea7] text-white flex items-center justify-center shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-[#132ea7] text-white flex items-center justify-center shrink-0">
                     <MdAssignment size={18} />
-                  </div> */}
+                  </div>
                   <div>
                     <p className="font-black text-slate-800 leading-tight">
                       {task.task}
@@ -462,7 +449,7 @@ const MyTasks = () => {
                     </p>
                   </div>
                 </div>
-                
+                <Badge value={task.status} />
               </div>
 
               {/* Description */}
@@ -472,9 +459,8 @@ const MyTasks = () => {
                 </p>
               )}
 
-                 {/* mete row */}
-              <div className="space-y-2 text-sm ">
-                
+              {/* Meta rows */}
+              <div className="space-y-2 text-sm">
                 <div className="flex justify-between items-center">
                   <span className="text-slate-400 font-bold uppercase text-[10px]">
                     Assigned By
@@ -509,17 +495,10 @@ const MyTasks = () => {
                   </span>
                   <div className="flex items-center gap-1.5">
                     <MdFolder className="text-slate-300" size={14} />
-                  <span className="font-bold text-slate-700 text-sm">
-                    {task.project?.name || "—"}
-                  </span>
+                    <span className="font-bold text-slate-700 text-xs">
+                      {task.project?.name || "—"}
+                    </span>
                   </div>
-                </div>
-
-                <div className="flex justify-between items-center">
-                  <span className="text-slate-400 font-bold uppercase text-[10px]">
-                    status
-                  </span>
-               <Badge value={task.status} />
                 </div>
 
                 <div className="flex justify-between items-center">
@@ -529,7 +508,6 @@ const MyTasks = () => {
                   <DueDateBadge dueDate={task.due_date} />
                 </div>
 
-                
                 {task.call?.display_id && (
                   <div className="flex justify-between items-center">
                     <span className="text-slate-400 font-bold uppercase text-[10px]">
@@ -542,7 +520,7 @@ const MyTasks = () => {
                 )}
               </div>
 
-              {/* action */}
+              {/* Action buttons */}
               <div className="flex gap-2 pt-3 border-t border-slate-100">
                 <button
                   onClick={() => setViewTarget(task)}
@@ -552,13 +530,13 @@ const MyTasks = () => {
                 </button>
                 <button
                   onClick={() => openEdit(task)}
-                  className="flex-1 h-10 rounded-xl  bg-[#132ea7]/10 text-[#132ea7] font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/20 transition-all"
+                  className="flex-1 h-10 rounded-xl bg-[#132ea7]/10 text-[#132ea7] font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/20 transition-all"
                 >
                   <MdEdit size={16} /> Edit
                 </button>
                 <button
                   onClick={() => setConfirmDelete(task)}
-                  className="flex-1 h-10 rounded-xl bg-red-50 text-red-500 font-bold flex items-center justify-center gap-1.5 text-xs  hover:bg-red-100 transition-all"
+                  className="flex-1 h-10 rounded-xl bg-red-50 text-red-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-red-100 transition-all"
                 >
                   <MdDelete size={16} /> Delete
                 </button>
@@ -566,13 +544,12 @@ const MyTasks = () => {
             </div>
           ))
         )}
-          {/* Mobile pagination */}
-      {totalPages > 1 && <Pagination compact />}
+
+        {/* Mobile pagination */}
+        {totalPages > 1 && <Pagination compact />}
       </div>
 
-
-
-      {/* Create / Edit Modal */}
+      {/* ── Create / Edit Modal ── */}
       <Modal
         show={showModal}
         onClose={closeModal}
@@ -593,7 +570,7 @@ const MyTasks = () => {
               />
             </div>
 
-            {/* Assign to — only on create */}
+            {/* Assign To — create only */}
             {!editTarget && (
               <div className="space-y-1.5">
                 <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
@@ -618,7 +595,7 @@ const MyTasks = () => {
               </div>
             )}
 
-            {/* Project — only on create */}
+            {/* Project — create only */}
             {!editTarget && (
               <div className="space-y-1.5">
                 <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
@@ -641,13 +618,12 @@ const MyTasks = () => {
               </div>
             )}
 
-            {/* Linked call — only on create */}
+            {/* Linked Call — create only */}
             {!editTarget && (
               <div className="space-y-1.5">
                 <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
-                   Linked Call{" "}
+                  Linked Call{" "}
                   <span className="text-slate-300 font-bold normal-case tracking-normal">
-                  Linked Call (Optional)
                     (optional)
                   </span>
                 </label>
@@ -691,7 +667,11 @@ const MyTasks = () => {
                     type="button"
                     onClick={() => setForm((prev) => ({ ...prev, status: s }))}
                     className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all
-                      ${form.status === s ? "bg-[#132ea7] text-white shadow-lg shadow-[#132ea7]/20" : "bg-slate-100 text-slate-400 hover:bg-slate-200"}`}
+                      ${
+                        form.status === s
+                          ? "bg-[#132ea7] text-white shadow-lg shadow-[#132ea7]/20"
+                          : "bg-slate-100 text-slate-400 hover:bg-slate-200"
+                      }`}
                   >
                     {s}
                   </button>
@@ -699,13 +679,12 @@ const MyTasks = () => {
               </div>
             </div>
 
-            {/* Remarks section in edit modal */}
+            {/* Remarks */}
             <div className="md:col-span-2 space-y-3">
               <div className="flex items-center justify-between ml-1">
                 <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
                   Remarks
                 </label>
-                {/* + button to toggle new remark input */}
                 <button
                   type="button"
                   onClick={() => setShowNewRemark((prev) => !prev)}
@@ -716,7 +695,6 @@ const MyTasks = () => {
                 </button>
               </div>
 
-              {/* Existing remarks log */}
               {Array.isArray(editTarget?.remarks) &&
               editTarget.remarks.length > 0 ? (
                 <div className="space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar">
@@ -752,26 +730,35 @@ const MyTasks = () => {
                 )
               )}
 
-              {/* New remark input — shown when + is clicked, or always on create */}
-              {(showNewRemark || !editTarget )&& (
+              {(showNewRemark || !editTarget) && (
                 <Textarea
-                  name="remark"
-                  value={form.remark || ""}
+                  name="remarks"
+                  value={form.remarks || ""}
                   onChange={handleChange}
-                  placeholder={editTarget ? "Add a new remark..." : "Add an remark..."}
+                  placeholder={
+                    editTarget
+                      ? "Add a new remark..."
+                      : "Add an initial remark..."
+                  }
                   rows={2}
                 />
               )}
             </div>
           </div>
 
-          {/* Prefix info */}
+          {/* Prefix info banner */}
           {!editTarget && (
             <div
-              className={`rounded-2xl px-5 py-3 border ${form.assigned_to ? "bg-amber-50 border-amber-100" : "bg-[#132ea7]/5 border-[#132ea7]/10"}`}
+              className={`rounded-2xl px-5 py-3 border ${
+                form.assigned_to
+                  ? "bg-amber-50 border-amber-100"
+                  : "bg-[#132ea7]/5 border-[#132ea7]/10"
+              }`}
             >
               <p
-                className={`text-xs font-black uppercase tracking-widest ${form.assigned_to ? "text-amber-600" : "text-[#132ea7]"}`}
+                className={`text-xs font-black uppercase tracking-widest ${
+                  form.assigned_to ? "text-amber-600" : "text-[#132ea7]"
+                }`}
               >
                 {form.assigned_to
                   ? "Assigning to another employee — Display ID prefix: TA"
@@ -801,7 +788,7 @@ const MyTasks = () => {
         </form>
       </Modal>
 
-      {/* View Details Modal */}
+      {/* ── View Details Modal ── */}
       <Modal
         show={!!viewTarget}
         onClose={() => setViewTarget(null)}
@@ -832,7 +819,7 @@ const MyTasks = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1  sm:grid-cols-2  gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {[
                 {
                   label: "Assigned To",
@@ -855,7 +842,6 @@ const MyTasks = () => {
                     ? new Date(viewTarget.start_date).toLocaleDateString()
                     : "—",
                 },
-                // { label: "Created",      value: new Date(viewTarget.createdAt).toLocaleDateString() },
               ].map((item) => (
                 <div key={item.label} className="bg-slate-50 rounded-2xl p-4">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
@@ -878,15 +864,14 @@ const MyTasks = () => {
                 </p>
               </div>
             )}
-            {/* Remarks log */}
-            {viewTarget.remarks &&
-              Array.isArray(viewTarget.remarks) &&
+
+            {Array.isArray(viewTarget.remarks) &&
               viewTarget.remarks.length > 0 && (
                 <div className="space-y-2">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                     Remarks ({viewTarget.remarks.length})
                   </p>
-                  <div className="space-y-2 max-h-[180px] overflow-y-auto custom-scrollbar">
+                  <div className="space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar">
                     {[...viewTarget.remarks].reverse().map((r, i) => (
                       <div
                         key={i}
