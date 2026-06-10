@@ -99,8 +99,8 @@ const Permissions = () => {
         <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-[100px]" />
       </div>
 
-      {/* Matrix Table */}
-      <div className="bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
+      {/* Desktop Matrix Table */}
+      <div className="hidden md:block bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -176,6 +176,71 @@ const Permissions = () => {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-4">
+        {rows.length === 0 && (
+          <div className="bg-white rounded-2xl p-8 text-center text-slate-400 font-bold">No security records found.</div>
+        )}
+        {rows.map((perm) => (
+          <div key={perm.id} className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-4">
+            {/* Header */}
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-[#132ea7] text-white flex items-center justify-center font-black shrink-0">
+                <MdPerson size={18} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-black text-slate-800 leading-tight truncate">{perm.user?.name || "—"}</p>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{perm.user?.employee_id || "—"}</span>
+                  <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded-md text-[9px] font-black uppercase tracking-widest">{perm.user?.Role?.name || "Unassigned"}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Toggles Grid */}
+            <div className="grid grid-cols-2 gap-3 pt-2">
+              {FLAGS.map((f) => {
+                const isSaving = saving === `${perm.user_id}-${f.key}`;
+                const isActive = perm[f.key];
+                return (
+                  <div key={f.key} className="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
+                    <div>
+                      <p className="text-xs font-black text-slate-700 uppercase">{f.label}</p>
+                    </div>
+                    <div>
+                      {isSaving ? (
+                        <div className="w-5 h-5 border-2 border-slate-200 border-t-[#132ea7] rounded-full animate-spin" />
+                      ) : (
+                        <div className="form-check form-switch mb-0">
+                          <input
+                            className="form-check-input w-8 h-4"
+                            type="checkbox"
+                            role="switch"
+                            checked={isActive}
+                            onChange={() => handleToggle(perm, f.key)}
+                            style={{ cursor: "pointer" }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Actions */}
+            <div className="pt-3 border-t border-slate-100">
+              <button
+                onClick={() => setConfirmReset(perm)}
+                className="w-full h-10 rounded-xl bg-slate-50 text-slate-500 hover:text-[#132ea7] hover:bg-[#132ea7]/10 font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 transition-all"
+              >
+                <MdHistory size={16} /> Reset Clearances
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Reset confirm */}

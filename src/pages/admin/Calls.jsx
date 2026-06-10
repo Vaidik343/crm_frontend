@@ -187,7 +187,7 @@ const filteredCalls = (calls || []).filter((c) => {
     setForm({
       caller_name:   call.caller_name   || "",
       caller_number: call.caller_number || "",
-      project_id:    call.project_id    || "",
+      project_id:    call.project_id    || null,
       call_type:     call.call_type     || "",
       call_subtype:  call.call_subtype  || "",
       receive_type:  call.receive_type  || "",
@@ -213,6 +213,7 @@ const filteredCalls = (calls || []).filter((c) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+     console.log("UPDATE PAYLOAD", form);
     const errors = validate();
     if (Object.keys(errors).length) { setFieldErrors(errors); return; }
 
@@ -220,6 +221,7 @@ const filteredCalls = (calls || []).filter((c) => {
       setSubmitting(true);
       if (editTarget) {
          const updated =  await updateCall(editTarget.id, form);
+          console.log("🚀 ~ handleSubmit ~ updated:", updated)
           if (viewTarget?.id === editTarget.id) {
         setViewTarget(updated.call || updated);
       }
@@ -316,8 +318,8 @@ onChange={(e) => setSearch(e.target.value)}
 
       <Alert type={alert.type} message={alert.message} onClose={() => setAlert({ type: "", message: "" })} />
 
-      {/* Table */}
-      <div className="bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
+      {/* Desktop Table */}
+      <div className="hidden md:block bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -477,6 +479,119 @@ onChange={(e) => setSearch(e.target.value)}
           </div>
           <button disabled={page === totalPages} onClick={() => setPage(page + 1)} className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50">Next</button>
         </div>
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-4">
+        {filteredCalls.length === 0 ? (
+          <div className="bg-white rounded-2xl p-8 text-center text-slate-400 font-bold uppercase tracking-widest text-sm">
+            No communication logs archived.
+          </div>
+        ) : (
+          filteredCalls.map((call) => (
+            <div key={call.id} className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-3">
+              {/* Card Header */}
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#132ea7] text-white flex items-center justify-center font-black shrink-0">
+                  {call.caller_name?.charAt(0) || <MdPhone size={18} />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-black text-slate-800 leading-tight truncate">{call.caller_name}</p>
+                  {call.caller_number && <p className="text-xs font-bold text-slate-400">{call.caller_number}</p>}
+                </div>
+                <span className="shrink-0 px-2 py-1 bg-[#132ea7]/10 text-[#132ea7] rounded-lg text-[10px] font-black uppercase tracking-widest font-mono">
+                  {call.display_id || "—"}
+                </span>
+              </div>
+
+              {/* Meta rows */}
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400 font-bold uppercase text-[10px]">Employee</span>
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[#132ea7] font-black text-[9px]">
+                      {call.caller?.name?.charAt(0) || call.User?.name?.charAt(0) || "?"}
+                    </div>
+                    <span className="font-bold text-slate-700 text-xs">{call.caller?.name || call.User?.name || "—"}</span>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400 font-bold uppercase text-[10px]">Project</span>
+                  <div className="flex items-center gap-1.5">
+                    <MdFolder className="text-slate-300" size={14} />
+                    <span className="font-bold text-slate-700 text-xs">{call.project?.name || call.Project?.name || "—"}</span>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400 font-bold uppercase text-[10px]">Type</span>
+                  <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                    <Badge value={call.call_type} />
+                    {call.is_task && (
+                      <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md text-[10px] font-black uppercase flex items-center gap-1">
+                        <MdAssignment size={10} /> Task
+                      </span>
+                    )}
+                    {call.transfer_to && (
+                      <span className="px-2 py-0.5 bg-orange-50 text-orange-600 rounded-md text-[10px] font-black uppercase flex items-center gap-1">
+                        <MdTransferWithinAStation size={10} /> Transfer
+                      </span>
+                    )}
+                    {call.parent_call_id && (
+                      <span className="px-2 py-0.5 bg-purple-50 text-purple-600 rounded-md text-[10px] font-black uppercase">Follow-up</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400 font-bold uppercase text-[10px]">Medium</span>
+                  <Badge value={call.receive_type} />
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400 font-bold uppercase text-[10px]">Date</span>
+                  <div className="flex items-center gap-1.5">
+                    <MdCalendarToday className="text-slate-300" size={13} />
+                    <span className="font-bold text-slate-700 text-xs">
+                      {new Date(call.createdAt).toLocaleDateString("default", { month: "short", day: "numeric", year: "numeric" })}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-2 pt-3 border-t border-slate-100">
+                <button
+                  onClick={() => setViewTarget(call)}
+                  className="flex-1 h-10 rounded-xl bg-slate-50 text-slate-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all"
+                >
+                  <MdVisibility size={16} /> View
+                </button>
+                <button
+                  onClick={() => openEdit(call)}
+                  className="flex-1 h-10 rounded-xl bg-[#132ea7]/10 text-[#132ea7] font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/20 transition-all"
+                >
+                  <MdEdit size={16} /> Edit
+                </button>
+                <button
+                  onClick={() => setConfirmDelete(call)}
+                  className="flex-1 h-10 rounded-xl bg-red-50 text-red-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-red-100 transition-all"
+                >
+                  <MdDelete size={16} /> Delete
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+        {/* Mobile Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-2 py-4">
+            <button disabled={page === 1} onClick={() => setPage(page - 1)} className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50">Prev</button>
+            <span className="text-sm font-bold text-slate-500">{page} / {totalPages}</span>
+            <button disabled={page === totalPages} onClick={() => setPage(page + 1)} className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50">Next</button>
+          </div>
+        )}
       </div>
 
       {/* Create / Edit Modal */}

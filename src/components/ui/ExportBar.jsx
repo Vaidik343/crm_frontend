@@ -32,7 +32,7 @@ const ExportBar = ({ type }) => {
     } finally {
       setDownloading(false);
     }
-  };
+  }; 
 
   return (
     <div className="flex flex-wrap items-center gap-3 p-4 bg-white rounded-2xl border border-slate-100 shadow-sm">
@@ -50,8 +50,8 @@ const ExportBar = ({ type }) => {
       <span className="text-slate-300 font-bold text-xs">or</span>
 
       {/* From date */}
-      <div className="flex items-center gap-2">
-        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">From</label>
+      <div className="flex items-center gap-4">
+        <label className="text-xs font-bold text-slate-400 uppercase tracking-widest">From</label>
         <input
           type="date"
           value={from}

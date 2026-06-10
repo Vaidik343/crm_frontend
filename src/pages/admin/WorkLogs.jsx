@@ -16,6 +16,14 @@ const AdminWorkLogs = () => {
   const [error, setError] = useState("");
   const [filter, setFilter] = useState("");
 
+  
+    const [remarksTarget, setRemarksTarget] = useState(null);
+  const [remarkText, setRemarkText]       = useState("");
+  const [remarkSubmitting, setRemarkSubmitting] = useState(false);
+  const [showNewRemark, setShowNewRemark] = useState(false);
+
+
+  
   useEffect(() => {
     getAllWorkLogs?.(page);
   }, [page]);
@@ -62,8 +70,8 @@ const AdminWorkLogs = () => {
 
       <Alert type="danger" message={error} onClose={() => setError("")} />
 
-      {/* Table Container */}
-      <div className="bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
+      {/* Desktop Table Container */}
+      <div className="hidden md:block bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -163,6 +171,61 @@ const AdminWorkLogs = () => {
 </div>
       </div>
 
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-4">
+        {filtered.length === 0 ? (
+          <div className="bg-white rounded-2xl p-8 text-center text-slate-400 font-bold uppercase tracking-widest text-sm">No operational logs found.</div>
+        ) : (
+          filtered.map((log) => (
+            <div key={log.id} className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-3">
+              {/* Header */}
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-[#132ea7] text-white flex items-center justify-center font-black shrink-0">
+                  {log.User?.name?.charAt(0) || <MdPerson size={18} />}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-black text-slate-800 leading-tight">{log.User?.name || "—"}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{log.User?.employee_id || "Unknown ID"}</p>
+                </div>
+              </div>
+
+              {/* Meta */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400 font-bold uppercase text-[10px]">Date</span>
+                  <div className="flex items-center gap-1.5">
+                    <MdCalendarToday className="text-slate-300" size={13} />
+                    <span className="font-bold text-slate-700 text-xs">{new Date(log.date).toLocaleDateString("default", { month: "short", day: "numeric", year: "numeric" })}</span>
+                  </div>
+                </div>
+                <div className="flex justify-between items-start gap-2">
+                  <span className="text-slate-400 font-bold uppercase text-[10px] shrink-0">Work</span>
+                  <p className="text-xs font-bold text-slate-600 text-right truncate max-w-[220px]">{log.description}</p>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="pt-3 border-t border-slate-100">
+                <button
+                  onClick={() => setViewTarget(log)}
+                  className="w-full h-10 rounded-xl bg-slate-50 text-slate-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all"
+                >
+                  <MdVisibility size={16} /> View Full Log
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+        {/* Mobile Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-2 py-4">
+            <button disabled={page === 1} onClick={() => setPage(page - 1)} className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50">Prev</button>
+            <span className="text-sm font-bold text-slate-500">{page} / {totalPages}</span>
+            <button disabled={page === totalPages} onClick={() => setPage(page + 1)} className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50">Next</button>
+          </div>
+        )}
+      </div>
+
       {/* Log Detail Modal */}
       <Modal
         show={!!viewTarget}
@@ -205,6 +268,42 @@ const AdminWorkLogs = () => {
             <div className="flex items-center justify-end pt-4">
                <Button variant="ghost" onClick={() => setViewTarget(null)} className="text-slate-400 font-black uppercase tracking-[0.2em] text-xs">Close Archives</Button>
             </div>
+
+            {viewTarget.remarks &&
+              Array.isArray(viewTarget?.remarks) &&
+              viewTarget.remarks.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    Remarks ({viewTarget.remarks.length})
+                  </p>
+                  <div className="space-y-2 max-h-[180px] overflow-y-auto custom-scrollbar">
+                    {[...viewTarget.remarks].reverse().map((r, i) => (
+                      <div
+                        key={i}
+                        className="p-3 bg-slate-50 rounded-xl border border-slate-100"
+                      >
+                        <p className="text-sm font-bold text-slate-700">
+                          {r.text}
+                        </p>
+                        <div className="flex justify-between mt-1.5">
+                          <p className="text-[10px] font-black text-slate-400 uppercase">
+                            {r.added_by_name}
+                          </p>
+                          <p className="text-[10px] font-bold text-slate-300">
+                            {new Date(r.created_at).toLocaleString("default", {
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
           </div>
         )}
       </Modal>

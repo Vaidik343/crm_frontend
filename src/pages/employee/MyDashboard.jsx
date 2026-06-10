@@ -11,11 +11,10 @@ import {
 
 // ── Stat Card ─────────────────────────────────────────────────────────────────
 const StatCard = ({ label, value, icon, accent, textAccent, dark }) => (
-  <div className={`rounded-[2rem] p-8 flex items-center gap-6 ${
-    dark
+  <div className={`rounded-[2rem] p-8 flex items-center gap-6 ${dark
       ? "bg-[#132ea7] shadow-2xl shadow-[#132ea7]/30"
       : "bg-white border border-slate-100 shadow-2xl shadow-slate-200/40"
-  }`}>
+    }`}>
     <div className={`w-16 h-16 rounded-[1.25rem] flex items-center justify-center flex-shrink-0 shadow-inner ${accent}`}>
       {icon}
     </div>
@@ -35,9 +34,9 @@ const ProgressBar = ({ open, ongoing, closed, total }) => {
   if (!total) return <div className="h-1.5 rounded-full bg-slate-100 w-full" />;
   return (
     <div className="flex h-1.5 rounded-full overflow-hidden w-full gap-px">
-      {open    > 0 && <div className="bg-slate-300 rounded-full" style={{ width: `${(open/total)*100}%` }} />}
-      {ongoing > 0 && <div className="bg-[#132ea7] rounded-full" style={{ width: `${(ongoing/total)*100}%` }} />}
-      {closed  > 0 && <div className="bg-emerald-400 rounded-full" style={{ width: `${(closed/total)*100}%` }} />}
+      {open > 0 && <div className="bg-slate-300 rounded-full" style={{ width: `${(open / total) * 100}%` }} />}
+      {ongoing > 0 && <div className="bg-[#132ea7] rounded-full" style={{ width: `${(ongoing / total) * 100}%` }} />}
+      {closed > 0 && <div className="bg-emerald-400 rounded-full" style={{ width: `${(closed / total) * 100}%` }} />}
     </div>
   );
 };
@@ -48,10 +47,9 @@ const TaskRow = ({ task }) => {
   return (
     <div className="flex items-center justify-between gap-4 py-5 border-b border-slate-50 last:border-0 group hover:bg-slate-50/50 px-2 rounded-2xl transition-all">
       <div className="flex items-start gap-4 flex-1 min-w-0">
-        <div className={`w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 shadow-sm ${
-          task.status === "closed"  ? "bg-emerald-400" :
-          task.status === "ongoing" ? "bg-[#132ea7]"   : "bg-slate-300"
-        }`} />
+        <div className={`w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 shadow-sm ${task.status === "closed" ? "bg-emerald-400" :
+            task.status === "ongoing" ? "bg-[#132ea7]" : "bg-slate-300"
+          }`} />
         <div className="min-w-0 flex-1">
           <p className="font-black text-slate-800 text-md truncate group-hover:text-[#132ea7] transition-colors">{task.task}</p>
           <div className="flex items-center gap-3 mt-1 flex-wrap">
@@ -64,9 +62,8 @@ const TaskRow = ({ task }) => {
             {task.due_date && (
               <>
                 <span className="text-slate-200 text-xs">•</span>
-                <span className={`text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 ${
-                  isOverdue ? "text-red-500" : "text-slate-400"
-                }`}>
+                <span className={`text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 ${isOverdue ? "text-red-500" : "text-slate-400"
+                  }`}>
                   <MdCalendarToday size={12} />
                   {isOverdue ? "Overdue" : `Due ${new Date(task.due_date).toLocaleDateString("default", { month: "short", day: "numeric" })}`}
                 </span>
@@ -83,9 +80,9 @@ const TaskRow = ({ task }) => {
 // ── Main Component ────────────────────────────────────────────────────────────
 const MyDashboard = () => {
   const navigate = useNavigate();
-  const [data, setData]       = useState(null);
+  const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -117,8 +114,7 @@ const MyDashboard = () => {
       <p className="text-slate-600 font-bold">{error}</p>
     </div>
   );
-
-  const { summary, alerts, my_teams, my_projects, my_tasks, tasks_by_project, my_calls } = data;
+  const { summary, alerts, my_projects, my_tasks, tasks_by_project, my_calls } = data;
   const ts = summary?.task_stats || {};
   const cs = summary?.call_stats || {};
 
@@ -172,12 +168,27 @@ const MyDashboard = () => {
 
       {/* ── Summary Stats ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard label="Teams"    value={summary?.total_teams}    icon={<MdGroup size={26} className="text-[#132ea7]" />}       accent="bg-[#132ea7]/10" />
-        <StatCard label="Projects" value={summary?.total_projects} icon={<MdFolder size={26} className="text-violet-500" />}     accent="bg-violet-50" />
-        <StatCard label="My Tasks" value={ts.total}                icon={<MdCheckCircle size={26} className="text-white" />}     accent="bg-white/20" dark />
-        <StatCard label="Calls"    value={cs.total}                icon={<MdPhone size={26} className="text-emerald-500" />}     accent="bg-emerald-50" />
+        <StatCard
+          label="Projects" value={summary?.total_projects}
+          icon={<MdFolder size={26} className="text-[#132ea7]" />}
+          accent="bg-[#132ea7]/10"
+        />
+        <StatCard
+          label="My Tasks" value={ts.total}
+          icon={<MdCheckCircle size={26} className="text-white" />}
+          accent="bg-white/20" dark
+        />
+        <StatCard
+          label="Calls" value={cs.total}
+          icon={<MdPhone size={26} className="text-emerald-500" />}
+          accent="bg-emerald-50"
+        />
+        <StatCard
+          label="Logs Today" value={summary?.today_logs}
+          icon={<MdCalendarToday size={26} className="text-amber-500" />}
+          accent="bg-amber-50"
+        />
       </div>
-
       {/* ── Task Progress Bar ── */}
       {ts.total > 0 && (
         <div className="bg-white rounded-[2rem] border border-slate-100 shadow-2xl shadow-slate-200/40 px-10 py-8">
@@ -241,41 +252,45 @@ const MyDashboard = () => {
         </div>
 
         {/* My Teams */}
+        {/* My Projects — replaces My Teams */}
         <div className="bg-white rounded-[2rem] border border-slate-100 shadow-2xl shadow-slate-200/40 overflow-hidden">
           <div className="px-10 py-6 border-b-2 border-slate-50 flex items-center justify-between">
             <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">
-              My Teams
+              My Projects
             </h3>
-            <span className="bg-slate-100 text-slate-500 text-xs px-3 py-1 rounded-full font-black">{my_teams?.length ?? 0}</span>
+            <span className="bg-slate-100 text-slate-500 text-xs px-3 py-1 rounded-full font-black">{my_projects?.length ?? 0}</span>
           </div>
           <div className="p-6">
-            {!my_teams?.length ? (
+            {!my_projects?.length ? (
               <div className="text-center py-10 text-slate-300 font-bold uppercase tracking-widest text-sm">
-                <MdGroup size={28} className="mx-auto mb-2 opacity-30" />
-                No teams yet
+                <MdFolder size={28} className="mx-auto mb-2 opacity-30" />
+                No projects yet
               </div>
             ) : (
               <div className="space-y-2">
-                {my_teams.map((team) => (
+                {my_projects.map((project) => (
                   <button
-                    key={team.team_id}
-                    onClick={() => navigate(`/employee/teams/${team.team_id}/dashboard`)}
+                    key={project.id}
+                    onClick={() => navigate(`/employee/projects/${project.id}/dashboard`)}
                     className="w-full flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-transparent hover:border-[#132ea7]/20 hover:bg-[#132ea7]/5 transition-all group"
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-xl bg-[#132ea7]/10 text-[#132ea7] flex items-center justify-center font-black text-sm group-hover:bg-[#132ea7] group-hover:text-white transition-all">
-                        {team.team_name?.charAt(0)}
+                        <MdFolder size={16} />
                       </div>
                       <div className="text-left">
-                        <p className="text-sm font-black text-slate-700">{team.team_name}</p>
-                        <span className={`text-[9px] font-black uppercase tracking-widest ${
-                          team.is_active ? "text-emerald-500" : "text-slate-400"
-                        }`}>
-                          {team.is_active ? "● Active" : "● Inactive"}
-                        </span>
+                        <p className="text-sm font-black text-slate-700">{project.name}</p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{project.code || "—"}</span>
+                          <span className={`text-[9px] font-black uppercase tracking-widest ${project.development_status === "active" ? "text-emerald-500" :
+                              project.development_status === "planning" ? "text-slate-400" :
+                                project.development_status === "testing" ? "text-purple-500" :
+                                  project.development_status === "completed" ? "text-blue-500" : "text-slate-400"
+                            }`}>● {project.development_status || "—"}</span>
+                        </div>
                       </div>
                     </div>
-                    <MdArrowForward size={16} className="text-slate-300 group-hover:text-[#132ea7] group-hover:translate-x-0.5 transition-all" />
+                    <MdArrowForward size={16} className="text-slate-300 group-hover:text-[#132ea7] transition-all" />
                   </button>
                 ))}
               </div>

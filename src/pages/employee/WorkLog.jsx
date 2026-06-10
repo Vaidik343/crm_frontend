@@ -414,8 +414,10 @@ console.log("🚀 ~ WorkLog ~ projects:", projects)
                   </div>
                   <div>
                      <h3 className="text-2xl font-black text-slate-800 leading-tight">{viewTarget.User?.name || "Your Work Log"}</h3>
+                     <h3 className="text-2xl font-black text-slate-800 leading-tight">{viewTarget.project || "-"}</h3>
                      <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-xs mt-1">Status: Logged successfully</p>
                   </div>
+                  
                </div>
                <div className="flex items-center gap-4 bg-slate-50 p-4 px-6 rounded-[1.5rem] border border-slate-100 shadow-sm">
                   <MdAccessTime size={24} className="text-[#132ea7]" />

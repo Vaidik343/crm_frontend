@@ -25,7 +25,7 @@ const Modal = ({ show, onClose, title, children, size = "md" }) => {
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 sm:p-8 border-b border-slate-50 shrink-0">
-          <h3 className="text-xl font-bold text-slate-800 valorant-text tracking-wide">{title}</h3>
+          <h3 className="text-xl font-bold text-slate-800  tracking-wide">{title}</h3>
           <button 
             onClick={onClose}
             className="p-2 rounded-xl hover:bg-slate-50 text-slate-400 hover:text-slate-600 transition-colors"

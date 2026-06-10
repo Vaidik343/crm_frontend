@@ -56,14 +56,17 @@ export const CallProvider = ({ children }) => {
     }
   }, []);
 
+ 
 const updateCall = useCallback(async (id, payload) => {
   try {
     const response = await api.patch(
       ENDPOINTS.CALLS.PATCH(id),
       payload
     );
+    console.log("🚀 ~ CallProvider ~ response:", response)
 
-    const updatedCall = response.data.data || response.data;
+    const updatedCall = response.data.call || response.data.data || response.data;
+    console.log("🚀 ~ CallProvider ~ updatedCall:", updatedCall)
 
     setCalls((prev) =>
       prev.map((c) =>
@@ -71,8 +74,13 @@ const updateCall = useCallback(async (id, payload) => {
       )
     );
 
+    await getAllCalls?.();
+
     return updatedCall;
   } catch (error) {
+     console.log("🚀 ~ CallProvider ~ error:", error)
+     console.log("ERROR RESPONSE", error.response?.data);
+  console.log("REQUEST PAYLOAD", payload);
     throw error;
   }
 }, []);

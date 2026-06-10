@@ -22,9 +22,9 @@ const EmployeeLayout = () => {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col ">
+        <div className="min-h-screen  bg-slate-50 flex flex-col  ">
             {/* Top Navbar - Modernized Horizontal Layout */}
-         <nav className="bg-[#132ea7] border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+         <nav className="bg-[#132ea7] border-b  border-slate-200 sticky top-0 z-50 shadow-sm">
 
     {/* TOP BAR */}
     <div className="h-[70px] px-4 md:px-8 flex items-center justify-between">
@@ -44,16 +44,16 @@ const EmployeeLayout = () => {
             </div>
 
             {/* Desktop Nav */}
-            <ul className="hidden md:flex items-center gap-2">
+            <ul className="hidden md:flex  items-center gap-2">
                 {navItems.map((item) => (
                     <li key={item.to}>
                         <NavLink
                             to={item.to}
                             className={({ isActive }) =>
-                                `flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black transition-all duration-200 uppercase tracking-widest
+                                `flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-black transition-all duration-200 uppercase text-decoration-none  tracking-widest 
                                 ${
                                     isActive
-                                        ? "bg-[#e98937] text-white shadow-lg"
+                                        ? "bg-[#e98937] text-white shadow-lg "
                                         : "text-white hover:bg-[#e2832f]"
                                 }`
                             }

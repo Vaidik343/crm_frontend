@@ -24,6 +24,7 @@ import ChangePassword  from "./pages/employee/ChangePassword";
 
 import Calls from './pages/admin/Calls';
 import MyDashboard from './pages/employee/MyDashboard';
+import ProjectDashboard from "./pages/employee/ProjectDashboard";
 // import Teams from './pages/Team';
 // import TeamDashboard from './pages/TeamDashboard';
 // import MyTeams from './pages/employee/MyTeam';
@@ -86,6 +87,7 @@ const App = () => {
   {/* Dashboard */}
   <Route path="myDashboard" element={<MyDashboard />} />
 
+<Route path="projects/:id/dashboard" element={<ProjectDashboard />} />
   {/* Teams */}
   {/* <Route path="teams" element={<MyTeams />} />
   <Route path="teams/:id/dashboard" element={<TeamDashboard />} /> */}

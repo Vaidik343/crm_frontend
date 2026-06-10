@@ -5,6 +5,8 @@ import Badge from "../../components/ui/Badge";
 import { MdFolder, MdGroup, MdChevronRight, MdPerson } from "react-icons/md";
 import { FaChevronDown } from "react-icons/fa";
 
+import { useNavigate } from "react-router-dom";
+
 const STATUS_COLORS = {
   planning:  "bg-slate-100 text-slate-600",
   active:    "bg-emerald-100 text-emerald-700",
@@ -16,7 +18,8 @@ const MyProjects = () => {
   const { projects, loading, page, totalPages, getAllProjects } = useProject();
   console.log("🚀 ~ MyProjects ~ projects:", projects)
   const [expandedRow, setExpandedRow] = useState(null);
-console.log("test")
+  const navigate = useNavigate();
+
   useEffect(() => {
     getAllProjects?.(page);
   }, [page]);
@@ -72,24 +75,24 @@ console.log("test")
                   <>
                     <tr key={project.id} className="hover:bg-slate-50/80 transition-colors group">
 
-                      {/* Name */}
-                      <td className="px-10 py-6">
-                        <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-2xl bg-slate-50 text-[#132ea7] flex items-center justify-center font-black text-lg shadow-inner">
-                            <MdFolder size={24} />
-                          </div>
-                          <div>
-                            <div className="font-black text-slate-800 text-lg leading-tight uppercase tracking-tight">
-                              {project.name}
-                            </div>
-                            {project.description && (
-                              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 line-clamp-1 italic max-w-[220px]">
-                                {project.description}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </td>
+{/* Name */}
+<td className="px-10 py-6 cursor-pointer" onClick={() => navigate(`/employee/projects/${project.id}/dashboard`)}>
+  <div className="flex items-center gap-4">
+    <div className="w-12 h-12 rounded-2xl bg-slate-50 text-[#132ea7] group-hover:bg-[#132ea7] group-hover:text-white flex items-center justify-center font-black text-lg shadow-inner transition-all">
+      <MdFolder size={24} />
+    </div>
+    <div>
+      <div className="font-black text-slate-800 text-lg leading-tight uppercase tracking-tight group-hover:text-[#132ea7] transition-colors">
+        {project.name}
+      </div>
+      {project.description && (
+        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 line-clamp-1 italic max-w-[220px]">
+          {project.description}
+        </div>
+      )}
+    </div>
+  </div>
+</td>
 
                       {/* Code */}
                       <td className="px-6 py-5">

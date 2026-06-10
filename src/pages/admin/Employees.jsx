@@ -10,12 +10,29 @@ import ConfirmDialog from "../../components/ui/ConfirmDialog";
 import Spinner from "../../components/ui/Spinner";
 import Badge from "../../components/ui/Badge";
 
-import { MdAdd, MdEdit, MdDelete, MdLockReset, MdContentCopy, MdCheckCircle, MdPerson, MdMail, MdAssignmentInd } from "react-icons/md";
+import {
+  MdAdd,
+  MdEdit,
+  MdDelete,
+  MdLockReset,
+  MdContentCopy,
+  MdCheckCircle,
+  MdPerson,
+  MdMail,
+  MdAssignmentInd,
+  MdPhone,
+} from "react-icons/md";
 
-const initialForm = { name: "", email: "", employee_id: "", role_id: "" };
+const initialForm = {
+  employee_id: "", 
+   name: "",
+   email: "",
+   mobile:"",
+  role_id: "" };
 
 const Employees = () => {
-  const { users, loading, getAllUsers, createUser, updateUser, deleteUser } = useUser();
+  const { users, loading, getAllUsers, createUser, updateUser, deleteUser } =
+    useUser();
   const { roles, getAllRoles } = useRole();
   const { resetPassword } = usePassword();
 
@@ -46,7 +63,8 @@ const Employees = () => {
     const errors = {};
     if (!form.name.trim()) errors.name = "Name is required";
     if (!form.role_id) errors.role_id = "Role is required";
-    if (form.email && !/\S+@\S+\.\S+/.test(form.email)) errors.email = "Invalid email";
+    if (form.email && !/\S+@\S+\.\S+/.test(form.email))
+      errors.email = "Invalid email";
     return errors;
   };
 
@@ -64,6 +82,7 @@ const Employees = () => {
       name: user.name,
       email: user.email || "",
       employee_id: user.employee_id || "",
+      mobile:user.mobile,
       role_id: user.role_id || "",
     });
     setFieldErrors({});
@@ -81,7 +100,10 @@ const Employees = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const errors = validate();
-    if (Object.keys(errors).length) { setFieldErrors(errors); return; }
+    if (Object.keys(errors).length) {
+      setFieldErrors(errors);
+      return;
+    }
 
     try {
       setSubmitting(true);
@@ -92,11 +114,17 @@ const Employees = () => {
       } else {
         const res = await createUser(form);
         // show generated credentials inside modal
-        setCredentials(res.credentials); 
-        setAlert({ type: "success", message: "New Employee created successfully" });
+        setCredentials(res.credentials);
+        setAlert({
+          type: "success",
+          message: "New Employee created successfully",
+        });
       }
     } catch (err) {
-      setAlert({ type: "danger", message: err?.response?.data?.message || "Operation failed" });
+      setAlert({
+        type: "danger",
+        message: err?.response?.data?.message || "Operation failed",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -109,7 +137,10 @@ const Employees = () => {
       await deleteUser(confirmDelete.id);
       setAlert({ type: "success", message: "Employee record purged" });
     } catch (err) {
-      setAlert({ type: "danger", message: err?.response?.data?.message || "Purge failed" });
+      setAlert({
+        type: "danger",
+        message: err?.response?.data?.message || "Purge failed",
+      });
     } finally {
       setDeleting(false);
       setConfirmDelete(null);
@@ -124,7 +155,10 @@ const Employees = () => {
       setShowModal(true);
       setAlert({ type: "success", message: "Access code reset complete" });
     } catch (err) {
-      setAlert({ type: "danger", message: err?.response?.data?.message || "Reset failed" });
+      setAlert({
+        type: "danger",
+        message: err?.response?.data?.message || "Reset failed",
+      });
     } finally {
       setResetting(null);
     }
@@ -136,12 +170,15 @@ const Employees = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (loading && !users.length) return (
-    <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-      <Spinner size="lg" />
-      <p className="text-slate-400 font-medium animate-pulse">Syncing team records...</p>
-    </div>
-  );
+  if (loading && !users.length)
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+        <Spinner size="lg" />
+        <p className="text-slate-400 font-medium animate-pulse">
+          Syncing team records...
+        </p>
+      </div>
+    );
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
@@ -151,46 +188,78 @@ const Employees = () => {
           <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-2 uppercase">
             Team <span className="text-[#132ea7]">Management</span>
           </h2>
-          <p className="text-slate-500 font-bold text-base">Manage your workforce and access levels ({users.length} total)</p>
+          <p className="text-slate-500 font-bold text-base">
+            Manage your workforce and access levels ({users.length} total)
+          </p>
         </div>
-        <Button variant="primary" className="shadow-lg shadow-[#132ea7]/20 py-3 px-8 rounded h-[52px] font-black uppercase tracking-widest text-sm" onClick={openCreate}>
+        <Button
+          variant="primary"
+          className="shadow-lg shadow-[#132ea7]/20 py-3 px-8 rounded h-[52px] font-black uppercase tracking-widest text-sm"
+          onClick={openCreate}
+        >
           <MdAdd size={22} />
           Add New Employee
         </Button>
       </div>
 
-      <Alert type={alert.type} message={alert.message} onClose={() => setAlert({ type: "", message: "" })} />
+      <Alert
+        type={alert.type}
+        message={alert.message}
+        onClose={() => setAlert({ type: "", message: "" })}
+      />
 
-      {/* Table Container */}
-      <div className="bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
+      {/* Desktop Table Container */}
+      <div className="hidden md:block bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50/50">
-                <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Employee Info</th>
-                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Role</th>
-                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Access Type</th>
-                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Contact</th>
-                <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</th>
+                <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
+                  Employee Info
+                </th>
+                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
+                  Role
+                </th>
+                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
+                  Access Type
+                </th>
+                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
+                  Contact
+                </th>
+                <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-right">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
               {users.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="text-center text-slate-400 py-16 font-medium italic text-lg">No active Employees found.</td>
+                  <td
+                    colSpan={5}
+                    className="text-center text-slate-400 py-16 font-medium italic text-lg"
+                  >
+                    No active Employees found.
+                  </td>
                 </tr>
               )}
               {users.map((user) => (
-                <tr key={user.id} className="hover:bg-slate-50/80 transition-colors group">
+                <tr
+                  key={user.id}
+                  className="hover:bg-slate-50/80 transition-colors group"
+                >
                   <td className="px-10 py-6">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-2xl bg-[#132ea7] text-white flex items-center justify-center font-black text-lg shadow-lg shadow-[#132ea7]/20">
                         {user.name.charAt(0)}
                       </div>
                       <div>
-                        <div className="font-black text-slate-800 text-lg leading-tight">{user.name}</div>
+                        <div className="font-black text-slate-800 text-lg leading-tight">
+                          {user.name}
+                        </div>
                         <div className="flex items-center gap-1.5 mt-1">
-                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200">{user.employee_id}</span>
+                          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200">
+                            {user.employee_id}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -198,16 +267,26 @@ const Employees = () => {
                   <td className="px-8 py-6">
                     <div className="flex items-center gap-2">
                       <MdAssignmentInd className="text-[#132ea7]" size={20} />
-                      <span className="text-sm font-black text-slate-600 uppercase tracking-wider">{user.Role?.name || "Unassigned"}</span>
+                      <span className="text-sm font-black text-slate-600 uppercase tracking-wider">
+                        {user.Role?.name || "Unassigned"}
+                      </span>
                     </div>
                   </td>
                   <td className="px-8 py-6">
-                    <Badge value={user.role === "admin" ? "admin" : "employee"} />
+                    <Badge
+                      value={user.role === "admin" ? "admin" : "employee"}
+                    />
                   </td>
                   <td className="px-8 py-6">
                     <div className="flex items-center gap-2 text-slate-500 font-bold text-sm hover:text-[#132ea7] transition-colors cursor-pointer">
                       <MdMail size={18} />
                       {user.email || "—"}
+                    </div>
+                  </td>
+                  <td className="px-8 py-6">
+                    <div className="flex items-center gap-2 text-slate-500 font-bold text-sm hover:text-[#132ea7] transition-colors cursor-pointer">
+                      <MdPhone size={18} />
+                      {user.mobile || "—"}
                     </div>
                   </td>
                   <td className="px-10 py-6 text-right">
@@ -225,7 +304,12 @@ const Employees = () => {
                         disabled={resetting === user.id}
                         className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:bg-amber-500/10 hover:text-amber-500 transition-all disabled:opacity-50"
                       >
-                        <MdLockReset size={20} className={resetting === user.id ? "animate-spin" : ""} />
+                        <MdLockReset
+                          size={20}
+                          className={
+                            resetting === user.id ? "animate-spin" : ""
+                          }
+                        />
                       </button>
                       <button
                         onClick={() => setConfirmDelete(user)}
@@ -243,11 +327,108 @@ const Employees = () => {
         </div>
       </div>
 
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-4">
+        {users.length === 0 ? (
+          <div className="bg-white rounded-2xl p-8 text-center text-slate-400 font-bold">
+            No active Employees found.
+          </div>
+        ) : (
+          users.map((user) => (
+            <div
+              key={user.id}
+              className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-3"
+            >
+              {/* Header */}
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-xl bg-[#132ea7] text-white flex items-center justify-center font-black text-lg shrink-0">
+                  {user.name.charAt(0)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-black text-slate-800 leading-tight truncate">
+                    {user.name}
+                  </p>
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-2 py-0.5 rounded-md">
+                    {user.employee_id}
+                  </span>
+                </div>
+                <Badge value={user.role === "admin" ? "admin" : "employee"} />
+              </div>
+
+              {/* Meta */}
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400 font-bold uppercase text-[10px]">
+                    Role
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <MdAssignmentInd className="text-[#132ea7]" size={14} />
+                    <span className="font-bold text-slate-700 text-xs">
+                      {user.Role?.name || "Unassigned"}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400 font-bold uppercase text-[10px]">
+                    Email
+                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <MdMail className="text-slate-400" size={14} />
+                    <span className="font-bold text-slate-700 text-xs">
+                      {user.email || "—"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <MdPhone className="text-slate-400" size={14} />
+                    <span className="font-bold text-slate-700 text-xs">
+                      {user.mobile || "—"}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-2 pt-3 border-t border-slate-100">
+                <button
+                  onClick={() => openEdit(user)}
+                  className="flex-1 h-10 rounded-xl bg-[#132ea7]/10 text-[#132ea7] font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/20 transition-all"
+                >
+                  <MdEdit size={16} /> Edit
+                </button>
+                <button
+                  onClick={() => handleResetPassword(user)}
+                  disabled={resetting === user.id}
+                  className="flex-1 h-10 rounded-xl bg-amber-50 text-amber-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-amber-100 transition-all disabled:opacity-50"
+                >
+                  <MdLockReset
+                    size={16}
+                    className={resetting === user.id ? "animate-spin" : ""}
+                  />{" "}
+                  Reset
+                </button>
+                <button
+                  onClick={() => setConfirmDelete(user)}
+                  className="flex-1 h-10 rounded-xl bg-red-50 text-red-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-red-100 transition-all"
+                >
+                  <MdDelete size={16} /> Delete
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
       {/* Create / Edit / Credentials Modal */}
       <Modal
         show={showModal}
         onClose={closeModal}
-        title={credentials ? "Security Authorization" : (editTarget ? "Modify Profile" : "Create New Profile")}
+        title={
+          credentials
+            ? "Security Authorization"
+            : editTarget
+              ? "Modify Profile"
+              : "Create New Profile"
+        }
         size={credentials ? "md" : "lg"}
       >
         {credentials ? (
@@ -257,15 +438,22 @@ const Employees = () => {
                 <MdCheckCircle size={24} />
               </div>
               <div>
-                <h4 className="font-black text-emerald-900 text-xl leading-tight">Authorization Successful</h4>
-                <p className="text-emerald-700/70 text-base mt-1 font-bold">Please share these unique credentials with the Employee immediately.</p>
+                <h4 className="font-black text-emerald-900 text-xl leading-tight">
+                  Authorization Successful
+                </h4>
+                <p className="text-emerald-700/70 text-base mt-1 font-bold">
+                  Please share these unique credentials with the Employee
+                  immediately.
+                </p>
               </div>
             </div>
 
             <div className="space-y-4">
               <div className="relative group">
                 <div className="absolute inset-y-0 left-5 flex items-center text-slate-400">
-                  <span className="text-[10px] font-black uppercase tracking-widest">ID</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest">
+                    ID
+                  </span>
                 </div>
                 <div className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-14 pr-14 py-5 font-black text-slate-800 text-2xl tracking-tight">
                   {credentials.employee_id}
@@ -280,7 +468,9 @@ const Employees = () => {
 
               <div className="relative group">
                 <div className="absolute inset-y-0 left-5 flex items-center text-slate-400">
-                  <span className="text-[10px] font-black uppercase tracking-widest">PW</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest">
+                    PW
+                  </span>
                 </div>
                 <div className="w-full bg-slate-50 border border-slate-100 rounded-2xl pl-14 pr-14 py-5 font-black text-[#132ea7] text-2xl tracking-tight">
                   {credentials.password}
@@ -299,12 +489,22 @@ const Employees = () => {
                 variant="primary"
                 className="h-16 text-xl font-black rounded-2xl shadow-xl shadow-[#132ea7]/20"
                 onClick={() => {
-                  copyToClipboard(`Employee ID: ${credentials.employee_id}\nAccess Code: ${credentials.password}`);
+                  copyToClipboard(
+                    `Employee ID: ${credentials.employee_id}\nAccess Code: ${credentials.password}`,
+                  );
                 }}
               >
-                {copied ? "Copied All Credentials!" : "Copy Full Access Package"}
+                {copied
+                  ? "Copied All Credentials!"
+                  : "Copy Full Access Package"}
               </Button>
-              <Button variant="ghost" onClick={closeModal} className="text-slate-400 font-black uppercase tracking-widest text-sm">Close Secure Portal</Button>
+              <Button
+                variant="ghost"
+                onClick={closeModal}
+                className="text-slate-400 font-black uppercase tracking-widest text-sm"
+              >
+                Close Secure Portal
+              </Button>
             </div>
           </div>
         ) : (
@@ -329,6 +529,16 @@ const Employees = () => {
                 placeholder="john@example.com"
                 required
               />
+              <Input
+                label="Mobile no."
+                name="mobile"
+                type="number"
+                value={form.mobile}
+                onChange={handleChange}
+                // error={fieldErrors.email}
+                placeholder="9911223344"
+                
+              />
               {/* <Input
                 label="Employee ID (Auto-generated if empty)"
                 name="employee_id"
@@ -338,28 +548,45 @@ const Employees = () => {
                 placeholder="e.g. EMP001"
               /> */}
               <div className="space-y-1.5">
-                <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">Assigned Role</label>
+                <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
+                  Assigned Role
+                </label>
                 <select
                   name="role_id"
-
                   value={form.role_id}
                   onChange={handleChange}
-
-                  className={`w-full bg-slate-50 border ${fieldErrors.role_id ? 'border-red-500' : 'border-slate-100'} rounded-2xl px-5 py-3.5 text-base font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all outline-none`}
+                  className={`w-full bg-slate-50 border ${fieldErrors.role_id ? "border-red-500" : "border-slate-100"} rounded-2xl px-5 py-3.5 text-base font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all outline-none`}
                 >
                   <option value="">Select Authority Level...</option>
                   {roles.map((r) => (
-                    <option key={r.id} value={r.id}>{r.name}</option>
+                    <option key={r.id} value={r.id}>
+                      {r.name}
+                    </option>
                   ))}
-
                 </select>
-                {fieldErrors.role_id && <p className="text-red-500 text-[10px] font-bold mt-1 ml-1 uppercase">{fieldErrors.role_id}</p>}
+                {fieldErrors.role_id && (
+                  <p className="text-red-500 text-[10px] font-bold mt-1 ml-1 uppercase">
+                    {fieldErrors.role_id}
+                  </p>
+                )}
               </div>
             </div>
 
             <div className="flex gap-4 pt-8 border-t border-slate-50">
-              <Button variant="ghost" className="flex-1 font-black uppercase tracking-widest text-sm" onClick={closeModal} disabled={submitting}>Abort</Button>
-              <Button type="submit" variant="primary" className="flex-[2] h-14 shadow-xl shadow-[#132ea7]/20 font-black uppercase tracking-widest text-sm" loading={submitting}>
+              <Button
+                variant="ghost"
+                className="flex-1 font-black uppercase tracking-widest text-sm"
+                onClick={closeModal}
+                disabled={submitting}
+              >
+                Abort
+              </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                className="flex-[2] h-14 shadow-xl shadow-[#132ea7]/20 font-black uppercase tracking-widest text-sm"
+                loading={submitting}
+              >
                 {editTarget ? "Authorize Update" : "Create Employee"}
               </Button>
             </div>

@@ -396,8 +396,8 @@ const MyCalls = () => {
         </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white  rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
+      {/* Desktop Table */}
+      <div className="hidden md:block bg-white  rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
         <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -588,6 +588,100 @@ const MyCalls = () => {
             Next
           </button>
         </div>
+      </div>
+
+      {/* Mobile Cards */}
+      <div className="md:hidden space-y-4">
+        {filtered.length === 0 ? (
+          <div className="bg-white rounded-2xl p-8 text-center text-slate-400 font-bold uppercase tracking-widest text-sm">
+            No logs archived yet.
+          </div>
+        ) : (
+          filtered.map((call) => (
+            <div key={call.id} className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-3">
+              {/* Header */}
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-slate-50 text-[#132ea7] flex items-center justify-center font-black shrink-0 shadow-inner">
+                  <MdCalendarToday size={18} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-black text-slate-800 leading-tight truncate">{new Date(call.createdAt).toLocaleDateString()}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{new Date(call.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
+                </div>
+                <span className="shrink-0 px-2 py-1 bg-[#132ea7]/10 text-[#132ea7] rounded-lg text-[10px] font-black uppercase tracking-widest font-mono">
+                  {call.display_id || "—"}
+                </span>
+              </div>
+
+              {/* Meta Rows */}
+              <div className="space-y-2 text-sm pt-1">
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400 font-bold uppercase text-[10px]">Caller</span>
+                  <div className="flex flex-col items-end">
+                    <span className="font-black text-slate-700 text-xs">{call.caller_name || <MdPhone size={12} />}</span>
+                    {call.caller_number && <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{call.caller_number}</span>}
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400 font-bold uppercase text-[10px]">Project</span>
+                  <div className="flex items-center gap-1.5">
+                    <MdFolder className="text-[#132ea7]" size={14} />
+                    <span className="font-bold text-slate-700 text-xs">{call.project?.name || "—"}</span>
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-start gap-2">
+                  <span className="text-slate-400 font-bold uppercase text-[10px] mt-1">Type</span>
+                  <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                    <Badge value={call.call_type} />
+                    {call.is_task && (
+                      <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-[9px] font-black uppercase flex items-center gap-1">
+                        <MdAssignment size={10} /> Task
+                      </span>
+                    )}
+                    {call.transfer_to && (
+                      <span className="px-1.5 py-0.5 bg-orange-50 text-orange-600 rounded text-[9px] font-black uppercase flex items-center gap-1">
+                        <MdTransferWithinAStation size={10} /> Transfer
+                      </span>
+                    )}
+                    {call.parent_call_id && (
+                      <span className="px-1.5 py-0.5 bg-purple-50 text-purple-600 rounded text-[9px] font-black uppercase">Follow-up</span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <span className="text-slate-400 font-bold uppercase text-[10px]">Medium</span>
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] bg-slate-100 px-2.5 py-1 rounded-xl border border-slate-200">
+                    {call.receive_type}
+                  </span>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-2 pt-3 border-t border-slate-100">
+                <button onClick={() => setViewTarget(call)} className="flex-1 h-10 rounded-xl bg-slate-50 text-slate-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all">
+                  <MdVisibility size={16} /> View
+                </button>
+                <button onClick={() => openEdit(call)} className="flex-1 h-10 rounded-xl bg-[#132ea7]/10 text-[#132ea7] font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/20 transition-all">
+                  <MdEdit size={16} /> Edit
+                </button>
+                <button onClick={() => setConfirmDelete(call)} className="flex-1 h-10 rounded-xl bg-red-50 text-red-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-red-100 transition-all">
+                  <MdDelete size={16} /> Delete
+                </button>
+              </div>
+            </div>
+          ))
+        )}
+        {/* Mobile Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between px-2 py-4">
+            <button disabled={page === 1} onClick={() => setPage(page - 1)} className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50">Prev</button>
+            <span className="text-sm font-bold text-slate-500">{page} / {totalPages}</span>
+            <button disabled={page === totalPages} onClick={() => setPage(page + 1)} className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50">Next</button>
+          </div>
+        )}
       </div>
 
       {/* Create / Edit Modal */}

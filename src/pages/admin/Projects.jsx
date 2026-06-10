@@ -22,7 +22,7 @@ const initialForm = {
   name: "",
   description: "",
   project_types: {},
-  tech_details: "",
+  tech_details: [],
   development_status: "",
   remark: "",
     members: [],
@@ -203,6 +203,65 @@ const removeMember = (index) => {
 };
 
 
+const addTechRow = () => {
+  setForm((prev) => ({
+    ...prev,
+    tech_details: [...prev.tech_details, { name: "", version: "" }],
+  }));
+};
+
+const updateTech = (index, field, value) => {
+  setForm((prev) => {
+    const tech_details = [...prev.tech_details];
+    tech_details[index] = { ...tech_details[index], [field]: value };
+    return { ...prev, tech_details };
+  });
+};
+
+const removeTech = (index) => {
+  setForm((prev) => ({
+    ...prev,
+    tech_details: prev.tech_details.filter((_, i) => i !== index),
+  }));
+};
+
+
+// ── Database helpers (nested inside a tech row) ──────────────────
+
+const addDbRow = (techIndex) => {
+  setForm((prev) => {
+    const tech_details = [...prev.tech_details];
+    tech_details[techIndex] = {
+      ...tech_details[techIndex],
+      databases: [
+        ...(tech_details[techIndex].databases || []),
+        { name: "", version: "" },
+      ],
+    };
+    return { ...prev, tech_details };
+  });
+};
+
+const updateDb = (techIndex, dbIndex, field, value) => {
+  setForm((prev) => {
+    const tech_details = [...prev.tech_details];
+    const databases = [...(tech_details[techIndex].databases || [])];
+    databases[dbIndex] = { ...databases[dbIndex], [field]: value };
+    tech_details[techIndex] = { ...tech_details[techIndex], databases };
+    return { ...prev, tech_details };
+  });
+};
+
+const removeDb = (techIndex, dbIndex) => {
+  setForm((prev) => {
+    const tech_details = [...prev.tech_details];
+    tech_details[techIndex] = {
+      ...tech_details[techIndex],
+      databases: tech_details[techIndex].databases.filter((_, i) => i !== dbIndex),
+    };
+    return { ...prev, tech_details };
+  });
+};
 
 
 const handleProjectTypeChange = (
@@ -246,23 +305,26 @@ const handleProjectTypeChange = (
     if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  const validate = () => {
-    
-    const errors = {};
-    
-    
-    if (!form.name.trim()) errors.name = "Project name is required";
+ const validate = () => {
+  const errors = {};
 
-    if(!form.tech_details.trim())
-      errors.tech_details = "Technical details are required";
+  if (!form.name.trim()) errors.name = "Project name is required";
 
-    if(!form.project_types || Object.keys(form.project_types).length === 0)
-    {
-      errors.project_types = "Select at least one project type"
-    }
-    return errors;
-  };
-  
+  // Handle both array and string safely
+  const techIsEmpty = Array.isArray(form.tech_details)
+    ? form.tech_details.length === 0
+    : !form.tech_details;
+
+  if (techIsEmpty) {
+    errors.tech_details = "Add at least one technology";
+  }
+
+  if (!form.project_types || Object.keys(form.project_types).length === 0) {
+    errors.project_types = "Select at least one project type";
+  }
+
+  return errors;
+};
   const openCreate = () => {
     setEditTarget(null);
     setForm(initialForm);
@@ -273,11 +335,30 @@ const handleProjectTypeChange = (
   const openEdit = (project) => {
     
     setEditTarget(project);
+     setShowNewRemark(false);
+     // Normalize tech_details → always array of {name, version}
+  let tech_details = project.tech_details || [];
+if (typeof tech_details === "string") {
+  tech_details = tech_details
+    .split(/[\n,]+/)
+    .map((s) => s.replace(/^[a-z\s]+:\s*/i, "").trim())
+    .filter(Boolean)
+    .map((name) => ({ name, version: "", databases: [] }));  // ← add databases: []
+} else if (Array.isArray(tech_details)) {
+  // Existing array records — ensure databases field exists
+  tech_details = tech_details.map((t) => ({
+    ...t,
+    databases: t.databases || [],
+  }));
+} else {
+  tech_details = [];
+}
    setForm({
   name: project.name || "",
   description: project.description || "",
   project_types: project.project_types || {},
-  tech_details: project.tech_details || "",
+  // tech_details: project.tech_details || "",
+  tech_details,
   development_status: project.development_status || "",
   remark: "",
    members: [], 
@@ -294,7 +375,9 @@ const handleProjectTypeChange = (
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+     console.log("UPDATE PAYLOAD", form);
     const errors = validate();
+    console.log("🚀 ~ handleSubmit ~ errors:", errors)
     if (Object.keys(errors).length) { setFieldErrors(errors); return; }
 
     try {
@@ -308,6 +391,7 @@ const handleProjectTypeChange = (
   development_status: form.development_status || "active",
   remark: form.remark || null,
 });
+      console.log("🚀 ~ handleSubmit ~ updated:", updated)
 
 if(viewTarget?.id === editTarget.id)
 {
@@ -333,14 +417,17 @@ await createProject({
     }
   };
 
+   
   const handleToggleActive = async (project) => {
     try {
-      await updateProject(project.id, { is_active: !project.is_active });
+    const upm = await updateProject(project.id, { is_active: !project.is_active });
+      console.log("🚀 ~ handleToggleActive ~ upm:", upm)
       setAlert({
         type: "success",
         message: `Project ${project.is_active ? "taken offline" : "restored online"}`,
       });
     } catch (err) {
+       console.log("🚀 ~ handleToggleActive ~ err:", err)
       setAlert({ type: "danger", message: err?.response?.data?.message || "Status update failed" });
     }
   };
@@ -350,7 +437,7 @@ await createProject({
     try {
       setDeleting(true);
       await deleteProject(confirmDelete.id);
-      setAlert({ type: "success", message: "Project record purged" });
+      setAlert({ type: "success", message: "Project record deleted" });
     } catch (err) {
       setAlert({ type: "danger", message: err?.response?.data?.message || "Purge failed" });
     } finally {
@@ -413,8 +500,10 @@ await createProject({
           <p className="text-slate-400 font-bold mt-2">Establish your first project to begin logging data.</p>
         </div>
       ) : (
-        <div className="bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
-          <div className="overflow-x-auto custom-scrollbar">
+        <>
+          {/* Desktop Table Container */}
+          <div className="hidden md:block bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
+            <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50/50">
@@ -768,8 +857,159 @@ await createProject({
     Next
   </button>
 
-</div>
-        </div>
+            </div>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="md:hidden space-y-4">
+            {filtered.map((project) => (
+              <div key={project.id} className={`bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-3 ${!project.is_active ? "opacity-60" : ""}`}>
+                {/* Header */}
+                <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black shrink-0 shadow-inner ${project.is_active ? 'bg-[#132ea7]/10 text-[#132ea7]' : 'bg-slate-100 text-slate-400'}`}>
+                    <MdFolder size={20} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-black text-slate-800 leading-tight uppercase truncate">{project.name}</p>
+                    <span className="inline-block mt-0.5 px-2 py-0.5 bg-[#132ea7]/10 text-[#132ea7] rounded-md text-[10px] font-black uppercase tracking-widest">{project.code || "—"}</span>
+                  </div>
+                  <Badge value={project.is_active ? "active" : "inactive"} />
+                </div>
+
+                {project.description && (
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic leading-relaxed line-clamp-2">
+                    {project.description}
+                  </p>
+                )}
+
+                {/* Meta Info */}
+                <div className="space-y-2 text-sm pt-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400 font-bold uppercase text-[10px]">Dev Status</span>
+                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest ${STATUS_COLORS[project.development_status] || "bg-slate-100 text-slate-600"}`}>
+                      {project.development_status || "—"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400 font-bold uppercase text-[10px]">Created By</span>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-black text-[9px] uppercase">
+                        {project.creator?.name?.charAt(0) || <MdPerson size={10} />}
+                      </div>
+                      <span className="font-bold text-slate-600 text-xs">{project.creator?.name || "—"}</span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400 font-bold uppercase text-[10px]">Members</span>
+                    <button
+                      onClick={() => setExpandedRow(expandedRow === project.id ? null : project.id)}
+                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 hover:bg-[#132ea7]/10 hover:text-[#132ea7] text-slate-500 font-black text-[10px] transition-all"
+                    >
+                      <MdGroup size={12} />
+                      {project.members?.length || 0}
+                      {expandedRow === project.id ? <FaChevronDown size={8} /> : <MdChevronRight size={12} />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Mobile Expanded Members */}
+                {expandedRow === project.id && (
+                  <div className="mt-3 bg-slate-50/50 rounded-xl p-3 border border-slate-100 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                        Project Members ({project.members?.length || 0})
+                      </h4>
+                      <button
+                        onClick={() => setAddingToProject(addingToProject?.id === project.id ? null : project)}
+                        className="text-[#132ea7] hover:text-[#132ea7]/70 text-[10px] font-black uppercase tracking-widest transition-colors flex items-center gap-1"
+                      >
+                        {addingToProject?.id === project.id ? "Cancel Add" : <><MdPersonAdd size={12} /> Add</>}
+                      </button>
+                    </div>
+
+                    {addingToProject?.id === project.id && (
+                      <div className="bg-white p-3 rounded-lg shadow-sm border border-slate-100 space-y-3">
+                        <div className="space-y-2 max-h-[150px] overflow-y-auto">
+                          {getAvailableEmployees(project).length === 0 ? (
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center py-2">No available employees</p>
+                          ) : (
+                            getAvailableEmployees(project).map(u => (
+                              <div key={u.id} className="flex items-center gap-2">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedUsers[u.id] !== undefined}
+                                  onChange={() => toggleSelectUser(u.id)}
+                                  className="w-3 h-3 text-[#132ea7] rounded border-slate-300"
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-xs font-black text-slate-700 truncate">{u.name}</p>
+                                </div>
+                                {selectedUsers[u.id] !== undefined && (
+                                  <select
+                                    value={selectedUsers[u.id]}
+                                    onChange={(e) => handleUserRoleChange(u.id, e.target.value)}
+                                    className="w-24 text-[9px] font-bold text-slate-600 bg-slate-50 border border-slate-200 rounded px-1 py-0.5"
+                                  >
+                                    <option value="">Role</option>
+                                    {roles.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+                                  </select>
+                                )}
+                              </div>
+                            ))
+                          )}
+                        </div>
+                        {Object.keys(selectedUsers).length > 0 && (
+                          <Button variant="primary" onClick={handleAddProjectMembers} loading={addingMember} className="w-full py-1.5 text-[10px]">
+                            Confirm Add
+                          </Button>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="space-y-2">
+                      {project.members?.map((m) => (
+                        <div key={m.id} className="flex items-center justify-between bg-white p-2 rounded-lg border border-slate-100 shadow-sm">
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-md bg-[#132ea7]/10 text-[#132ea7] flex items-center justify-center font-black text-[9px]">
+                              {m.user?.name?.charAt(0) || "?"}
+                            </div>
+                            <div>
+                              <p className="text-[10px] font-black text-slate-700">{m.user?.name}</p>
+                              <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{m.role?.name || "Member"}</p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleRemoveProjectMember(m.id, m.user?.name, project.id)}
+                            disabled={removingMember === m.id}
+                            className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-md transition-all"
+                          >
+                            <MdPersonRemove size={12} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex gap-2 pt-3 border-t border-slate-100">
+                  <button onClick={() => setViewTarget(project)} className="flex-1 h-10 rounded-xl bg-slate-50 text-slate-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all">
+                    <MdVisibility size={16} /> View
+                  </button>
+                  <button onClick={() => openEdit(project)} className="flex-1 h-10 rounded-xl bg-[#132ea7]/10 text-[#132ea7] font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/20 transition-all">
+                    <MdEdit size={16} /> Edit
+                  </button>
+                  <button onClick={() => handleToggleActive(project)} className={`flex-1 h-10 rounded-xl font-bold flex items-center justify-center gap-1.5 text-xs transition-all ${project.is_active ? "bg-amber-50 text-amber-500 hover:bg-amber-100" : "bg-emerald-50 text-emerald-500 hover:bg-emerald-100"}`}>
+                    <MdPowerSettingsNew size={16} /> {project.is_active ? "Off" : "On"}
+                  </button>
+                  <button onClick={() => setConfirmDelete(project)} className="w-10 h-10 shrink-0 rounded-xl bg-red-50 text-red-500 font-bold flex items-center justify-center text-xs hover:bg-red-100 transition-all">
+                    <MdDelete size={16} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
 
       {/* Create / Edit Modal */}
@@ -800,7 +1040,7 @@ await createProject({
             />
 
 
-            <Textarea
+            {/* <Textarea
   label="Technical Details"
   name="tech_details"
   value={form.tech_details}
@@ -808,8 +1048,104 @@ await createProject({
   error={fieldErrors.tech_details}
   rows={4}
   required
-/>
+/> */}
 
+<div>
+  <div className="flex items-center justify-between mb-3">
+    <label className="font-bold text-slate-700">Technical Details</label>
+    <button
+      type="button"
+      onClick={addTechRow}
+      className="flex items-center gap-1 px-3 py-1.5 bg-[#132ea7]/10 text-[#132ea7] rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#132ea7]/20 transition-all"
+    >
+      <MdAdd size={14} /> Add Tech
+    </button>
+  </div>
+
+  {form.tech_details.length === 0 ? (
+    <div className="text-center py-6 border border-dashed border-slate-200 rounded-2xl">
+      <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">
+        No technologies added yet
+      </p>
+    </div>
+  ) : (
+    <div className="space-y-4">
+      {form.tech_details.map((tech, techIndex) => (
+        <div
+          key={techIndex}
+          className="border border-slate-100 rounded-2xl p-4 space-y-3 bg-slate-50/50"
+        >
+          {/* ── Tech row ── */}
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-lg bg-[#132ea7] text-white flex items-center justify-center text-[10px] font-black flex-shrink-0">
+              {techIndex + 1}
+            </div>
+            <Input
+              placeholder="Technology (e.g. React.js)"
+              value={tech.name}
+              onChange={(e) => updateTech(techIndex, "name", e.target.value)}
+              className="flex-[2]"
+            />
+            <Input
+              placeholder="Version (optional)"
+              value={tech.version || ""}
+              onChange={(e) => updateTech(techIndex, "version", e.target.value)}
+              className="flex-1"
+            />
+            <button
+              type="button"
+              onClick={() => removeTech(techIndex)}
+              className="p-2 rounded-xl text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all flex-shrink-0"
+            >
+              <MdDelete size={18} />
+            </button>
+          </div>
+
+          {/* ── Databases for this tech ── */}
+          <div className="pl-8 space-y-2">
+            {(tech.databases || []).map((db, dbIndex) => (
+              <div key={dbIndex} className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-slate-300 flex-shrink-0" />
+                <Input
+                  placeholder="Database (e.g. MSSQL)"
+                  value={db.name}
+                  onChange={(e) => updateDb(techIndex, dbIndex, "name", e.target.value)}
+                  className="flex-[2]"
+                />
+                <Input
+                  placeholder="Version (optional)"
+                  value={db.version || ""}
+                  onChange={(e) => updateDb(techIndex, dbIndex, "version", e.target.value)}
+                  className="flex-1"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeDb(techIndex, dbIndex)}
+                  className="p-2 rounded-xl text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all flex-shrink-0"
+                >
+                  <MdDelete size={16} />
+                </button>
+              </div>
+            ))}
+
+            <button
+              type="button"
+              onClick={() => addDbRow(techIndex)}
+              className="flex items-center gap-1 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-[#132ea7] transition-all mt-1"
+            >
+              <MdAdd size={12} /> Add Database
+            </button>
+          </div>
+
+        </div>
+      ))}
+    </div>
+  )}
+
+  {fieldErrors.tech_details && (
+    <p className="text-red-500 text-sm mt-2">{fieldErrors.tech_details}</p>
+  )}
+</div>
 <Select
   label="Development Status"
   name="development_status"
@@ -1086,26 +1422,61 @@ await createProject({
 
 
               {/* tech_details */}
-              {viewTarget.tech_details && (
-                <div className="bg-[#132ea7] rounded-2xl p-6 text-white">
-                  <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-2"> Technical Details</p>
-                   {Array.isArray(viewTarget.tech_details) ? (
-    <div className="flex flex-wrap gap-2">
-      {viewTarget.tech_details.map((tech, index) => (
-        <span
-          key={index}
-          className="px-3 py-1 rounded-lg bg-white/10 text-sm"
-        >
-          {tech.name}
-          {tech.version ? ` (${tech.version})` : ""}
-        </span>
-      ))}
-    </div>
-  ) : (
-    <p>{viewTarget.tech_details}</p>
-  )}
+{viewTarget.tech_details && (
+  <div className="space-y-3">
+    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+      Technical Details
+    </p>
+
+    {Array.isArray(viewTarget.tech_details) ? (
+      <div className="space-y-2">
+        {viewTarget.tech_details.map((tech, index) => (
+          <div key={index} className="bg-[#132ea7] rounded-2xl p-4 text-white">
+            {/* Tech name + version */}
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-md bg-white/20 flex items-center justify-center text-[10px] font-black flex-shrink-0">
+                {index + 1}
+              </div>
+              <span className="font-black text-sm">
+                {tech.name}
+                {tech.version ? (
+                  <span className="ml-2 text-white/60 font-bold text-xs">v{tech.version}</span>
+                ) : null}
+              </span>
+            </div>
+
+            {/* Databases nested under this tech */}
+            {tech.databases?.length > 0 && (
+              <div className="mt-3 pl-7 space-y-1.5">
+                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-2">
+                  Databases
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {tech.databases.map((db, dbIndex) => (
+                    <span
+                      key={dbIndex}
+                      className="px-3 py-1 rounded-lg bg-white/10 text-xs font-bold"
+                    >
+                      {db.name}
+                      {db.version ? (
+                        <span className="ml-1 text-white/50">v{db.version}</span>
+                      ) : null}
+                    </span>
+                  ))}
                 </div>
-              )}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    ) : (
+      // Legacy string fallback
+      <div className="bg-[#132ea7] rounded-2xl p-6 text-white">
+        <p className="font-medium opacity-90">{viewTarget.tech_details}</p>
+      </div>
+    )}
+  </div>
+)}
 
               {/* Description */}
               {viewTarget.description && (

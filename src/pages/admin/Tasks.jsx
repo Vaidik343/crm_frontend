@@ -259,8 +259,8 @@ const filtered = search
           onClose={() => setAlert({ type: "", message: "" })}
         />
 
-        {/* Table */}
-        <div className="d-none d-md-block">
+        {/* Desktop Table */}
+        <div className="hidden md:block">
           <div className="bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
             <div className="overflow-x-auto custom-scrollbar">
               <table className="w-full text-left border-collapse">
@@ -434,146 +434,96 @@ const filtered = search
                 Next
               </button>
             </div>
-
-            {/* Mobile Pagination */}
-            <div className="d-flex d-md-none justify-content-between align-items-center mt-4">
-              <button
-                disabled={page === 1}
-                onClick={() => setPage(page - 1)}
-                className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50"
-              >
-                Prev
-              </button>
-
-              <span className="text-sm font-bold text-slate-500">
-                {page} / {totalPages}
-              </span>
-
-              <button
-                disabled={page === totalPages}
-                onClick={() => setPage(page + 1)}
-                className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50"
-              >
-                Next
-              </button>
-            </div>
           </div>
         </div>
 
         {/* Mobile Cards */}
-        <div className="d-block d-md-none space-y-4">
-          {tasks.length === 0 ? (
-            <div className="bg-white rounded-4 p-4 text-center text-slate-400 font-bold">
+        <div className="md:hidden space-y-4">
+          {filtered.length === 0 ? (
+            <div className="bg-white rounded-2xl p-8 text-center text-slate-400 font-bold">
               No tasks found.
             </div>
           ) : (
-            tasks.map((task) => (
+            filtered.map((task) => (
               <div
                 key={task.id}
-                className="bg-white rounded-4 p-4 border border-slate-100 shadow-sm"
+                className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-3"
               >
                 {/* Header */}
-                <div className="flex items-start justify-between gap-3 mb-4">
+                <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-3 bg-[#132ea7] text-white flex items-center justify-center">
-                      <MdAssignment size={20} />
+                    <div className="w-10 h-10 rounded-xl bg-[#132ea7] text-white flex items-center justify-center shrink-0">
+                      <MdAssignment size={18} />
                     </div>
-
                     <div>
-                      <h4 className="font-black text-slate-800 text-base leading-tight">
-                        {task.task}
-                      </h4>
-
-                      {task.description && (
-                        <p className="text-xs text-slate-400 mt-1">
-                          {task.description}
-                        </p>
-                      )}
+                      <p className="font-black text-slate-800 leading-tight">{task.task}</p>
+                      <p className="text-[10px] font-black text-slate-400 font-mono mt-0.5">{task.display_id}</p>
                     </div>
                   </div>
-
                   <Badge value={task.status} />
                 </div>
 
-                {/* Info */}
-                <div className="space-y-3 text-sm">
-                  {/* Assignee */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-400 font-bold uppercase text-[10px]">
-                      Assigned
-                    </span>
+                {task.description && (
+                  <p className="text-xs text-slate-400 font-medium italic px-1 truncate">{task.description}</p>
+                )}
 
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-[#132ea7] font-black text-[10px]">
-                        {task.assignee?.name?.charAt(0) || "?"}
-                      </div>
-
-                      <span className="font-bold text-slate-700">
-                        {task.assignee?.name || "—"}
-                      </span>
+                {/* Meta */}
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400 font-bold uppercase text-[10px]">Assigned By</span>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[#132ea7] font-black text-[9px]">{task.assigner?.name?.charAt(0) || "?"}</div>
+                      <span className="font-bold text-slate-700 text-xs">{task.assigner?.name || "—"}</span>
                     </div>
                   </div>
-
-                  {/* Team */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-400 font-bold uppercase text-[10px]">
-                      Team
-                    </span>
-
-                    <span className="font-bold text-slate-700">
-                      {task.team?.name || "—"}
-                    </span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400 font-bold uppercase text-[10px]">Assigned To</span>
+                    <div className="flex items-center gap-1.5">
+                      <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[#132ea7] font-black text-[9px]">{task.assignee?.name?.charAt(0) || "?"}</div>
+                      <span className="font-bold text-slate-700 text-xs">{task.assignee?.name || "—"}</span>
+                    </div>
                   </div>
-
-                  {/* Project */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-400 font-bold uppercase text-[10px]">
-                      Project
-                    </span>
-
-                    <span className="font-bold text-slate-700">
-                      {task.project?.name || "—"}
-                    </span>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400 font-bold uppercase text-[10px]">Project</span>
+                    <div className="flex items-center gap-1.5">
+                      <MdFolder className="text-slate-300" size={14} />
+                      <span className="font-bold text-slate-700 text-xs">{task.project?.name || "—"}</span>
+                    </div>
                   </div>
-
-                  {/* Due Date */}
-                  <div className="flex items-center justify-between">
-                    <span className="text-slate-400 font-bold uppercase text-[10px]">
-                      Due
-                    </span>
-
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400 font-bold uppercase text-[10px]">Due</span>
                     <DueDateBadge dueDate={task.due_date} />
                   </div>
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-3 mt-5 pt-4 border-t border-slate-100">
-                  <button onClick={() => setViewTarget(task)} title="View" className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all">
-                                          <MdVisibility size={18} />
-                                        </button>
-                  <button
-                    onClick={() => openEdit(task)}
-                    className="flex-1 h-11 rounded-3 bg-[#132ea7]/10 text-[#132ea7] font-bold flex items-center justify-center gap-2"
-                  >
-                    <MdEdit size={18} />
-                    Edit
+                <div className="flex gap-2 pt-3 border-t border-slate-100">
+                  <button onClick={() => setViewTarget(task)} className="flex-1 h-10 rounded-xl bg-slate-50 text-slate-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all">
+                    <MdVisibility size={16} /> View
                   </button>
-
-                  <button
-                    onClick={() => setConfirmDelete(task)}
-                    className="flex-1 h-11 rounded-3 bg-red-50 text-red-500 font-bold flex items-center justify-center gap-2"
-                  >
-                    <MdDelete size={18} />
-                    Delete
+                  <button onClick={() => openEdit(task)} className="flex-1 h-10 rounded-xl bg-[#132ea7]/10 text-[#132ea7] font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/20 transition-all">
+                    <MdEdit size={16} /> Edit
+                  </button>
+                  <button onClick={() => setConfirmDelete(task)} className="flex-1 h-10 rounded-xl bg-red-50 text-red-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-red-100 transition-all">
+                    <MdDelete size={16} /> Delete
                   </button>
                 </div>
               </div>
             ))
           )}
+          {/* Mobile Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-2 py-4">
+              <button disabled={page === 1} onClick={() => setPage(page - 1)} className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50">Prev</button>
+              <span className="text-sm font-bold text-slate-500">{page} / {totalPages}</span>
+              <button disabled={page === totalPages} onClick={() => setPage(page + 1)} className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50">Next</button>
+            </div>
+          )}
         </div>
 
         {/* Create / Edit Modal */}
           <Modal show={showModal} onClose={closeModal} title={editTarget ? "Edit Task" : "New Task"} size="lg">
+
           <form onSubmit={handleSubmit} noValidate className="space-y-5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
