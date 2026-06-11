@@ -79,6 +79,7 @@ const AdminWorkLogs = () => {
                 <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Employee Identity</th>
                 <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Operational Date</th>
                 <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Work Briefing</th>
+                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Projects</th>
                 <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</th>
               </tr>
             </thead>
@@ -110,10 +111,15 @@ const AdminWorkLogs = () => {
                     </div>
                   </td>
                   <td className="px-8 py-6">
-                    <p className="text-sm font-bold text-slate-500 truncate max-w-[400px]">
+                    <p className="text-sm font-bold  truncate max-w-[400px]">
                       {log.description}
                     </p>
                   </td>
+                  <td className="px-8 py-6">
+                    <p className="text-sm font-bold  uppercase tracking-widest mt-0.5">
+   {log.Project?.name || "No Project Assigned"}
+</p>
+</td>
                   <td className="px-10 py-6 text-right">
                     <button
                       className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all shadow-sm"
@@ -200,7 +206,7 @@ const AdminWorkLogs = () => {
                 </div>
                 <div className="flex justify-between items-start gap-2">
                   <span className="text-slate-400 font-bold uppercase text-[10px] shrink-0">Work</span>
-                  <p className="text-xs font-bold text-slate-600 text-right truncate max-w-[220px]">{log.description}</p>
+                  <p className="text-xs font-bold  text-right truncate max-w-[220px]">{log.description}</p>
                 </div>
               </div>
 
@@ -242,9 +248,14 @@ const AdminWorkLogs = () => {
                   </div>
                   <div>
                      <h3 className="text-2xl font-black text-slate-800 leading-tight">{viewTarget.User?.name || "—"}</h3>
+                      <p className="text-sm font-bold text-[#132ea7] uppercase tracking-widest mt-0.5">
+   {viewTarget.Project?.name || "No Project Assigned"}
+</p>
                      <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-xs mt-1">Employee Identification: {viewTarget.User?.employee_id || "N/A"}</p>
                   </div>
                </div>
+
+               
                <div className="flex items-center gap-4 bg-slate-50 p-4 px-6 rounded-[1.5rem] border border-slate-100 shadow-sm">
                   <MdAccessTime size={24} className="text-[#132ea7]" />
                   <div>
@@ -265,9 +276,6 @@ const AdminWorkLogs = () => {
                </div>
             </div>
 
-            <div className="flex items-center justify-end pt-4">
-               <Button variant="ghost" onClick={() => setViewTarget(null)} className="text-slate-400 font-black uppercase tracking-[0.2em] text-xs">Close Archives</Button>
-            </div>
 
             {viewTarget.remarks &&
               Array.isArray(viewTarget?.remarks) &&
@@ -303,6 +311,10 @@ const AdminWorkLogs = () => {
                   </div>
                 </div>
               )}
+
+            <div className="flex items-center justify-end pt-4">
+               <Button variant="ghost" onClick={() => setViewTarget(null)} className="text-slate-400 font-black uppercase tracking-[0.2em] text-xs">Close </Button>
+            </div>
 
           </div>
         )}

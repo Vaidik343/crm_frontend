@@ -769,7 +769,7 @@ onChange={(e) => setSearch(e.target.value)}
       <div className="md:col-span-2">
         <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
           <div>
-            <p className="text-sm font-black text-slate-700 uppercase tracking-widest">Follow-up Call</p>
+            <p className="text-sm font-black text-slate-700 uppercase tracking-widest">Follow-Back Call</p>
             <p className="text-xs font-bold text-slate-400 mt-0.5">
               {form.is_follow_up
                 ? "Calling client back after resolving their request"
@@ -851,7 +851,7 @@ onChange={(e) => setSearch(e.target.value)}
     {form.is_follow_up && form.is_task && (
       <div className="md:col-span-2 bg-amber-50 border border-amber-100 rounded-2xl px-5 py-3">
         <p className="text-xs font-black text-amber-600 uppercase tracking-widest">
-          Follow-up call with new task — prefix: {form.task_assigned_to ? "CTA" : "CT"}
+          Follow-Back call with new task — prefix: {form.task_assigned_to ? "CTA" : "CT"}
         </p>
         <p className="text-xs font-bold text-amber-500 mt-1">
           Link to original call is preserved
@@ -967,7 +967,7 @@ onChange={(e) => setSearch(e.target.value)}
               <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
                 <MdPhone size={18} className="text-slate-400 shrink-0" />
                 <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Follow-up for original call</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Follow-Back for original call</p>
                   <p className="text-xs font-bold text-[#132ea7] mt-0.5 font-mono">
                     {calls.find((c) => c.id === viewTarget.parent_call_id)?.display_id || viewTarget.parent_call_id}
                   </p>

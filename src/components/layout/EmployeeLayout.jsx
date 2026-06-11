@@ -22,12 +22,12 @@ const EmployeeLayout = () => {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     return (
-        <div className="min-h-screen  bg-slate-50 flex flex-col  ">
+        <div className="h-screen    bg-slate-50  flex flex-col  ">
             {/* Top Navbar - Modernized Horizontal Layout */}
-         <nav className="bg-[#132ea7] border-b  border-slate-200 sticky top-0 z-50 shadow-sm">
+         <nav className="bg-[#132ea7] border-b   border-slate-200 sticky top-0 z-50 shadow-sm">
 
     {/* TOP BAR */}
-    <div className="h-[70px] px-4 md:px-8 flex items-center justify-between">
+    <div className="h-[70px] px-4 md:px-8 flex  items-center justify-between">
 
         {/* LEFT */}
         <div className="flex items-center gap-10">

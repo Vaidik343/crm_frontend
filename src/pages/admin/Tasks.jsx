@@ -73,6 +73,15 @@
       getAllCalls?.();
     }, [page]);
 
+    // Members of the selected project — falls back to all users if no project selected
+const assignableUsers = useMemo(() => {
+  if (!form.project_id) return users;
+  const project = projects.find((p) => p.id === form.project_id);
+  if (!project?.members?.length) return [];
+  const memberUserIds = project.members.map((m) => m.user_id || m.user?.id);
+  return users.filter((u) => memberUserIds.includes(u.id));
+}, [form.project_id, projects, users]);
+
     // filter
 const search = filter.toLowerCase().trim();
 
@@ -88,8 +97,15 @@ const filtered = search
     // ── Handlers ──────────────────────────────────────────────────────────────
     const handleChange = (e) => {
       const { name, value } = e.target;
-      setForm((prev) => ({ ...prev, [name]: value }));
-      if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: "" }));
+ if (name === "project_id") {
+    // reset assignee when project changes — old assignee may not be in new project
+    setForm((prev) => ({ ...prev, project_id: value, assigned_to: "" }));
+  } else {
+    setForm((prev) => ({ ...prev, [name]: value }));
+  }
+
+  if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: "" }));
+
     };
 
 
@@ -97,7 +113,7 @@ const filtered = search
       
       const errors = {};
       if (!form.task.trim()) errors.task = "Task name is required";
-      if (!form.project_id) errors.task = "Project is required";
+      if (!form.project_id) errors.project_id = "Project is required";
       
       return errors;
     };
@@ -176,6 +192,7 @@ const filtered = search
             due_date: form.due_date || null,
               remarks:      form.remarks || null,
           };
+          console.log("🚀 ~ handleSubmit ~ payload:", payload)
           await createTask(payload);
           setAlert({ type: "success", message: "Task created successfully" });
         }
@@ -347,7 +364,12 @@ const filtered = search
                       </div>
                     </td>
 
-
+                      <td className="px-8 py-6">
+                        <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
+                          <MdFolder className="text-slate-300" size={18} />
+                          {task.project?.name || "—"}
+                        </div>
+                      </td>
   {/* assign to */}
                       <td className="px-6 py-6">
                         <div className="flex items-center gap-3">
@@ -371,12 +393,7 @@ const filtered = search
                         </span>
                       </td> */}
 
-                      <td className="px-8 py-6">
-                        <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
-                          <MdFolder className="text-slate-300" size={18} />
-                          {task.project?.name || "—"}
-                        </div>
-                      </td>
+
                       <td className="px-8 py-6">
                         <DueDateBadge dueDate={task.due_date} />
                       </td>
@@ -534,35 +551,75 @@ const filtered = search
                   error={fieldErrors.task} placeholder="e.g. Fix login bug" required />
               </div>
 
-              {/* Assign to — any employee, optional (blank = self) */}
+
+{/* Project */}
+              {!editTarget && (
+                <div className="space-y-1.5">
+  <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
+    Project
+  </label>
+  <select
+    name="project_id"
+    value={form.project_id}
+    onChange={handleChange}
+error={fieldErrors.project_id}
+    required
+    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all"
+  >
+    <option value="">No Project</option>
+    {projects.map((p) => (
+      <option key={p.id} value={p.id}>
+        {p.name} {p.code ? `(${p.code})` : ""}
+      </option>
+    ))}
+  </select>
+</div>
+              )}
+              {/* Assign to — any employee, optional-  filtered by selected project (blank = self) */}
               {!editTarget && (
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
                     Assign To <span className="text-slate-300 font-bold normal-case tracking-normal">(blank = self)</span>
                   </label>
-                  <select name="assigned_to" value={form.assigned_to} onChange={handleChange}
-                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all">
-                    <option value="">Self Assign</option>
-                    {users.map((u) => (
-                      <option key={u.id} value={u.id}>{u.name} ({u.employee_id})</option>
-                    ))}
-                  </select>
+                  {/* Helper text showing filter context */}
+  {form.project_id && (
+    <p className="text-[10px] font-bold text-[#132ea7] ml-1 mb-1 uppercase tracking-widest">
+      {assignableUsers.length === 0
+        ? "No members in this project"
+        : `Showing ${assignableUsers.length} member${assignableUsers.length > 1 ? "s" : ""} of selected project`}
+    </p>
+  )}
+  {!form.project_id && (
+    <p className="text-[10px] font-bold text-slate-400 ml-1 mb-1 uppercase tracking-widest">
+      Select a project to filter members
+    </p>
+  )}
+                   <select
+    name="assigned_to"
+    value={form.assigned_to}
+    onChange={handleChange}
+    disabled={form.project_id && assignableUsers.length === 0}
+    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+  >
+    <option value="">Self Assign</option>
+    {assignableUsers.map((u) => {
+      // find their role in this project if project is selected
+      const project = projects.find((p) => p.id === form.project_id);
+      const membership = project?.members?.find(
+        (m) => (m.user_id || m.user?.id) === u.id
+      );
+      const roleLabel = membership?.role?.name;
+      return (
+        <option key={u.id} value={u.id}>
+          {u.name} ({u.employee_id}){roleLabel ? ` — ${roleLabel}` : ""}
+        </option>
+      );
+    })}
+  </select>
                 </div>
               )}
 
-              {/* Project */}
-              {!editTarget && (
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1 ">Project</label>
-                  <select name="project_id" value={form.project_id} onChange={handleChange} 
-                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all">
-                    <option value="" >No Project</option>
-                    {projects.map((p) => (
-                      <option key={p.id} value={p.id}>{p.name} {p.code ? `(${p.code})` : ""}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
+              
 
               {/* Linked Call */}
               {!editTarget && (
@@ -650,8 +707,8 @@ const filtered = search
     {/* New remark input — shown when + is clicked */}
     {showNewRemark && (
       <Textarea
-        name="remark"
-        value={form.remark}
+        name="remarks"
+        value={form.remarks}
         onChange={handleChange}
         placeholder="Add a new remark..."
         rows={2}
@@ -663,7 +720,7 @@ const filtered = search
       <Textarea
         label="Initial Remark (optional)"
         name="remark"
-        value={form.remark}
+        value={form.remarks}
         onChange={handleChange}
         placeholder="Add a remark..."
         rows={2}

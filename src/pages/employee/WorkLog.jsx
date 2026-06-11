@@ -13,7 +13,7 @@ import ExportBar from "../../components/ui/ExportBar";
 
 const initialForm = { 
   description: "",
-  project_id: "",
+  project_id: "", 
   remarks: "",
   date: new Date().toISOString().split("T")[0], // today's date as default
 };
@@ -193,6 +193,7 @@ console.log("🚀 ~ WorkLog ~ projects:", projects)
               <tr className="bg-slate-50/50">
                 <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Operational Date</th>
                 <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Work Briefing</th>
+                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Projects</th>
                 <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</th>
               </tr>
             </thead>
@@ -213,9 +214,14 @@ console.log("🚀 ~ WorkLog ~ projects:", projects)
                     </div>
                   </td>
                   <td className="px-8 py-6">
-                    <p className="text-sm font-bold text-slate-500 truncate max-w-[500px]">
+                    <p className="text-sm font-bold  truncate max-w-[500px]">
                       {log.description}
                     </p>
+                  </td>
+                  <td className="px-8 py-6">
+                    <p className="text-sm font-bold  uppercase tracking-widest mt-0.5">
+   {log.Project?.name || "No Project Assigned"}
+</p>
                   </td>
                   <td className="px-10 py-6 text-right">
                     <div className="flex items-center justify-end gap-3">
@@ -414,7 +420,9 @@ console.log("🚀 ~ WorkLog ~ projects:", projects)
                   </div>
                   <div>
                      <h3 className="text-2xl font-black text-slate-800 leading-tight">{viewTarget.User?.name || "Your Work Log"}</h3>
-                     <h3 className="text-2xl font-black text-slate-800 leading-tight">{viewTarget.project || "-"}</h3>
+     <p className="text-sm font-bold text-[#132ea7] uppercase tracking-widest mt-0.5">
+   {viewTarget.Project?.name || "No Project Assigned"}
+</p>
                      <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-xs mt-1">Status: Logged successfully</p>
                   </div>
                   
@@ -477,7 +485,7 @@ console.log("🚀 ~ WorkLog ~ projects:", projects)
               )}
 
             <div className="flex items-center justify-end pt-4">
-               <Button variant="ghost" onClick={() => setViewTarget(null)} className="text-slate-400 font-black uppercase tracking-[0.2em] text-xs">Close Archives</Button>
+               <Button variant="ghost" onClick={() => setViewTarget(null)} className="text-slate-400 font-black uppercase tracking-[0.2em] text-xs">Close</Button>
             </div>
           </div>
         )}
