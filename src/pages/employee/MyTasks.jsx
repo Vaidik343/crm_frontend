@@ -56,12 +56,12 @@ const MyTasks = () => {
   // const { teams, getAllTeams } = useTeam();
   const { user } = useAuth();
   const { users, getAllUsers } = useUser();
-  console.log("🚀 ~ MyTasks ~ users:", users);
+  // console.log("🚀 ~ MyTasks ~ users:", users);
 
   const [showModal, setShowModal] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
   const [viewTarget, setViewTarget] = useState(null);
-  console.log("🚀 ~ MyTasks ~ viewTarget:", viewTarget);
+  // console.log("🚀 ~ MyTasks ~ viewTarget:", viewTarget);
   const [form, setForm] = useState(initialForm);
   const [fieldErrors, setFieldErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);

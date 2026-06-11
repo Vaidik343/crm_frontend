@@ -364,12 +364,7 @@ const filtered = search
                       </div>
                     </td>
 
-                      <td className="px-8 py-6">
-                        <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
-                          <MdFolder className="text-slate-300" size={18} />
-                          {task.project?.name || "—"}
-                        </div>
-                      </td>
+                      
   {/* assign to */}
                       <td className="px-6 py-6">
                         <div className="flex items-center gap-3">
@@ -386,6 +381,12 @@ const filtered = search
                         </div>
                       </td>
 
+<td className="px-8 py-6">
+                        <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
+                          <MdFolder className="text-slate-300" size={18} />
+                          {task.project?.name || "—"}
+                        </div>
+                      </td>
 
                       {/* <td className="px-8 py-6">
                         <span className="text-sm font-black text-slate-600">

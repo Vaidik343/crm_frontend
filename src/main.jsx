@@ -15,6 +15,7 @@ import { PermissionProvider } from './context/PermissionContext.jsx';
 import { PasswordProvider } from './context/PasswordContext.jsx';
 import { TeamProvider } from './context/TeamContext.jsx'
 import { TeamMemberContext, TeamMemberProvider } from './context/TeamMemberContext.jsx'
+import { SocketProvider } from './context/SocketContext.jsx';
 import { ClientProvider } from './context/ClientContext.jsx'
 
 
@@ -22,6 +23,7 @@ createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
      <AuthProvider>
+      <SocketProvider>
       <UserProvider>
         <RoleProvider>
           <ProjectProvider>
@@ -45,6 +47,7 @@ createRoot(document.getElementById('root')).render(
           </ProjectProvider>
         </RoleProvider>
       </UserProvider>
+     </SocketProvider>
      </AuthProvider>
     </BrowserRouter>
     
