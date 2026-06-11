@@ -4,6 +4,8 @@ import { useProject } from "../../context/ProjectContext";
 import { useAuth } from "../../context/AuthContext";
 import { useUser } from "../../context/UserContext";
 import { useTask } from "../../context/TaskContext";
+import { useClient } from "../../context/ClientContext";
+
 import Badge from "../../components/ui/Badge";
 import Button from "../../components/ui/Button";
 import Alert from "../../components/ui/Alert";
@@ -59,6 +61,7 @@ const PREFIX_INFO = {
 const initialForm = {
   caller_name: "",
   caller_number: "",
+    client_id: "",  
   project_id: "",
   call_type: "",
   call_subtype: "",
@@ -98,6 +101,7 @@ const MyCalls = () => {
   const {users, getAllUsers} = useUser();
   const {getAllTasks, page: taskPage} = useTask();
   const {user: authUser} = useAuth();
+  const {clients, getAllClients} = useClient();
 
   const [filter, setFilter] = useState("all");
   const [showModal, setShowModal] = useState(false);
@@ -123,6 +127,7 @@ const MyCalls = () => {
     getAllCalls?.(page);
     getAllProjects?.();
     getAllUsers?.();
+    getAllClients?.();
   }, [page]);
 
 
@@ -202,6 +207,7 @@ const MyCalls = () => {
     setForm({
       caller_name: call.caller_name || "",
       caller_number: call.caller_number || "",
+          client_id:       call.client_id       || "",
       project_id: call.project_id || "",
       call_type: call.call_type || "",
       call_subtype: call.call_subtype || "",
@@ -293,6 +299,17 @@ const MyCalls = () => {
       setConfirmDelete(null);
     }
   };
+
+  const handleClientSelect = (e) => {
+  const clientId = e.target.value;
+  const client = clients.find((c) => c.id === clientId);
+  setForm((prev) => ({
+    ...prev,
+    client_id: clientId,
+    caller_name:   client?.name  || prev.caller_name,
+    caller_number: client?.phone || prev.caller_number,
+  }));
+};
 
   if (loading && !calls.length)
     return (
@@ -692,6 +709,33 @@ const MyCalls = () => {
         size="lg"
       >
         <form onSubmit={handleSubmit} noValidate className="space-y-6">
+           {/* Client Selector */}
+    <div>
+      <label className="block mb-2 font-bold text-slate-700 text-sm">
+        Select Client <span className="text-slate-400 font-normal">(optional)</span>
+      </label>
+      <Select
+        name="client_id"
+        value={form.client_id}
+        onChange={handleClientSelect}
+        options={[
+          { label: "-- Select existing client --", value: "" },
+          ...clients.map((c) => ({
+            label: c.company ? `${c.name} — ${c.company}` : c.name,
+            value: c.id,
+          })),
+        ]}
+      />
+      {form.client_id && (
+        <button
+          type="button"
+          onClick={() => setForm((prev) => ({ ...prev, client_id: "" }))}
+          className="mt-1 text-[10px] font-black text-slate-400 hover:text-red-500 uppercase tracking-widest"
+        >
+          ✕ Clear client
+        </button>
+      )}
+    </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Input
               label="Caller Name"

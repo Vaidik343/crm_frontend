@@ -97,6 +97,7 @@ const filtered = search
       
       const errors = {};
       if (!form.task.trim()) errors.task = "Task name is required";
+      if (!form.project_id) errors.task = "Project is required";
       
       return errors;
     };
@@ -552,10 +553,10 @@ const filtered = search
               {/* Project */}
               {!editTarget && (
                 <div className="space-y-1.5">
-                  <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">Project</label>
-                  <select name="project_id" value={form.project_id} onChange={handleChange}
+                  <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1 ">Project</label>
+                  <select name="project_id" value={form.project_id} onChange={handleChange} 
                     className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all">
-                    <option value="">No Project</option>
+                    <option value="" >No Project</option>
                     {projects.map((p) => (
                       <option key={p.id} value={p.id}>{p.name} {p.code ? `(${p.code})` : ""}</option>
                     ))}

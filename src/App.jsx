@@ -16,6 +16,7 @@ import Tasks           from "./pages/admin/Tasks";
 import AdminCalls      from "./pages/admin/Calls";
 import Permissions     from "./pages/admin/Permissions";
 import AdminWorkLogs from "./pages/admin/WorkLogs";
+import Clients from "./pages/admin/Clients"
 
 import MyTasks         from "./pages/employee/MyTasks";
 import MyCalls         from "./pages/employee/MyCalls";
@@ -59,10 +60,12 @@ const App = () => {
   <Route path='employees' element={<Employees />} />
   <Route path='roles' element={<Roles />} />
   <Route path='projects' element={<Projects />} />
+  <Route path='projects/:id/dashboard' element={<ProjectDashboard />} /> 
   <Route path='calls' element={<Calls />} />
   <Route path='tasks' element={<Tasks />} />
   <Route path='permissions' element={<Permissions />} />
   <Route path='work-logs' element={<AdminWorkLogs />} />
+  <Route path ='clients' element={<Clients />} />
 
   {/* Teams */}
   {/* <Route path='teams' element={<Teams />} />

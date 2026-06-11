@@ -11,12 +11,12 @@ import Spinner from "../../components/ui/Spinner";
 import Badge from "../../components/ui/Badge";
 
 
-import { MdAdd, MdGroup , MdAssignment , MdVisibility, MdSearch, MdChevronRight , MdBusinessCenter, MdCalendarToday, MdEdit, MdDelete, MdPerson, MdPowerSettingsNew, MdFolder, MdPersonAdd, MdPersonRemove, MdCheckCircle } from "react-icons/md";
+import { MdAdd, MdGroup , MdAssignment , MdVisibility, MdSearch, MdChevronRight ,MdDashboard  , MdBusinessCenter, MdCalendarToday, MdEdit, MdDelete, MdPerson, MdPowerSettingsNew, MdFolder, MdPersonAdd, MdPersonRemove, MdCheckCircle } from "react-icons/md";
 import { useRole } from './../../context/RoleContext';
 import Select from './../../components/ui/Select';
 import { useUser } from './../../context/UserContext';
 import { FaChevronDown } from "react-icons/fa";
-
+import { useNavigate } from "react-router-dom";
 
 const initialForm = {
   name: "",
@@ -37,6 +37,7 @@ const Projects = () => {
 
   const { users, getAllUsers } = useUser();
 
+  const navigate = useNavigate();
 
   const [showModal, setShowModal] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
@@ -432,19 +433,20 @@ await createProject({
     }
   };
 
-  const handleDelete = async () => {
-    if (!confirmDelete) return;
-    try {
-      setDeleting(true);
-      await deleteProject(confirmDelete.id);
-      setAlert({ type: "success", message: "Project record deleted" });
-    } catch (err) {
-      setAlert({ type: "danger", message: err?.response?.data?.message || "Purge failed" });
-    } finally {
-      setDeleting(false);
-      setConfirmDelete(null);
-    }
-  };
+  //soft delete only
+  // const handleDelete = async () => {
+  //   if (!confirmDelete) return;
+  //   try {
+  //     setDeleting(true);
+  //     await deleteProject(confirmDelete.id);
+  //     setAlert({ type: "success", message: "Project record deleted" });
+  //   } catch (err) {
+  //     setAlert({ type: "danger", message: err?.response?.data?.message || "Purge failed" });
+  //   } finally {
+  //     setDeleting(false);
+  //     setConfirmDelete(null);
+  //   }
+  // };
 
   if (loading && !projects.length) return (
     <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
@@ -609,6 +611,8 @@ await createProject({
                         {new Date(project.createdAt).toLocaleDateString("default", { month: "short", day: "numeric", year: "numeric" })}
                       </div>
                     </td>
+
+                    {/* actions */}
                     <td className="px-10 py-6 text-right">
                       <div className="flex items-center justify-end gap-2">
                           <button onClick={() => setViewTarget(project)} title="View" className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all">
@@ -628,13 +632,23 @@ await createProject({
                         >
                           <MdPowerSettingsNew size={20} />
                         </button>
-                        <button
+                        {/* <button
                           onClick={() => setConfirmDelete(project)}
                           title="Delete Record"
                           className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all shadow-sm"
                         >
                           <MdDelete size={20} />
-                        </button>
+                        </button> */}
+
+
+                         {/* Dashboard */}
+    <button
+      onClick={() => navigate(`/admin/projects/${project.id}/dashboard`)}
+      title="Project Dashboard"
+      className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all shadow-sm"
+    >
+      <MdDashboard size={18} />
+    </button>
                       </div>
                     </td>
                   </tr>
@@ -796,7 +810,7 @@ await createProject({
                                                                   <button onClick={() => setViewTarget(project)} title="View" className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all">
                                                                   <MdVisibility size={18} />
                                                                 </button>
-                                                  <button
+                                                  {/* <button
                                                     onClick={() => openEdit(project)}
                                                     className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all"
                                                   >
@@ -807,7 +821,33 @@ await createProject({
                                                     className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:bg-red-500/10 hover:text-red-500 transition-all"
                                                   >
                                                     <MdDelete size={20} />
-                                                  </button>
+                                                  </button> */}
+
+
+
+                                                    <button
+      onClick={() => navigate(`/admin/projects/${project.id}/dashboard`)}
+      title="Dashboard"
+      className="p-2 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all"
+    >
+      <MdDashboard size={18} />
+    </button>
+    <button
+      onClick={() => openEdit(project)}
+      className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all"
+    >
+      <MdEdit size={20} />
+    </button>
+    <button
+      onClick={() => handleToggleActive(project)}
+      className={`p-3 rounded-xl bg-slate-50 transition-all ${
+        project.is_active
+          ? "text-amber-500 hover:bg-amber-50"
+          : "text-emerald-500 hover:bg-emerald-50"
+      }`}
+    >
+      <MdPowerSettingsNew size={20} />
+    </button>
                                                 </div>
                                               </td>
                       </tr>
@@ -992,7 +1032,7 @@ await createProject({
                 )}
 
                 {/* Actions */}
-                <div className="flex gap-2 pt-3 border-t border-slate-100">
+                {/* <div className="flex gap-2 pt-3 border-t border-slate-100">
                   <button onClick={() => setViewTarget(project)} className="flex-1 h-10 rounded-xl bg-slate-50 text-slate-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all">
                     <MdVisibility size={16} /> View
                   </button>
@@ -1005,7 +1045,41 @@ await createProject({
                   <button onClick={() => setConfirmDelete(project)} className="w-10 h-10 shrink-0 rounded-xl bg-red-50 text-red-500 font-bold flex items-center justify-center text-xs hover:bg-red-100 transition-all">
                     <MdDelete size={16} />
                   </button>
-                </div>
+                </div> */}
+
+
+                {/* Actions */}
+<div className="flex gap-2 pt-3 border-t border-slate-100">
+  <button
+    onClick={() => setViewTarget(project)}
+    className="flex-1 h-10 rounded-xl bg-slate-50 text-slate-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all"
+  >
+    <MdVisibility size={16} /> View
+  </button>
+  <button
+    onClick={() => navigate(`/admin/projects/${project.id}/dashboard`)}
+    className="flex-1 h-10 rounded-xl bg-slate-50 text-slate-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all"
+  >
+    <MdDashboard size={16} /> Stats
+  </button>
+  <button
+    onClick={() => openEdit(project)}
+    className="flex-1 h-10 rounded-xl bg-[#132ea7]/10 text-[#132ea7] font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/20 transition-all"
+  >
+    <MdEdit size={16} /> Edit
+  </button>
+  <button
+    onClick={() => handleToggleActive(project)}
+    className={`flex-1 h-10 rounded-xl font-bold flex items-center justify-center gap-1.5 text-xs transition-all ${
+      project.is_active
+        ? "bg-amber-50 text-amber-500 hover:bg-amber-100"
+        : "bg-emerald-50 text-emerald-500 hover:bg-emerald-100"
+    }`}
+  >
+    <MdPowerSettingsNew size={16} />
+    {project.is_active ? "Off" : "On"}
+  </button>
+</div>
               </div>
             ))}
           </div>
@@ -1016,7 +1090,7 @@ await createProject({
       <Modal
         show={showModal}
         onClose={closeModal}
-        title={editTarget ? "Modify Project Record" : "Launch Mission Project"}
+        title={editTarget ? "Modify Project Record" : "Launch New Project"}
         size="lg"
       >
         <form onSubmit={handleSubmit} noValidate className="space-y-8">
@@ -1518,13 +1592,14 @@ await createProject({
 
 
       {/* Delete confirm */}
-      <ConfirmDialog
+      {/* now soft delete only */}
+      {/* <ConfirmDialog
         show={!!confirmDelete}
         message={`This action will delete "${confirmDelete?.name}" . This will fail if there are active intelligence logs (calls) linked to this project.`}
         onConfirm={handleDelete}
         onCancel={() => setConfirmDelete(null)}
         loading={deleting}
-      />
+      /> */}
     </div>
   );
 };

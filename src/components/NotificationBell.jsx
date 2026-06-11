@@ -39,6 +39,10 @@ const NotificationBell = () => {
 
   const [permissionState, setPermissionState] = useState(Notification.permission);
 
+  
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+
   const requestNotificationPermission = async () => {
   if (!("Notification" in window)) return;
   const permission = await Notification.requestPermission();
@@ -47,7 +51,7 @@ const NotificationBell = () => {
 
   // ── Fetch from DB on mount ────────────────────────────────────
   useEffect(() => {
-    fetchNotifications();
+    fetchNotifications(1);
   }, []);
 
 //   useEffect(() => {
@@ -102,12 +106,25 @@ useEffect(() => {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = async (pageNo = 1) => {
     try {
       setLoading(true);
-      const res = await api.get("/notifications?limit=20");
-      setNotifications(res.data.data || []);
-      setUnread(res.data.unread || 0);
+      const res = await api.get( `/notifications?page=${pageNo}&limit=5`);
+
+      if(pageNo === 1) {
+        setNotifications(res.data.data);
+      } else {
+        setNotifications(prev => [
+          ...prev,
+          ...res.data.data
+        ]);
+      }
+
+      setUnread(res.data.unread);
+
+      const loaded = pageNo * res.data.limit;
+      setHasMore(loaded < res.data.total)
+     
     } catch (err) {
       console.error("fetchNotifications error:", err);
     } finally {
@@ -264,8 +281,22 @@ useEffect(() => {
                     <span className="shrink-0 w-2 h-2 rounded-full bg-[#e98937] mt-2" />
                   )}
                 </div>
+
+                
               ))
             )}
+            {hasMore && (
+  <button
+    onClick={() => {
+      const next = page + 1;
+      setPage(next);
+      fetchNotifications(next);
+    }}
+    className="w-full py-3 text-sm font-bold"
+  >
+    Load More
+  </button>
+)}
           </div>
         </div>
       )}

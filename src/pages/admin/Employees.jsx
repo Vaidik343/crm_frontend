@@ -48,6 +48,7 @@ const Employees = () => {
   const [credentials, setCredentials] = useState(null);
   const [copied, setCopied] = useState(false);
 
+
   useEffect(() => {
     getAllUsers();
     getAllRoles();
@@ -135,7 +136,7 @@ const Employees = () => {
     try {
       setDeleting(true);
       await deleteUser(confirmDelete.id);
-      setAlert({ type: "success", message: "Employee record purged" });
+      setAlert({ type: "success", message: "Employee record deleted" });
     } catch (err) {
       setAlert({
         type: "danger",

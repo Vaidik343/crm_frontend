@@ -4,6 +4,7 @@ import { useProject } from "../../context/ProjectContext";
 import { useTask } from './../../context/TaskContext';
 import { useAuth } from './../../context/AuthContext';
 import { useUser } from './../../context/UserContext';
+import { useClient } from "../../context/ClientContext";
 
 import Badge from "../../components/ui/Badge";
 import Button from "../../components/ui/Button";
@@ -49,6 +50,7 @@ const PREFIX_INFO = {
 const initialForm = {
   caller_name:   "",
   caller_number: "",
+  client_id: "",
   project_id:    "",
   call_type:     "",
   call_subtype:  "",
@@ -78,6 +80,7 @@ const Calls = () => {
   const { calls, loading, page, setPage, totalPages, getAllCalls, createCall, updateCall, deleteCall } = useCall();
   const { projects, getAllProjects } = useProject();
   const {getAllTasks, page: taskPage} = useTask()
+const { clients, getAllClients } = useClient();
 
   const {users, getAllUsers} = useUser();
   const {user: authUser} = useAuth();
@@ -103,6 +106,7 @@ const [showNewRemark, setShowNewRemark] = useState(false);
     getAllCalls?.(page);
     getAllProjects?.();
     getAllUsers?.();
+    getAllClients?.()
   }, [page]);
 
   const projectOptions = projects.map((p) => ({ value: p.id, label: p.name }));
@@ -187,6 +191,7 @@ const filteredCalls = (calls || []).filter((c) => {
     setForm({
       caller_name:   call.caller_name   || "",
       caller_number: call.caller_number || "",
+      client_id:     call.client_id     || "", 
       project_id:    call.project_id    || null,
       call_type:     call.call_type     || "",
       call_subtype:  call.call_subtype  || "",
@@ -268,6 +273,20 @@ const filteredCalls = (calls || []).filter((c) => {
       setConfirmDelete(null);
     }
   };
+
+
+  // Handler — when client selected, auto-fill name + number
+const handleClientSelect = (e) => {
+  const clientId = e.target.value;
+  const client = clients.find((c) => c.id === clientId);
+  setForm((prev) => ({
+    ...prev,
+    client_id: clientId,
+    caller_name: client?.name || prev.caller_name,
+    caller_number: client?.phone || prev.caller_number,
+  }));
+};
+
 
   if (loading && !calls.length) return (
     <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
@@ -596,7 +615,35 @@ onChange={(e) => setSearch(e.target.value)}
 
       {/* Create / Edit Modal */}
       <Modal show={showModal} onClose={closeModal} title={editTarget ? "Edit Call Log" : "Log New Call"} size="lg">
+
         <form onSubmit={handleSubmit} noValidate className="space-y-6">
+                  {/* Client selector  */}
+<div>
+  <label className="block mb-2 font-bold text-slate-700 text-sm">
+    Select Client <span className="text-slate-400 font-normal">(optional)</span>
+  </label>
+  <Select
+    name="client_id"
+    value={form.client_id}
+    onChange={handleClientSelect}
+    options={[
+      { label: "-- Select existing client --", value: "" },
+      ...clients.map((c) => ({
+        label: c.company ? `${c.name} — ${c.company}` : c.name,
+        value: c.id,
+      })),
+    ]}
+  />
+  {form.client_id && (
+    <button
+      type="button"
+      onClick={() => setForm((prev) => ({ ...prev, client_id: "", }))}
+      className="mt-1 text-[10px] font-black text-slate-400 hover:text-red-500 uppercase tracking-widest"
+    >
+      ✕ Clear client
+    </button>
+  )}
+</div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
             <Input label="Caller Name" name="caller_name" value={form.caller_name}
@@ -865,7 +912,9 @@ onChange={(e) => setSearch(e.target.value)}
                 { label: "Project",    value: viewTarget.project?.name || viewTarget.Project?.name || "—" },
                 { label: "Logged By",  value: viewTarget.caller?.name || viewTarget.User?.name || "—" },
                 { label: "Date",       value: new Date(viewTarget.createdAt).toLocaleDateString() },
+                { label: "Has Call Transfer",   value: viewTarget.transfer_to ? "Yes" : "No" },
                 { label: "Has Task",   value: viewTarget.is_task ? "Yes" : "No" },
+                { label: "Has Task Assigned",   value: viewTarget.task_assigned_to ? "Yes" : "No" },
               ].map((item) => (
                 <div key={item.label} className="bg-slate-50 rounded-2xl p-4">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{item.label}</p>
@@ -882,6 +931,19 @@ onChange={(e) => setSearch(e.target.value)}
                   <p className="text-xs font-black text-orange-600 uppercase tracking-widest">Call Transferred</p>
                   <p className="text-sm font-bold text-orange-700 mt-0.5">
                     {users.find((u) => u.id === viewTarget.transfer_to)?.name || viewTarget.transfer_to}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Task assign info */}
+            {viewTarget.task_assigned_to && (
+              <div className="flex items-center gap-3 p-4 bg-orange-50 rounded-2xl border border-orange-100">
+                <MdTransferWithinAStation size={20} className="text-blue-500 shrink-0" />
+                <div>
+                  <p className="text-xs font-black text-blue-600 uppercase tracking-widest">Task Assigned To</p>
+                  <p className="text-sm font-bold text-blue-700 mt-0.5">
+                    {users.find((u) => u.id === viewTarget.task_assigned_to)?.name || viewTarget.task_assigned_to}
                   </p>
                 </div>
               </div>

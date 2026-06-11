@@ -17,6 +17,7 @@ import {
     MdGroup,
     MdNotifications
 } from "react-icons/md";
+import { ImUserTie } from "react-icons/im";
 
 import { CgLogOut } from "react-icons/cg";
 import { BsFillCaretLeftSquareFill } from "react-icons/bs"
@@ -32,6 +33,7 @@ const navItems = [
     { to: "/admin/tasks", label: "Tasks", icon: <MdCheckCircle size={20} /> },
     { to: "/admin/permissions", label: "Permissions", icon: <MdLock size={20} /> },
     { to: "/admin/work-logs", label: "Work Logs", icon: <MdBook size={20} /> },
+    {to: "/admin/clients", label:"Clients", icon: <ImUserTie size={20}/>},
     // { to: "/admin/teams", label: "Teams", icon: <MdGroup size={20} /> },
     
     // { to: "/admin/export", label: "Export", icon: <MdFileDownload size={20} /> },
