@@ -17,11 +17,11 @@ export const CallProvider = ({ children }) => {
   const createCall = useCallback(async (payload) => {
     try {
       const { data } = await api.post(ENDPOINTS.CALLS.CREATE, payload);
-      console.log("🚀 ~ CallProvider ~ data:", data)
+      // console.log("🚀 ~ CallProvider ~ data:", data)
       setCalls((prev) => [data.call, ...prev]);
       return data;
     } catch (error) {
-      console.log("🚀 ~ CallProvider ~ error:", error)
+      // console.log("🚀 ~ CallProvider ~ error:", error)
       throw error;
     }
   }, []); 
@@ -63,10 +63,10 @@ const updateCall = useCallback(async (id, payload) => {
       ENDPOINTS.CALLS.PATCH(id),
       payload
     );
-    console.log("🚀 ~ CallProvider ~ response:", response)
+    // console.log("🚀 ~ CallProvider ~ response:", response)
 
     const updatedCall = response.data.call || response.data.data || response.data;
-    console.log("🚀 ~ CallProvider ~ updatedCall:", updatedCall)
+    // console.log("🚀 ~ CallProvider ~ updatedCall:", updatedCall)
 
     setCalls((prev) =>
       prev.map((c) =>
@@ -78,9 +78,9 @@ const updateCall = useCallback(async (id, payload) => {
 
     return updatedCall;
   } catch (error) {
-     console.log("🚀 ~ CallProvider ~ error:", error)
-     console.log("ERROR RESPONSE", error.response?.data);
-  console.log("REQUEST PAYLOAD", payload);
+  //    console.log("🚀 ~ CallProvider ~ error:", error)
+  //    console.log("ERROR RESPONSE", error.response?.data);
+  // console.log("REQUEST PAYLOAD", payload);
     throw error;
   }
 }, []);

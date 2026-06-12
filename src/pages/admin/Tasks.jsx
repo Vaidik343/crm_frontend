@@ -174,7 +174,7 @@ const filtered = search
 
         if (editTarget) {
         const updated =  await updateTask(editTarget.id, form);
-        console.log("🚀 ~ handleSubmit ~ updated:", updated)
+        // console.log("🚀 ~ handleSubmit ~ updated:", updated)
 
           if(viewTarget?.id === editTarget.id)
           {
@@ -192,12 +192,12 @@ const filtered = search
             due_date: form.due_date || null,
               remarks:      form.remarks || null,
           };
-          console.log("🚀 ~ handleSubmit ~ payload:", payload)
+          // console.log("🚀 ~ handleSubmit ~ payload:", payload)
           await createTask(payload);
           setAlert({ type: "success", message: "Task created successfully" });
         }
         closeModal();
-        getAllTasks?.(page);
+        // getAllTasks?.(page);
       } catch (err) {
         setAlert({
           type: "danger",

@@ -151,7 +151,7 @@ const NotificationBell = () => {
       {/* Bell button */}
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="relative w-10 h-10 rounded-full flex items-center justify-center text-white hover:bg-white/10 transition"
+        className="relative w-10 h-10 rounded-full flex items-center justify-center text-[#009966] hover:bg-white/10 transition"
       >
         {unread > 0
           ? <MdNotifications size={24} />

@@ -96,7 +96,7 @@ const MyCalls = () => {
     updateCall,
     deleteCall,
   } = useCall();
-    console.log("🚀 ~ MyCalls ~ calls:", calls)
+    // console.log("🚀 ~ MyCalls ~ calls:", calls)
   const { projects, getAllProjects } = useProject();
   const {users, getAllUsers} = useUser();
   const {getAllTasks, page: taskPage} = useTask();
@@ -133,13 +133,13 @@ const MyCalls = () => {
 
   // right now its just display name which is good but if code needs then use claudes code
   const projectOptions = projects.map((p) => ({ value: p.id, label: p.name }));
-  console.log("🚀 ~ MyCalls ~ projectOptions:", projectOptions);
+  // console.log("🚀 ~ MyCalls ~ projectOptions:", projectOptions);
 
   const callTypeOptions = Object.keys(CALL_TYPES).map((t) => ({
     value: t,
     label: t.charAt(0).toUpperCase() + t.slice(1),
   }));
-  console.log("🚀 ~ MyCalls ~ callTypeOptions:", callTypeOptions);
+  // console.log("🚀 ~ MyCalls ~ callTypeOptions:", callTypeOptions);
 
   const subtypeOptions = form.call_type
     ? CALL_TYPES[form.call_type].map((s) => ({ value: s, label: s }))

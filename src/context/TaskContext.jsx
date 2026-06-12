@@ -18,14 +18,14 @@ export const TaskProvider = ({ children }) => {
 
   // ── Real-time socket listeners ────────────────────────────────────────────────
   useEffect(() => {
-    console.log("TaskContext: socket available?", !!socket);
+    // console.log("TaskContext: socket available?", !!socket);
     if (!socket) return;
     
-    console.log("TaskContext: Setting up socket listeners on socket ID:", socket.id);
+    // console.log("TaskContext: Setting up socket listeners on socket ID:", socket.id);
 
     // A new task was assigned to this user → prepend it to the list
     const handleTaskCreated = (task) => {
-      console.log("TaskContext: Received TASK_CREATED event", task);
+      // console.log("TaskContext: Received TASK_CREATED event", task);
       setTasks((prev) => {
         // Avoid duplicate if the creator's own optimistic update already added it
         if (prev.some((t) => t.id === task.id)) return prev;
@@ -36,7 +36,7 @@ export const TaskProvider = ({ children }) => {
 
     // A task this user can see was updated
     const handleTaskUpdated = (updatedTask) => {
-      console.log("TaskContext: Received TASK_UPDATED event", updatedTask);
+      // console.log("TaskContext: Received TASK_UPDATED event", updatedTask);
       setTasks((prev) =>
         prev.map((t) => (t.id === updatedTask.id ? updatedTask : t))
       );
@@ -44,7 +44,7 @@ export const TaskProvider = ({ children }) => {
 
     // A task was deleted
     const handleTaskDeleted = ({ id }) => {
-      console.log("TaskContext: Received TASK_DELETED event", id);
+      // console.log("TaskContext: Received TASK_DELETED event", id);
       setTasks((prev) => prev.filter((t) => t.id !== id));
       setTotal((prev) => Math.max(0, prev - 1));
     };

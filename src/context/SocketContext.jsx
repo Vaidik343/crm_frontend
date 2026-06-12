@@ -8,7 +8,7 @@ export const SocketProvider = ({ children }) => {
   const { user } = useAuth();
   // ✅ Use state (not ref) so consumers re-render when socket becomes available
   const [socket, setSocket] = useState(null);
-  console.log("🚀 ~ SocketProvider ~ socket:", socket)
+  // console.log("🚀 ~ SocketProvider ~ socket:", socket)
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
@@ -25,9 +25,9 @@ export const SocketProvider = ({ children }) => {
     }
 
     const rawUrl = import.meta.env.VITE_API_URL || "http://localhost:7015/api";
-    console.log("🚀 ~ SocketProvider ~ rawUrl:", rawUrl)
+    // console.log("🚀 ~ SocketProvider ~ rawUrl:", rawUrl)
     const socketUrl = new URL(rawUrl).origin;
-    console.log("🚀 ~ SocketProvider ~ socketUrl:", socketUrl)
+    // console.log("🚀 ~ SocketProvider ~ socketUrl:", socketUrl)
 
     const newSocket = io(socketUrl, {
       transports: ["websocket", "polling"],
@@ -35,10 +35,10 @@ export const SocketProvider = ({ children }) => {
       reconnectionAttempts: 10,
       reconnectionDelay: 1000,
     });
-    console.log("🚀 ~ SocketProvider ~ newSocket:", newSocket)
+    // console.log("🚀 ~ SocketProvider ~ newSocket:", newSocket)
 
     newSocket.on("connect", () => {
-      console.log("✅ [Socket] Connected:", newSocket.id);
+      // console.log("✅ [Socket] Connected:", newSocket.id);
       newSocket.emit("join", user.id);
       setIsConnected(true);
     });
@@ -49,7 +49,7 @@ export const SocketProvider = ({ children }) => {
     });
 
     newSocket.on("connect_error", (err) => {
-      console.error("❌ [Socket] Connection error:", err.message);
+      // console.error("❌ [Socket] Connection error:", err.message);
       setIsConnected(false);
     });
 

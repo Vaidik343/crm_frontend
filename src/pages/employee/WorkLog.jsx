@@ -23,7 +23,7 @@ const WorkLog = () => {
       totalPages,
       setPage, getAllWorkLogs, createWorkLog, updateWorkLog } = useWorkLog();
 const {projects, getAllProjects} = useProject();
-console.log("🚀 ~ WorkLog ~ projects:", projects)
+// console.log("🚀 ~ WorkLog ~ projects:", projects)
 
 
   const [showModal, setShowModal] = useState(false);
@@ -42,7 +42,7 @@ console.log("🚀 ~ WorkLog ~ projects:", projects)
 
   //project options
   const projectOptions = projects.map((p) => ({ value: p.id, label: p.name }));
-  console.log("🚀 ~ WorkLog ~ projectOptions:", projectOptions)
+  // console.log("🚀 ~ WorkLog ~ projectOptions:", projectOptions)
 
   useEffect(() => {
     getAllWorkLogs?.(page);

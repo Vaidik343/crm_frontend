@@ -16,7 +16,7 @@ const STATUS_COLORS = {
 
 const MyProjects = () => {
   const { projects, loading, page, totalPages, getAllProjects } = useProject();
-  console.log("🚀 ~ MyProjects ~ projects:", projects)
+  // console.log("🚀 ~ MyProjects ~ projects:", projects)
   const [expandedRow, setExpandedRow] = useState(null);
   const navigate = useNavigate();
 

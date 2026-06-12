@@ -127,7 +127,7 @@ const filtered = search
       setSelectedUsers({});
       await getAllProjects(page);
     } catch (err) {
-      console.log("🚀 ~ handleAddProjectMembers ~ err:", err)
+      // console.log("🚀 ~ handleAddProjectMembers ~ err:", err)
       setAlert({ type: "danger", message: err?.response?.data?.message || "Failed to add members" });
     } finally {
       setAddingMember(false);
@@ -376,9 +376,9 @@ if (typeof tech_details === "string") {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-     console.log("UPDATE PAYLOAD", form);
+    //  console.log("UPDATE PAYLOAD", form);
     const errors = validate();
-    console.log("🚀 ~ handleSubmit ~ errors:", errors)
+    // console.log("🚀 ~ handleSubmit ~ errors:", errors)
     if (Object.keys(errors).length) { setFieldErrors(errors); return; }
 
     try {
@@ -392,7 +392,7 @@ if (typeof tech_details === "string") {
   development_status: form.development_status || "active",
   remark: form.remark || null,
 });
-      console.log("🚀 ~ handleSubmit ~ updated:", updated)
+      // console.log("🚀 ~ handleSubmit ~ updated:", updated)
 
 if(viewTarget?.id === editTarget.id)
 {
@@ -422,13 +422,13 @@ await createProject({
   const handleToggleActive = async (project) => {
     try {
     const upm = await updateProject(project.id, { is_active: !project.is_active });
-      console.log("🚀 ~ handleToggleActive ~ upm:", upm)
+      // console.log("🚀 ~ handleToggleActive ~ upm:", upm)
       setAlert({
         type: "success",
         message: `Project ${project.is_active ? "taken offline" : "restored online"}`,
       });
     } catch (err) {
-       console.log("🚀 ~ handleToggleActive ~ err:", err)
+      //  console.log("🚀 ~ handleToggleActive ~ err:", err)
       setAlert({ type: "danger", message: err?.response?.data?.message || "Status update failed" });
     }
   };
@@ -513,11 +513,11 @@ await createProject({
                   <th className="px-6 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Code </th>
                   {/* <th className="px-6 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Type </th> */}
                   {/* <th className="px-6 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Lead</th> */}
-                  <th className="px-6 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Status</th>
+                  <th className="px-6 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Stage</th>
                   <th className="px-6 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Members</th>
                   <th className="px-6 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Status</th>
                   <th className="px-6 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Created By</th>
-                  <th className="px-6 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Deployment Date</th>
+                  <th className="px-6 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Register Date</th>
                   <th className="px-10 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</th>
                 </tr>
               </thead>

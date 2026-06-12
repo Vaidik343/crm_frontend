@@ -218,7 +218,7 @@ const filteredCalls = (calls || []).filter((c) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-     console.log("UPDATE PAYLOAD", form);
+    //  console.log("UPDATE PAYLOAD", form);
     const errors = validate();
     if (Object.keys(errors).length) { setFieldErrors(errors); return; }
 
@@ -226,7 +226,7 @@ const filteredCalls = (calls || []).filter((c) => {
       setSubmitting(true);
       if (editTarget) {
          const updated =  await updateCall(editTarget.id, form);
-          console.log("🚀 ~ handleSubmit ~ updated:", updated)
+          // console.log("🚀 ~ handleSubmit ~ updated:", updated)
           if (viewTarget?.id === editTarget.id) {
         setViewTarget(updated.call || updated);
       }

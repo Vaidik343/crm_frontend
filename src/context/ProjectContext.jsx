@@ -47,12 +47,12 @@ export const ProjectProvider = ({ children }) => {
   const createProject = useCallback(async (payload) => {
     try {
       const { data } = await api.post(ENDPOINTS.PROJECTS.CREATE, payload);
-      console.log("🚀 ~ ProjectProvider ~ data:", data)
+      // console.log("🚀 ~ ProjectProvider ~ data:", data)
       
       setProjects((prev) => [data.project, ...prev]);
       return data;
     } catch (error) {
-       console.log("🚀 ~ ProjectProvider ~ error:", error)
+      //  console.log("🚀 ~ ProjectProvider ~ error:", error)
       throw error;
     }
   }, []);
@@ -64,7 +64,7 @@ const updateProject = useCallback(async (id, payload) => {
       payload
     );
 
-    console.log("UPDATE PROJECT RESPONSE:", response.data);
+    // console.log("UPDATE PROJECT RESPONSE:", response.data);
 
     const updatedProject =
       response.data.project ||
@@ -116,7 +116,7 @@ const updateProject = useCallback(async (id, payload) => {
   const removeMember = useCallback( async (memberId, projectId) => {
     try {
       const {data} = await api.delete(ENDPOINTS.PROJECTS.REMOVE_MEMBER(memberId));
-      console.log("🚀 ~ ProjectProvider ~ data:", data)
+      // console.log("🚀 ~ ProjectProvider ~ data:", data)
 
       // refresh that project in state
       setProjects((prev) => prev.map( (p) => {
@@ -125,7 +125,7 @@ const updateProject = useCallback(async (id, payload) => {
       }));
 
     } catch (error) {
-          console.log("🚀 ~ ProjectProvider ~ error:", error)
+          // console.log("🚀 ~ ProjectProvider ~ error:", error)
       throw error      
     }
 

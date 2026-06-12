@@ -17,7 +17,7 @@ export const UserProvider = ({ children }) => {
       return data;
     } catch (error) {
       
-    console.log("🚀 ~ UserProvider ~ error:", error)
+    // console.log("🚀 ~ UserProvider ~ error:", error)
       throw error;
     } finally {
       setLoading(false);
