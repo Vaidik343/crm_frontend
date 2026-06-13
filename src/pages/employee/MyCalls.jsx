@@ -139,6 +139,17 @@ const [dateTo, setDateTo] = useState(today)
   }, [page, dateFrom, dateTo]);
 
 
+        // Members of the selected project — falls back to all users if no project selected
+    const assignableUsers = useMemo(() => {
+      if (!form.project_id) return users;
+      const project = projects.find((p) => p.id === form.project_id);
+      if (!project?.members?.length) return [];
+      const memberUserIds = project.members.map((m) => m.user_id || m.user?.id);
+      return users.filter((u) => memberUserIds.includes(u.id));
+    }, [form.project_id, projects, users]);
+    
+
+
   // right now its just display name which is good but if code needs then use claudes code
   const projectOptions = projects.map((p) => ({ value: p.id, label: p.name }));
   // console.log("🚀 ~ MyCalls ~ projectOptions:", projectOptions);
@@ -936,11 +947,19 @@ const [dateTo, setDateTo] = useState(today)
                     className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all"
                   >
                     <option value="">No Transfer</option>
-                    {otherUsers.map((u) => (
-                      <option key={u.id} value={u.id}>
-                        {u.name} ({u.employee_id})
-                      </option>
-                    ))}
+                            {assignableUsers.map((u) => {
+      // find their role in this project if project is selected
+      const project = projects.find((p) => p.id === form.project_id);
+      const membership = project?.members?.find(
+        (m) => (m.user_id || m.user?.id) === u.id
+      );
+      const roleLabel = membership?.role?.name;
+      return (
+        <option key={u.id} value={u.id}>
+          {u.name} ({u.employee_id}){roleLabel ? ` — ${roleLabel}` : ""}
+        </option>
+      );
+    })}
                   </select>
                 </div>
 
@@ -1054,11 +1073,19 @@ const [dateTo, setDateTo] = useState(today)
                       className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all"
                     >
                       <option value="">Self Assign</option>
-                      {otherUsers.map((u) => (
-                        <option key={u.id} value={u.id}>
-                          {u.name} ({u.employee_id})
-                        </option>
-                      ))}
+                              {assignableUsers.map((u) => {
+      // find their role in this project if project is selected
+      const project = projects.find((p) => p.id === form.project_id);
+      const membership = project?.members?.find(
+        (m) => (m.user_id || m.user?.id) === u.id
+      );
+      const roleLabel = membership?.role?.name;
+      return (
+        <option key={u.id} value={u.id}>
+          {u.name} ({u.employee_id}){roleLabel ? ` — ${roleLabel}` : ""}
+        </option>
+      );
+    })}
                     </select>
                   </div>
                 )}

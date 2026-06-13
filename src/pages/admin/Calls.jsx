@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useCall } from "../../context/CallContext";
 import { useProject } from "../../context/ProjectContext";
 import { useTask } from './../../context/TaskContext';
@@ -82,7 +82,7 @@ const Calls = () => {
   const {getAllTasks, page: taskPage} = useTask()
 const { clients, getAllClients } = useClient();
 
-  const {users, getAllUsers} = useUser();
+  const {users, getAllUsers} = useUser(); 
   const {user: authUser} = useAuth();
 
   const [filter, setFilter]               = useState("all");
@@ -114,6 +114,16 @@ const today = new Date().toISOString().split("T")[0];
     getAllClients?.()
   }, [page, dateFrom, dateTo]);
 
+
+      // Members of the selected project — falls back to all users if no project selected
+  const assignableUsers = useMemo(() => {
+    if (!form.project_id) return users;
+    const project = projects.find((p) => p.id === form.project_id);
+    if (!project?.members?.length) return [];
+    const memberUserIds = project.members.map((m) => m.user_id || m.user?.id);
+    return users.filter((u) => memberUserIds.includes(u.id));
+  }, [form.project_id, projects, users]);
+  
   const projectOptions = projects.map((p) => ({ value: p.id, label: p.name }));
 
   const callTypeOptions = Object.keys(CALL_TYPES).map((t) => ({
@@ -791,9 +801,19 @@ onChange={(e) => setSearch(e.target.value)}
       <select name="transfer_to" value={form.transfer_to} onChange={handleChange}
         className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all">
         <option value="">No Transfer</option>
-        {otherUsers.map((u) => (
-          <option key={u.id} value={u.id}>{u.name} ({u.employee_id})</option>
-        ))}
+        {assignableUsers.map((u) => {
+      // find their role in this project if project is selected
+      const project = projects.find((p) => p.id === form.project_id);
+      const membership = project?.members?.find(
+        (m) => (m.user_id || m.user?.id) === u.id
+      );
+      const roleLabel = membership?.role?.name;
+      return (
+        <option key={u.id} value={u.id}>
+          {u.name} ({u.employee_id}){roleLabel ? ` — ${roleLabel}` : ""}
+        </option>
+      );
+    })}
       </select>
     </div>
 
@@ -873,9 +893,19 @@ onChange={(e) => setSearch(e.target.value)}
         <select name="task_assigned_to" value={form.task_assigned_to} onChange={handleChange}
           className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all">
           <option value="">Self Assign</option>
-          {otherUsers.map((u) => (
-            <option key={u.id} value={u.id}>{u.name} ({u.employee_id})</option>
-          ))}
+{assignableUsers.map((u) => {
+      // find their role in this project if project is selected
+      const project = projects.find((p) => p.id === form.project_id);
+      const membership = project?.members?.find(
+        (m) => (m.user_id || m.user?.id) === u.id
+      );
+      const roleLabel = membership?.role?.name;
+      return (
+        <option key={u.id} value={u.id}>
+          {u.name} ({u.employee_id}){roleLabel ? ` — ${roleLabel}` : ""}
+        </option>
+      );
+    })}
         </select>
       </div>
     )}
