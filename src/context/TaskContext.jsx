@@ -61,12 +61,20 @@ export const TaskProvider = ({ children }) => {
   }, [socket]);
 
   // ── API methods ───────────────────────────────────────────────────────────────
-  const getAllTasks = useCallback(async (pageNumber = 1, pageLimit = 10) => {
+  const getAllTasks = useCallback(async (pageNumber = 1, from, to, pageLimit = 10, ) => {
     try {
       setLoading(true);
+
+        const params = new URLSearchParams({ page: pageNumber, limit: pageLimit });
+    if (from && to) {
+      params.append("from", from);
+      params.append("to", to);
+    }
+
       const { data } = await api.get(
-        `${ENDPOINTS.TASKS.ALL}?page=${pageNumber}&limit=${pageLimit}`
+        `${ENDPOINTS.TASKS.ALL}?${params.toString()}`
       );
+      console.log("🚀 ~ TaskProvider ~ data:", data)
       setTasks(data.data || []);
       setPage(data.page || 1);
       setLimit(data.limit || 10);

@@ -9,7 +9,7 @@ import Alert from "../../components/ui/Alert";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
 import Spinner from "../../components/ui/Spinner";
 import Badge from "../../components/ui/Badge";
-
+import ExportModal from "../../components/ui/ExportModal";
 import {
   MdAdd,
   MdEdit,
@@ -21,6 +21,7 @@ import {
   MdMail,
   MdAssignmentInd,
   MdPhone,
+  MdDownload
 } from "react-icons/md";
 
 const initialForm = {
@@ -47,7 +48,7 @@ const Employees = () => {
   const [resetting, setResetting] = useState(null);
   const [credentials, setCredentials] = useState(null);
   const [copied, setCopied] = useState(false);
-
+const [exportTarget, setExportTarget] = useState(null);
 
   useEffect(() => {
     getAllUsers();
@@ -319,6 +320,13 @@ const Employees = () => {
                       >
                         <MdDelete size={20} />
                       </button>
+                                    <button
+  onClick={() => setExportTarget(user)}
+  title="Export Activity"
+  className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all"
+>
+  <MdDownload size={18} />
+</button>
                     </div>
                   </td>
                 </tr>
@@ -390,11 +398,18 @@ const Employees = () => {
 
               {/* Actions */}
               <div className="flex gap-2 pt-3 border-t border-slate-100">
+                       <button
+  onClick={() => setExportTarget(user)}
+  title="Export Activity"
+  className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all"
+>
+  <MdDownload size={18} />
+</button>
                 <button
                   onClick={() => openEdit(user)}
                   className="flex-1 h-10 rounded-xl bg-[#132ea7]/10 text-[#132ea7] font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/20 transition-all"
                 >
-                  <MdEdit size={16} /> Edit
+                  <MdEdit size={16} /> 
                 </button>
                 <button
                   onClick={() => handleResetPassword(user)}
@@ -405,14 +420,15 @@ const Employees = () => {
                     size={16}
                     className={resetting === user.id ? "animate-spin" : ""}
                   />{" "}
-                  Reset
+                  
                 </button>
                 <button
                   onClick={() => setConfirmDelete(user)}
                   className="flex-1 h-10 rounded-xl bg-red-50 text-red-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-red-100 transition-all"
                 >
-                  <MdDelete size={16} /> Delete
+                  <MdDelete size={16} /> 
                 </button>
+         
               </div>
             </div>
           ))
@@ -603,6 +619,11 @@ const Employees = () => {
         onCancel={() => setConfirmDelete(null)}
         loading={deleting}
       />
+      <ExportModal
+  show={!!exportTarget}
+  onClose={() => setExportTarget(null)}
+  employee={exportTarget}
+/>
     </div>
   );
 };

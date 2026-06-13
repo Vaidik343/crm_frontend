@@ -15,7 +15,8 @@ import Input from "../../components/ui/Input";
 import Select from "../../components/ui/Select";
 import Textarea from "../../components/ui/Textarea";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
-import ExportBar from "../../components/ui/ExportBar";
+// import ExportBar from "../../components/ui/ExportBar";
+import ExportModalMine from "../../components/ui/ExportModalMine";
 
 
 import {
@@ -28,6 +29,7 @@ import {
   MdFolder,
   MdInfoOutline,
   MdHistory,
+  MdDownload 
 } from "react-icons/md";
 
 const CALL_TYPES = {
@@ -113,6 +115,12 @@ const MyCalls = () => {
   const [alert, setAlert] = useState({ type: "", message: "" });
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+
+
+  const today = new Date().toISOString().split("T")[0];
+const [dateFrom, setDateFrom] = useState(today);
+const [dateTo, setDateTo] = useState(today)
 
 
 
@@ -124,11 +132,11 @@ const MyCalls = () => {
 
 
   useEffect(() => {
-    getAllCalls?.(page);
+    getAllCalls?.(page, dateFrom, dateTo);
     getAllProjects?.();
     getAllUsers?.();
     getAllClients?.();
-  }, [page]);
+  }, [page, dateFrom, dateTo]);
 
 
   // right now its just display name which is good but if code needs then use claudes code
@@ -346,7 +354,32 @@ const MyCalls = () => {
             ))}
           </select>
 
-          <ExportBar type="calls"/>
+          
+        </div>
+
+        <div className="flex items-center gap-3 bg-white border flex-wrap border-slate-100 rounded-2xl px-4 py-2 shadow-sm">
+  <label className="text-xs font-black text-slate-400 uppercase ">From</label>
+  <input type="date" value={dateFrom} max={today} onChange={(e) => setDateFrom(e.target.value)}
+    className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-sm font-bold" />
+  <label className="text-xs font-black text-slate-400 uppercase">To</label>
+  <input type="date" value={dateTo} max={today} onChange={(e) => setDateTo(e.target.value)}
+    className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-sm font-bold" />
+  <button
+    onClick={() => { setDateFrom(today); setDateTo(today); }}
+    className="text-[10px] font-black text-[#132ea7] uppercase tracking-widest hover:underline"
+  >
+    Reset to Today
+  </button>
+</div>
+
+
+        <Button
+  variant="ghost"
+  className="shadow-sm px-6 rounded font-black uppercase tracking-widest text-sm whitespace-nowrap h-[52px] bg-white border border-slate-100"
+  onClick={() => setShowExportModal(true)}
+>
+  <MdDownload size={20} className="mr-1" /> Download
+</Button>
           <Button
             variant="primary"
             className="shadow-lg shadow-[#132ea7]/20 px-6 rounded font-black uppercase tracking-widest text-sm whitespace-nowrap h-[52px]"
@@ -354,7 +387,6 @@ const MyCalls = () => {
           >
             <MdAdd size={20} className="mr-1" /> New Call
           </Button>
-        </div>
       </div>
 
       <Alert
@@ -1111,6 +1143,7 @@ const MyCalls = () => {
                     {viewTarget.caller_number}
                   </p>
                 )}
+                
               </div>
             </div>
 
@@ -1239,6 +1272,7 @@ const MyCalls = () => {
         onCancel={() => setConfirmDelete(null)}
         loading={deleting}
       />
+      <ExportModalMine show={showExportModal} onClose={() => setShowExportModal(false)} types={["calls"]} />
     </div>
   );
 };

@@ -26,13 +26,21 @@ export const CallProvider = ({ children }) => {
     }
   }, []); 
 
-  const getAllCalls = useCallback(async (pageNumber = 1, pageLimit = 10) => {
+  const getAllCalls = useCallback(async (pageNumber = 1, from, to, pageLimit = 10) => {
     try {
       setLoading(true);
+
+      const params = new URLSearchParams({ page: pageNumber, limit: pageLimit });
+    if (from && to) {
+      params.append("from", from);
+      params.append("to", to);
+    }
+
+
       const { data } = await api.get(
-        `${ENDPOINTS.CALLS.ALL}?page=${pageNumber}&limit=${pageLimit}`
+        `${ENDPOINTS.CALLS.ALL}?${params.toString()}`
       );
-      // console.log("🚀 ~ CallProvider ~ data:", data)
+      console.log("🚀 ~ CallProvider ~ data:", data)
 
       setCalls(data.data || []);
         setPage(data.page || 1);
@@ -47,6 +55,7 @@ export const CallProvider = ({ children }) => {
     }
   }, []);
 
+  
   const getCallById = useCallback(async (id) => {
     try {
       const { data } = await api.get(ENDPOINTS.CALLS.GET_BY_ID(id));

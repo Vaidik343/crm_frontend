@@ -7,10 +7,10 @@ import Modal from "../../components/ui/Modal";
 import Input from "../../components/ui/Input";
 import Textarea from "../../components/ui/Textarea";
 import Spinner from "../../components/ui/Spinner";
-import {MdBook, MdVisibility, MdCalendarToday, MdPerson, MdAccessTime, MdOutlineSpeakerNotes, MdAdd, MdEdit } from "react-icons/md";
+import {MdBook, MdVisibility, MdCalendarToday, MdPerson, MdAccessTime, MdDownload ,MdOutlineSpeakerNotes, MdAdd, MdEdit } from "react-icons/md";
 import Select from "../../components/ui/Select";
-import ExportBar from "../../components/ui/ExportBar";
-
+// import ExportBar from "../../components/ui/ExportBar";
+import ExportModalMine from "../../components/ui/ExportModalMine";
 const initialForm = { 
   description: "",
   project_id: "", 
@@ -40,14 +40,20 @@ const {projects, getAllProjects} = useProject();
   const [remarkSubmitting, setRemarkSubmitting] = useState(false);
   const [showNewRemark, setShowNewRemark] = useState(false);
 
+  const today = new Date().toISOString().split("T")[0];
+const [dateFrom, setDateFrom] = useState(today);
+const [dateTo, setDateTo] = useState(today);
+const [showExportModal, setShowExportModal] = useState(false);
+
+
   //project options
   const projectOptions = projects.map((p) => ({ value: p.id, label: p.name }));
   // console.log("🚀 ~ WorkLog ~ projectOptions:", projectOptions)
 
   useEffect(() => {
-    getAllWorkLogs?.(page);
+    getAllWorkLogs?.(page, dateFrom, dateTo);
     getAllProjects?.()
-  }, [page]);
+  }, [page, dateFrom, dateTo]);
 
   const totalEntries = workLogs.length;
   
@@ -140,12 +146,36 @@ const {projects, getAllProjects} = useProject();
           <p className="text-slate-500 font-bold text-base">Your daily work journal</p>
         </div>
         
-        <ExportBar type="work-logs"/>
 
-        <Button variant="primary" className="shadow-lg shadow-[#132ea7]/20 py-3 px-8 rounded h-[52px] font-black uppercase tracking-widest text-sm flex items-center justify-center gap-2" onClick={openCreate}>
-          <MdAdd size={22} /> Add Work
-        </Button>
+    <div className="flex flex-wrap items-center gap-3">
+      <div className="flex items-center gap-3 bg-white border border-slate-100 rounded-2xl px-4 py-2 shadow-sm">
+        <label className="text-xs font-black text-slate-400 uppercase">From</label>
+        <input type="date" value={dateFrom} max={today} onChange={(e) => setDateFrom(e.target.value)}
+          className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-sm font-bold" />
+        <label className="text-xs font-black text-slate-400 uppercase">To</label>
+        <input type="date" value={dateTo} max={today} onChange={(e) => setDateTo(e.target.value)}
+          className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-sm font-bold" />
+        <button
+          onClick={() => { setDateFrom(today); setDateTo(today); }}
+          className="text-[10px] font-black text-[#132ea7] uppercase tracking-widest hover:underline whitespace-nowrap"
+        >
+          Reset
+        </button>
       </div>
+
+      <Button
+        variant="ghost"
+        className="shadow-sm px-6 rounded font-black uppercase tracking-widest text-sm whitespace-nowrap h-[52px] bg-white border border-slate-100"
+        onClick={() => setShowExportModal(true)}
+      >
+        <MdDownload size={20} className="mr-1" /> Download
+      </Button>
+
+      <Button variant="primary" className="shadow-lg shadow-[#132ea7]/20 py-3 px-8 rounded h-[52px] font-black uppercase tracking-widest text-sm flex items-center justify-center gap-2" onClick={openCreate}>
+        <MdAdd size={22} /> Add Work
+      </Button>
+    </div>
+  </div>
 
       <Alert
         type={alert.type}
@@ -490,6 +520,7 @@ const {projects, getAllProjects} = useProject();
           </div>
         )}
       </Modal>
+<ExportModalMine show={showExportModal} onClose={() => setShowExportModal(false)} types={["work-logs"]} />
     </div>
   );
 };

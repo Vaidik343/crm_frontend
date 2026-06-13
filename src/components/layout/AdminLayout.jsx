@@ -59,7 +59,7 @@ const AdminLayout = () => {
                             <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center shrink-0">
                                 <span className="text-white font-bold">C</span>
                             </div>
-                            <span className="font-bold text-lg tracking-tight whitespace-nowrap valorant-text">CRM Panel</span>
+                            <span className="font-bold text-lg tracking-tight whitespace-nowrap ">CRM Panel</span>
                         </div>
                     )}
                     <button

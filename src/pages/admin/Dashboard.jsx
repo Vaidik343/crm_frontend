@@ -12,6 +12,43 @@ import Export from "./Export";
 import StatCard from "../../components/ui/StatCard";
 import { useNavigate } from "react-router-dom";
 
+const renderStatusItems = (breakdown) => {
+  return Object.entries(breakdown || {}).map(([status, count]) => {
+    if (status === "due" && count > 0) {
+      return (
+        <div key={status} className="flex items-center gap-2 bg-orange-500 text-white shadow-lg shadow-orange-500/20 px-4 py-2 rounded-[1rem] animate-pulse">
+          <span className="text-xs font-black uppercase tracking-widest">Due Today</span>
+          <span className="text-lg font-black border-l border-white/20 pl-2 ml-1">{count}</span>
+        </div>
+      );
+    }
+    if (status === "overdue" && count > 0) {
+      return (
+        <div key={status} className="flex items-center gap-2 bg-red-500 text-white shadow-lg shadow-red-500/20 px-4 py-2 rounded-[1rem]">
+          <span className="text-xs font-black uppercase tracking-widest">Overdue</span>
+          <span className="text-lg font-black border-l border-white/20 pl-2 ml-1">{count}</span>
+        </div>
+      );
+    }
+
+    const statusConfig = {
+      open:    { color: 'text-[#132ea7]', dot: 'bg-[#132ea7]', label: 'Open' },
+      ongoing: { color: 'text-slate-500', dot: 'bg-slate-400', label: 'Ongoing' },
+      closed:  { color: 'text-emerald-600', dot: 'bg-emerald-500', label: 'Closed' },
+      due:     { color: 'text-orange-500', dot: 'bg-orange-400', label: 'Due Today' },
+      overdue: { color: 'text-red-500',    dot: 'bg-red-500',    label: 'Overdue' },
+    };
+    const config = statusConfig[status] || { color: 'text-slate-500', dot: 'bg-slate-500', label: status };
+    return (
+      <div key={status} className="flex items-center gap-3">
+        <div className={`w-2 h-2 rounded-full ${config.dot}`} />
+        <span className="text-xs font-black capitalize tracking-widest text-slate-400">{config.label}</span>
+        <span className={`text-xl font-black ${config.color}`}>{count}</span>
+      </div>
+    );
+  });
+};
+
 const Dashboard = () => {
   const { user } = useAuth();
   const [data, setData]       = useState(null);
@@ -138,47 +175,31 @@ const Dashboard = () => {
       {/* ── Activity & Status ────────────────────────── */}
       <div className="space-y-8">
         {/* ── Task Breakdown (Simplified) ───────────────── */}
-        <div className="bg-white rounded-[2rem] p-6 px-10 border border-slate-100 shadow-xl shadow-slate-200/30 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <h3 className="text-xl font-black text-slate-800 flex items-center gap-3 whitespace-nowrap">
-            <span className="w-2 h-8 bg-[#132ea7] rounded-full" />
-            Task Status <span className="text-slate-300 font-bold text-xs tracking-widest uppercase ml-1">Real-time</span>
-          </h3>
-          <div className="flex flex-wrap items-center gap-4 md:gap-8">
-            {Object.entries(data?.task_status_breakdown || {}).map(([status, count]) => {
-              if (status === "due" && count > 0) {
-                return (
-                  <div key={status} className="flex items-center gap-2 bg-orange-500 text-white shadow-lg shadow-orange-500/20 px-4 py-2 rounded-[1rem] animate-pulse">
-                    <span className="text-xs font-black uppercase tracking-widest">Due Today</span>
-                    <span className="text-lg font-black border-l border-white/20 pl-2 ml-1">{count}</span>
-                  </div>
-                );
-              }
-              if (status === "overdue" && count > 0) {
-                return (
-                  <div key={status} className="flex items-center gap-2 bg-red-500 text-white shadow-lg shadow-red-500/20 px-4 py-2 rounded-[1rem]">
-                    <span className="text-xs font-black uppercase tracking-widest">Overdue</span>
-                    <span className="text-lg font-black border-l border-white/20 pl-2 ml-1">{count}</span>
-                  </div>
-                );
-              }
+{/* ── Task Breakdown ───────────────── */}
+        <div className="bg-white rounded-[2rem] p-6 px-10 border border-slate-100 shadow-xl shadow-slate-200/30 space-y-5">
 
-              const statusConfig = {
-                open:    { color: 'text-[#132ea7]', dot: 'bg-[#132ea7]', label: 'Open' },
-                ongoing: { color: 'text-slate-500', dot: 'bg-slate-400', label: 'Ongoing' },
-                closed:  { color: 'text-emerald-600', dot: 'bg-emerald-500', label: 'Closed' },
-                due:     { color: 'text-orange-500', dot: 'bg-orange-400', label: 'Due Today' },
-                overdue: { color: 'text-red-500',    dot: 'bg-red-500',    label: 'Overdue' },
-              };
-              const config = statusConfig[status] || { color: 'text-slate-500', dot: 'bg-slate-500', label: status };
-              return (
-                <div key={status} className="flex items-center gap-3">
-                  <div className={`w-2 h-2 rounded-full ${config.dot}`} />
-                  <span className="text-xs font-black capitalize tracking-widest text-slate-400">{config.label}</span>
-                  <span className={`text-xl font-black ${config.color}`}>{count}</span>
-                </div>
-              );
-            })}
+          {/* Real-time row */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <h3 className="text-xl font-black text-slate-800 flex items-center gap-3 whitespace-nowrap">
+              <span className="w-2 h-8 bg-[#132ea7] rounded-full" />
+              Task Status <span className="text-slate-300 font-bold text-xs tracking-widest uppercase ml-1">Real-time</span>
+            </h3>
+            <div className="flex flex-wrap items-center gap-4 md:gap-8">
+              {renderStatusItems(data?.task_status_breakdown)}
+            </div>
           </div>
+
+          {/* All-time row */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pt-5 border-t border-slate-50">
+            <h3 className="text-xl font-black text-slate-800 flex items-center gap-3 whitespace-nowrap">
+              <span className="w-2 h-8 bg-slate-300 rounded-full" />
+              Task Status <span className="text-slate-300 font-bold text-xs tracking-widest uppercase ml-1">All-time</span>
+            </h3>
+            <div className="flex flex-wrap items-center gap-4 md:gap-8">
+              {renderStatusItems(data?.task_status_breakdown_all_time)}
+            </div>
+          </div>
+
         </div>
 
         {/* ── Calls Center ───────────────────────────────── */}

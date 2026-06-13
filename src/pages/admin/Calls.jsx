@@ -102,12 +102,17 @@ const [remarkText, setRemarkText]       = useState("");
 const [remarkSubmitting, setRemarkSubmitting] = useState(false);
 const [showNewRemark, setShowNewRemark] = useState(false);
 
+
+const [dateFrom, setDateFrom] = useState("");
+const [dateTo, setDateTo] = useState("");
+const today = new Date().toISOString().split("T")[0];
+
   useEffect(() => {
-    getAllCalls?.(page);
+    getAllCalls?.(page, dateFrom, dateTo);
     getAllProjects?.();
     getAllUsers?.();
     getAllClients?.()
-  }, [page]);
+  }, [page, dateFrom, dateTo]);
 
   const projectOptions = projects.map((p) => ({ value: p.id, label: p.name }));
 
@@ -317,6 +322,33 @@ const handleClientSelect = (e) => {
             ))}
           </select>
 
+ <div className="flex flex-wrap items-center gap-3">
+{/* Date range filter */}
+    <div className="flex items-center gap-3 bg-white border border-slate-100 rounded-2xl px-4 py-2 shadow-sm">
+
+
+
+        
+      <label className="text-xs font-black text-slate-400 uppercase">From</label>
+      <input type="date" value={dateFrom} max={today} onChange={(e) => setDateFrom(e.target.value)}
+        className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-sm font-bold" />
+        
+
+              <label className="text-xs font-black text-slate-400 uppercase">To</label>
+      <input type="date" value={dateTo} max={today} onChange={(e) => setDateTo(e.target.value)}
+        className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-sm font-bold" />
+
+      {(dateFrom || dateTo) && (
+        <button
+          onClick={() => { setDateFrom(""); setDateTo(""); }}
+          className="text-[10px] font-black text-[#132ea7] uppercase tracking-widest hover:underline whitespace-nowrap"
+        >
+          Show All
+        </button>
+      )}
+    </div>
+
+{/* search */}
             <div className="relative w-full md:w-95">
                               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
                                 <MdSearch size={20} />
@@ -332,6 +364,7 @@ onChange={(e) => setSearch(e.target.value)}
           <Button variant="primary" className="shadow-lg shadow-[#132ea7]/20 px-6 rounded font-black uppercase tracking-widest text-sm whitespace-nowrap h-[52px]" onClick={openCreate}>
             <MdAdd size={20} className="mr-1" /> Log New Call
           </Button>
+        </div>
         </div>
       </div>
 

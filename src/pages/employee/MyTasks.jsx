@@ -13,6 +13,7 @@ import Textarea from "../../components/ui/Textarea";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
 import Spinner from "../../components/ui/Spinner";
 import Badge, { DueDateBadge } from "../../components/ui/Badge";
+import ExportModalMine from "../../components/ui/ExportModalMine";
 import {
   MdAdd,
   MdAssignment,
@@ -23,9 +24,10 @@ import {
   MdCalendarToday,
   MdInfoOutline,
   MdComment,
+  MdDownload 
 } from "react-icons/md";
 import { useUser } from "../../context/UserContext";
-import ExportBar from "../../components/ui/ExportBar";
+// import ExportBar from "../../components/ui/ExportBar";
 
 const initialForm = {
   task: "",
@@ -37,7 +39,7 @@ const initialForm = {
   due_date: "",
   status: "ongoing",
   remark: "",
-};
+}; 
 
 const MyTasks = () => {
   const {
@@ -69,19 +71,44 @@ const MyTasks = () => {
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [showNewRemark, setShowNewRemark] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+
+
+  const today = new Date().toISOString().split("T")[0];
+const [dateFrom, setDateFrom] = useState(today);
+const [dateTo, setDateTo] = useState(today);
+
+
 
   useEffect(() => {
-    getAllTasks?.(page);
+getAllTasks?.(page, dateFrom, dateTo);
     getAllProjects?.();
     getAllCalls?.();
     // getAllTeams?.();
     getAllUsers?.();
-  }, [page]);
+  }, [page, dateFrom, dateTo]);
+
+  // Members of the selected project — falls back to all users if no project selected
+const assignableUsers = useMemo(() => {
+  if (!form.project_id) return users;
+  const project = projects.find((p) => p.id === form.project_id);
+  if (!project?.members?.length) return [];
+  const memberUserIds = project.members.map((m) => m.user_id || m.user?.id);
+  return users.filter((u) => memberUserIds.includes(u.id));
+}, [form.project_id, projects, users]);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+
+    if (name === "project_id") {
+    // reset assignee when project changes — old assignee may not be in new project
+    setForm((prev) => ({ ...prev, project_id: value, assigned_to: "" }));
+  } else {
+    setForm((prev) => ({ ...prev, [name]: value }));
+  }
+
     if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
@@ -161,7 +188,7 @@ const MyTasks = () => {
         setAlert({ type: "success", message: "Task created successfully" });
       }
       closeModal();
-      getAllTasks?.(page);
+      getAllTasks?.(page, dateFrom, dateTo);
     } catch (err) {
       setAlert({
         type: "danger",
@@ -260,7 +287,28 @@ const MyTasks = () => {
 
         {/* export + btn*/}
         <div className="flex flex-wrap items-center gap-3 sm:justify-end">
-          <ExportBar type="tasks" />
+<div className="flex items-center gap-3 bg-white border border-slate-100 rounded-2xl px-4 py-2 shadow-sm">
+  <label className="text-xs font-black text-slate-400 uppercase">From</label>
+  <input type="date" value={dateFrom} max={today} onChange={(e) => setDateFrom(e.target.value)}
+    className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-sm font-bold" />
+  <label className="text-xs font-black text-slate-400 uppercase">To</label>
+  <input type="date" value={dateTo} max={today} onChange={(e) => setDateTo(e.target.value)}
+    className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-sm font-bold" />
+  <button
+    onClick={() => { setDateFrom(today); setDateTo(today); }}
+    className="text-[10px] font-black text-[#132ea7] uppercase tracking-widest hover:underline"
+  >
+    Reset to Today
+  </button>
+</div>
+
+<Button
+  variant="ghost"
+  className="shadow-sm px-6 rounded font-black uppercase tracking-widest text-sm whitespace-nowrap h-[52px] bg-white border border-slate-100"
+  onClick={() => setShowExportModal(true)}
+>
+  <MdDownload size={20} className="mr-1" /> Download
+</Button>
           <Button
             variant="primary"
             className="shadow-lg shadow-[#132ea7]/20 py-3 px-8 rounded h-[52px] font-black uppercase tracking-widest text-sm"
@@ -369,6 +417,13 @@ const MyTasks = () => {
                         </div>
                       </div>
                     </td>
+                    {/* Project */}
+                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
+                        <MdFolder className="text-slate-300" size={18} />
+                        {task.project?.name || "—"}
+                      </div>
+                    </td>
 
                     {/* Assigned to */}
                     <td className="px-8 py-6">
@@ -385,13 +440,6 @@ const MyTasks = () => {
                       </div>
                     </td>
 
-                    {/* Project */}
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
-                        <MdFolder className="text-slate-300" size={18} />
-                        {task.project?.name || "—"}
-                      </div>
-                    </td>
 
                     {/* Due */}
                     <td className="px-8 py-6">
@@ -593,30 +641,6 @@ const MyTasks = () => {
               />
             </div>
 
-            {/* Assign to — only on create */}
-            {!editTarget && (
-              <div className="space-y-1.5">
-                <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
-                  Assign To{" "}
-                  <span className="text-slate-300 font-bold normal-case tracking-normal">
-                    (blank = self)
-                  </span>
-                </label>
-                <select
-                  name="assigned_to"
-                  value={form.assigned_to}
-                  onChange={handleChange}
-                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all"
-                >
-                  <option value="">Self Assign</option>
-                  {users.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.name} ({u.employee_id})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
 
             {/* Project — only on create */}
             {!editTarget && (
@@ -635,11 +659,59 @@ const MyTasks = () => {
                     <option key={p.id} value={p.id}>
                       {p.name}
                       {p.code ? ` (${p.code})` : ""}
+                      
                     </option>
                   ))}
                 </select>
               </div>
             )}
+
+
+
+              {/* Assign to — any employee, optional-  filtered by selected project (blank = self) */}
+              {!editTarget && (
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
+                    Assign To <span className="text-slate-300 font-bold normal-case tracking-normal">(blank = self)</span>
+                  </label>
+                  {/* Helper text showing filter context */}
+  {form.project_id && (
+    <p className="text-[10px] font-bold text-[#132ea7] ml-1 mb-1 uppercase tracking-widest">
+      {assignableUsers.length === 0
+        ? "No members in this project"
+        : `Showing ${assignableUsers.length} member${assignableUsers.length > 1 ? "s" : ""} of selected project`}
+    </p>
+  )}
+  {!form.project_id && (
+    <p className="text-[10px] font-bold text-slate-400 ml-1 mb-1 uppercase tracking-widest">
+      Select a project to filter members
+    </p>
+  )}
+                   <select
+    name="assigned_to"
+    value={form.assigned_to}
+    onChange={handleChange}
+    disabled={form.project_id && assignableUsers.length === 0}
+    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+  >
+    <option value="">Self Assign</option>
+    {assignableUsers.map((u) => {
+      // find their role in this project if project is selected
+      const project = projects.find((p) => p.id === form.project_id);
+      const membership = project?.members?.find(
+        (m) => (m.user_id || m.user?.id) === u.id
+      );
+      const roleLabel = membership?.role?.name;
+      return (
+        <option key={u.id} value={u.id}>
+          {u.name} ({u.employee_id}){roleLabel ? ` — ${roleLabel}` : ""}
+        </option>
+      );
+    })}
+  </select>
+                </div>
+              )}
+
 
             {/* Linked call — only on create */}
             {!editTarget && (
@@ -662,6 +734,7 @@ const MyTasks = () => {
                     <option key={c.id} value={c.id}>
                       {c.display_id ? `[${c.display_id}] ` : ""}
                       {c.caller_name} — {c.call_type}
+                      
                     </option>
                   ))}
                 </select>
@@ -683,7 +756,7 @@ const MyTasks = () => {
               </label>
               <div className="flex flex-wrap gap-2">
                 {(editTarget
-                  ? ["open", "ongoing", "closed"]
+                  ? [  "closed"]
                   : ["open", "ongoing"]
                 ).map((s) => (
                   <button
@@ -934,6 +1007,8 @@ const MyTasks = () => {
         onCancel={() => setConfirmDelete(null)}
         loading={deleting}
       />
+
+        <ExportModalMine show={showExportModal} onClose={() => setShowExportModal(false)} types={["tasks"]} />
     </div>
   );
 };
