@@ -13,27 +13,26 @@ export const ProjectProvider = ({ children }) => {
   const [limit, setLimit] = useState(10);
   const [total, setTotal] = useState(0);
 
-  const getAllProjects = useCallback(async (pageNumber = 1, pageLimit = 10) => {
-    try {
-      setLoading(true);
-       const { data } = await api.get(
-        `${ENDPOINTS.PROJECTS.ALL}?page=${pageNumber}&limit=${pageLimit}`
-      );
-      //  console.log("🚀 ~ ProjectProvider ~ data:", data)
+const getAllProjects = useCallback(async (pageNumber = 1, pageLimit = 10, search = "") => {
+  try {
+    setLoading(true);
+    const params = new URLSearchParams({ page: pageNumber, limit: pageLimit });
+    if (search) params.set("search", search);
 
-      setProjects(data.data || []);
-        setPage(data.page || 1);
-      setLimit(data.limit || 20);
-      setTotal(data.total || 0);
+    const { data } = await api.get(`${ENDPOINTS.PROJECTS.ALL}?${params.toString()}`);
 
-      return data;
-    } catch (error) {
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    setProjects(data.data || []);
+    setPage(data.page || 1);
+    setLimit(data.limit || 10);
+    setTotal(data.total || 0);
 
+    return data;
+  } catch (error) {
+    throw error;
+  } finally {
+    setLoading(false);
+  }
+}, []);
   const getProjectById = useCallback(async (id) => {
     try {
       const { data } = await api.get(ENDPOINTS.PROJECTS.GET_BY_ID(id));

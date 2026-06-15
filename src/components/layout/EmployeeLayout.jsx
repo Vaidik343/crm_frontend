@@ -75,9 +75,9 @@ const EmployeeLayout = () => {
                     {user?.name}
                 </span>
 
-                <span className="text-[10px] text-slate-300 font-black uppercase tracking-[0.2em] mt-1">
-                    {user?.role || "Employee"}
-                </span>
+                 <span className="text-[10px] text-slate-300 font-black uppercase tracking-[0.2em] mt-1">
+        {user?.role || "Employee"} {user?.employee_id ? `• ${user.employee_id}` : ""}
+    </span>
             </div>
 
             {/* Avatar */}

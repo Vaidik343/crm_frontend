@@ -38,8 +38,16 @@ export const SocketProvider = ({ children }) => {
     // console.log("🚀 ~ SocketProvider ~ newSocket:", newSocket)
 
     newSocket.on("connect", () => {
-      // console.log("✅ [Socket] Connected:", newSocket.id);
+      console.log("✅ [Socket] Connected:", newSocket.id);
+      
+      // 1. Join personal room (for direct notifications)
       newSocket.emit("join", user.id);
+      
+      // 2. If admin, join admins_room (for silent live data updates)
+      if (user.is_admin) {
+        newSocket.emit("join", "admins_room");
+      }
+      
       setIsConnected(true);
     });
 

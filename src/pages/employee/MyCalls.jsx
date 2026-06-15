@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useCall } from "../../context/CallContext";
 import { useProject } from "../../context/ProjectContext";
 import { useAuth } from "../../context/AuthContext";
@@ -29,7 +29,8 @@ import {
   MdFolder,
   MdInfoOutline,
   MdHistory,
-  MdDownload 
+  MdDownload ,
+  MdTransferWithinAStation 
 } from "react-icons/md";
 
 const CALL_TYPES = {
@@ -1172,6 +1173,10 @@ const [dateTo, setDateTo] = useState(today)
                 )}
                 
               </div>
+              <div className="flex items-center gap-3 flex-wrap">
+                              <label className="text-xs font-black text-slate-400 uppercase">Logged By</label>
+                                <Badge value={viewTarget.caller?.name || viewTarget.User?.name || "—"} />
+                              </div>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">

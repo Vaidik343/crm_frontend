@@ -77,7 +77,7 @@ const getExpectedPrefix = (form) => {
 
 
 const Calls = () => {
-  const { calls, loading, page, setPage, totalPages, getAllCalls, createCall, updateCall, deleteCall } = useCall();
+  const { calls, loading, page, limit, setPage, totalPages, getAllCalls, createCall, updateCall, deleteCall } = useCall();
   const { projects, getAllProjects } = useProject();
   const {getAllTasks, page: taskPage} = useTask()
 const { clients, getAllClients } = useClient();
@@ -108,13 +108,20 @@ const [dateTo, setDateTo] = useState("");
 const today = new Date().toISOString().split("T")[0];
 
   useEffect(() => {
-    getAllCalls?.(page, dateFrom, dateTo);
+    getAllCalls?.(page, dateFrom, dateTo, limit, search);
     getAllProjects?.();
     getAllUsers?.();
     getAllClients?.()
   }, [page, dateFrom, dateTo]);
 
+useEffect(() => {
+  const debounce = setTimeout(() => {
+    setPage(1);
+    getAllCalls?.(1, dateFrom, dateTo, limit, search);
+  }, 300);
 
+  return () => clearTimeout(debounce);
+}, [search]);
       // Members of the selected project — falls back to all users if no project selected
   const assignableUsers = useMemo(() => {
     if (!form.project_id) return users;
@@ -965,6 +972,10 @@ onChange={(e) => setSearch(e.target.value)}
                   <p className="text-xs font-bold text-slate-400 mt-1">{viewTarget.caller_number}</p>
                 )}
               </div>
+              <div className="flex items-center gap-3 flex-wrap">
+                <label className="text-xs font-black text-slate-400 uppercase">Logged By</label>
+                  <Badge value={viewTarget.caller?.name || viewTarget.User?.name || "—"} />
+                </div>
             </div>
 
             {/* Info grid */}
@@ -973,7 +984,7 @@ onChange={(e) => setSearch(e.target.value)}
                 { label: "Subtype",    value: viewTarget.call_subtype || "—" },
                 { label: "Medium",     value: viewTarget.receive_type || "—" },
                 { label: "Project",    value: viewTarget.project?.name || viewTarget.Project?.name || "—" },
-                { label: "Logged By",  value: viewTarget.caller?.name || viewTarget.User?.name || "—" },
+                // { label: "Logged By",  value: viewTarget.caller?.name || viewTarget.User?.name || "—" },
                 { label: "Date",       value: new Date(viewTarget.createdAt).toLocaleDateString() },
                 { label: "Has Call Transfer",   value: viewTarget.transfer_to ? "Yes" : "No" },
                 { label: "Has Task",   value: viewTarget.is_task ? "Yes" : "No" },

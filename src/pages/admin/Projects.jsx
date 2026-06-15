@@ -29,7 +29,7 @@ const initialForm = {
 };
 
 const Projects = () => {
-  const { projects, loading,  page,
+  const { projects, loading,  page, limit,
   totalPages, getAllProjects, createProject, updateProject, deleteProject,
   addMemberToProject, removeMember: removeMemberFromProject } = useProject();
   
@@ -74,15 +74,26 @@ const Projects = () => {
 
 
   // filter
-const search = filter.toLowerCase().trim()
+const search = filter.toLowerCase().trim();
+console.log("🚀 ~ Projects ~ search:", search)
 
-const filtered = search 
-? (projects || []).filter((p) =>
-  p.name?.toLowerCase().includes(search) ||
-  p.code?.toLowerCase().includes(search)
-) 
- : (projects || [])
 
+useEffect(() => {
+  const debounce = setTimeout(() => {
+    getAllProjects?.(1, limit, search);
+  }, 300);
+  return () => clearTimeout(debounce);
+}, [filter]);
+
+
+// const filtered = search 
+// ? (projects || []).filter((p) =>
+//   p.name?.toLowerCase().includes(search) ||
+//   p.code?.toLowerCase().includes(search)
+// ) 
+//  : (projects || [])
+
+const filtered = projects || [];
 
   // ── Inline Member Helpers (Team.jsx-style) ──────────────────────────────
   const getMemberUserIds = (project) =>
