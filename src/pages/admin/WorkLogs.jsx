@@ -8,7 +8,7 @@ import Input from "../../components/ui/Input";
 import { MdBook, MdVisibility, MdCalendarToday, MdPerson, MdAccessTime, MdOutlineSpeakerNotes, MdSearch } from "react-icons/md";
 
 const AdminWorkLogs = () => {
-  const { workLogs = [], loading, page,
+  const { workLogs = [], loading, page, limit,
       totalPages,
       setPage, getAllWorkLogs } = useWorkLog();
 
@@ -26,17 +26,29 @@ const [dateFrom, setDateFrom] = useState("");
 const [dateTo, setDateTo] = useState("");
 const today = new Date().toISOString().split("T")[0];
   
-  useEffect(() => {
-    getAllWorkLogs?.(page, dateFrom, dateTo);
-  }, [page, dateFrom, dateTo]);
+const search = filter.toLowerCase().trim();
+
+
+useEffect(() => {
+  const debounce = setTimeout(() => {
+    getAllWorkLogs?.(page, dateFrom, dateTo, limit, search);
+  }, 300);
+  return () => clearTimeout(debounce);
+}, [page, dateFrom, dateTo, search]);
+    // filter
+
+   
 
   // filter by employee name
- const filtered = filter.trim()
-  ? (workLogs || []).filter((w) =>
-      w.User?.name?.toLowerCase().includes(filter.toLowerCase()) ||
-      w.User?.employee_id?.toLowerCase().includes(filter.toLowerCase())
-    )
-  : (workLogs || []);
+
+  const filtered = workLogs || [];
+
+//  const filtered = filter.trim()
+//   ? (workLogs || []).filter((w) =>
+//       w.User?.name?.toLowerCase().includes(filter.toLowerCase()) ||
+//       w.User?.employee_id?.toLowerCase().includes(filter.toLowerCase())
+//     )
+//   : (workLogs || []);
 
   if (loading && !workLogs.length) return (
     <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
@@ -123,11 +135,11 @@ const today = new Date().toISOString().split("T")[0];
                   <td className="px-10 py-6">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-2xl bg-[#132ea7] text-white flex items-center justify-center font-black text-lg shadow-lg shadow-[#132ea7]/20 transition-all group-hover:scale-110">
-                        {log.User?.name?.charAt(0) || <MdPerson size={20} />}
+                        {log.user?.name?.charAt(0) || <MdPerson size={20} />}
                       </div>
                       <div>
-                        <div className="font-black text-slate-800 text-lg leading-tight">{log.User?.name || "—"}</div>
-                        <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">{log.User?.employee_id || "Unknown ID"}</div>
+                        <div className="font-black text-slate-800 text-lg leading-tight">{log.user?.name || "—"}</div>
+                        <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">{log.user?.employee_id || "Unknown ID"}</div>
                       </div>
                     </div>
                   </td>
@@ -165,45 +177,15 @@ const today = new Date().toISOString().split("T")[0];
         </div>
 
         {/* Pagination */}
-<div className="flex items-center justify-between px-6 py-6 border-t border-slate-100">
-  
-  <button
-    disabled={page === 1}
-    onClick={() => setPage(page - 1)}
-    className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50"
-  >
-    Previous
-  </button>
-
-  <div className="flex items-center gap-2">
-    {[...Array(totalPages)].map((_, i) => {
-      const pageNum = i + 1;
-
-      return (
-        <button
-          key={pageNum}
-          onClick={() => setPage(pageNum)}
-          className={`w-10 h-10 rounded-xl font-bold transition-all ${
-            page === pageNum
-              ? "bg-[#132ea7] text-white"
-              : "bg-slate-100 text-slate-700"
-          }`}
-        >
-          {pageNum}
-        </button>
-      );
-    })}
-  </div>
-
-  <button
-    disabled={page === totalPages}
-    onClick={() => setPage(page + 1)}
-    className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50"
-  >
-    Next
-  </button>
-
-</div>
+        <div className="flex items-center justify-between px-6 py-6 border-t border-slate-100">
+          <button disabled={page === 1} onClick={() => setPage(page - 1)} className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50">Previous</button>
+          <div className="flex items-center gap-2">
+            {[...Array(totalPages)].map((_, i) => (
+              <button key={i+1} onClick={() => setPage(i+1)} className={`w-10 h-10 rounded-xl font-bold transition-all ${page === i+1 ? "bg-[#132ea7] text-white" : "bg-slate-100 text-slate-700"}`}>{i+1}</button>
+            ))}
+          </div>
+          <button disabled={page === totalPages} onClick={() => setPage(page + 1)} className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50">Next</button>
+        </div>
       </div>
 
       {/* Mobile Cards */}
@@ -216,11 +198,11 @@ const today = new Date().toISOString().split("T")[0];
               {/* Header */}
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-[#132ea7] text-white flex items-center justify-center font-black shrink-0">
-                  {log.User?.name?.charAt(0) || <MdPerson size={18} />}
+                  {log.user?.name?.charAt(0) || <MdPerson size={18} />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-black text-slate-800 leading-tight">{log.User?.name || "—"}</p>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{log.User?.employee_id || "Unknown ID"}</p>
+                  <p className="font-black text-slate-800 leading-tight">{log.user?.name || "—"}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{log.user?.employee_id || "Unknown ID"}</p>
                 </div>
               </div>
 

@@ -11,6 +11,7 @@ import {MdBook, MdVisibility, MdCalendarToday, MdPerson, MdAccessTime, MdDownloa
 import Select from "../../components/ui/Select";
 // import ExportBar from "../../components/ui/ExportBar";
 import ExportModalMine from "../../components/ui/ExportModalMine";
+import LocalSearchableSelect from "../../components/ui/LocalSearchableSelect";
 const initialForm = { 
   description: "",
   project_id: "", 
@@ -342,6 +343,23 @@ const [showExportModal, setShowExportModal] = useState(false);
                 placeholder="Select associated project..."
                 required
               />
+
+               {/* <LocalSearchableSelect
+               
+      value={form.project_id}
+                onChange={handleChange}
+                options={projectOptions}
+       error={fieldErrors.project_id}
+                placeholder="Select associated project..."
+      //           required
+      // getId={(u) => u.id}
+      // // getLabel={(u) => {
+      // //   const project = projects.find((p) => p.id === form.project_id);
+        
+      // // }}
+      // getSearchText={(u) => `${u.Project?.name } ${u.display_id}`}
+    />
+           */}
             </div>
             <Textarea
               label="What did you do today?"

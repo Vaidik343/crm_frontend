@@ -111,7 +111,7 @@ const Login = () => {
                 type="password"
                 value={form.password}
                 onChange={handleChange}
-                placeholder="••••••••"
+                placeholder=""
                 error={fieldErrors.password}
                 required
               />

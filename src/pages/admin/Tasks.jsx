@@ -4,6 +4,8 @@
   import { useProject } from "../../context/ProjectContext";
   import { useCall } from "../../context/CallContext";
   import { useTeam } from "../../context/TeamContext";
+  import SearchableSelect from "../../components/ui/SearchableSelect";
+
   import Input from "../../components/ui/Input";
   import Button from "../../components/ui/Button";
   import Modal from "../../components/ui/Modal";
@@ -22,6 +24,8 @@
     MdVisibility,
     MdSearch 
   } from "react-icons/md";
+import { ENDPOINTS } from "../../api/endpoints";
+import LocalSearchableSelect from "../../components/ui/LocalSearchableSelect";
 
   const initialForm = {
     task: "",
@@ -39,6 +43,7 @@
       tasks,
       loading,
       page,
+      limit,
       setPage,
       totalPages,
       getAllTasks,
@@ -79,6 +84,9 @@ const today = new Date().toISOString().split("T")[0];
       getAllCalls?.();
     }, [page, dateFrom, dateTo]);
 
+
+    
+
     // Members of the selected project — falls back to all users if no project selected
 const assignableUsers = useMemo(() => {
   if (!form.project_id) return users;
@@ -91,15 +99,28 @@ const assignableUsers = useMemo(() => {
     // filter
 const search = filter.toLowerCase().trim();
 
-const filtered = search
-  ? (tasks || []).filter((t) =>
-      t.task?.toLowerCase().includes(search) ||
-      t.display_id?.toLowerCase().includes(search) ||
-      // t.assignee?.name?.toLowerCase().includes(search) ||
-      // t.assigner?.name?.toLowerCase().includes(search) ||
-      t.project?.name?.toLowerCase().includes(search)
-    )
-  : (tasks || []);
+
+
+    useEffect(() => {
+      const debounce = setTimeout(() => {
+        setPage(1);
+        getAllTasks?.(1, dateFrom, dateTo, limit, search);
+      }, 300);
+    
+      return () => clearTimeout(debounce);
+    }, [search]);
+    
+const filtered = tasks || [];
+
+// const filtered = search
+//   ? (tasks || []).filter((t) =>
+//       t.task?.toLowerCase().includes(search) ||
+//       t.display_id?.toLowerCase().includes(search) ||
+//       // t.assignee?.name?.toLowerCase().includes(search) ||
+//       // t.assigner?.name?.toLowerCase().includes(search) ||
+//       t.project?.name?.toLowerCase().includes(search)
+//     )
+//   : (tasks || []);
     // ── Handlers ──────────────────────────────────────────────────────────────
     const handleChange = (e) => {
       const { name, value } = e.target;
@@ -291,7 +312,7 @@ const filtered = search
                     <input
                       type="text"
                       className="w-full bg-white border border-slate-200 rounded-2xl pl-12 pr-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/10 focus:border-[#132ea7] transition-all shadow-sm"
-                      placeholder="Search Tasks Display Id and Projects..."
+                      placeholder="Search Tasks name and Display Id "
                       value={filter}
                       onChange={(e) => setFilter(e.target.value)}
                     />
@@ -631,28 +652,22 @@ error={fieldErrors.project_id}
       Select a project to filter members
     </p>
   )}
-                   <select
-    name="assigned_to"
-    value={form.assigned_to}
-    onChange={handleChange}
-    disabled={form.project_id && assignableUsers.length === 0}
-    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-  >
-    <option value="">Self Assign</option>
-    {assignableUsers.map((u) => {
-      // find their role in this project if project is selected
-      const project = projects.find((p) => p.id === form.project_id);
-      const membership = project?.members?.find(
-        (m) => (m.user_id || m.user?.id) === u.id
-      );
-      const roleLabel = membership?.role?.name;
-      return (
-        <option key={u.id} value={u.id}>
-          {u.name} ({u.employee_id}){roleLabel ? ` — ${roleLabel}` : ""}
-        </option>
-      );
-    })}
-  </select>
+ <LocalSearchableSelect
+      options={assignableUsers}
+      value={form.assigned_to}
+      onChange={(id) => setForm((prev) => ({ ...prev, assigned_to: id }))}
+      disabled={form.project_id && assignableUsers.length === 0}
+      emptyOptionLabel="Self Assign"
+      placeholder="Search employee by name or ID..."
+      getId={(u) => u.id}
+      getLabel={(u) => {
+        const project = projects.find((p) => p.id === form.project_id);
+        const membership = project?.members?.find((m) => (m.user_id || m.user?.id) === u.id);
+        const roleLabel = membership?.role?.name;
+        return `${u.name} (${u.employee_id})${roleLabel ? ` — ${roleLabel}` : ""}`;
+      }}
+      getSearchText={(u) => `${u.name} ${u.employee_id}`}
+    />
                 </div>
               )}
 
@@ -662,15 +677,22 @@ error={fieldErrors.project_id}
               {!editTarget && (
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">Linked Call (Optional)</label>
-                  <select name="call_id" value={form.call_id} onChange={handleChange}
-                    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all">
-                    <option value="">No Linked Call</option>
-                    {calls.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.display_id ? `[${c.display_id}] ` : ""}{c.caller_name} — {c.call_type}
-                      </option>
-                    ))}
-                  </select>
+                    <SearchableSelect
+      endpoint={ENDPOINTS.CALLS.ALL}
+      value={form.call_id}
+      selectedLabel={
+        form.call_id
+          ? (() => {
+              const c = calls.find((c) => c.id === form.call_id);
+              return c ? `${c.display_id ? `[${c.display_id}] ` : ""}${c.caller_name} — ${c.call_type}` : "";
+            })()
+          : ""
+      }
+      onChange={(id) => setForm((prev) => ({ ...prev, call_id: id }))}
+      getLabel={(c) => `${c.display_id ? `[${c.display_id}] ` : ""}${c.caller_name} — ${c.call_type}`}
+      placeholder="Search calls by name, ID, or number..."
+      emptyOptionLabel="No Linked Call"
+    />
                 </div>
               )}
 

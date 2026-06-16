@@ -32,6 +32,7 @@ import {
   MdDownload ,
   MdTransferWithinAStation 
 } from "react-icons/md";
+import LocalSearchableSelect from "../../components/ui/LocalSearchableSelect";
 
 const CALL_TYPES = {
   inquiry: ["inquiry", "follow-back"],
@@ -941,7 +942,7 @@ const [dateTo, setDateTo] = useState(today)
                       (optional)
                     </span>
                   </label>
-                  <select
+                  {/* <select
                     name="transfer_to"
                     value={form.transfer_to}
                     onChange={handleChange}
@@ -961,7 +962,24 @@ const [dateTo, setDateTo] = useState(today)
         </option>
       );
     })}
-                  </select>
+                  </select> */}
+
+                   <LocalSearchableSelect
+      options={assignableUsers}
+                          value={form.transfer_to}
+      onChange={(id) => setForm((prev) => ({ ...prev, transfer_to: id }))}
+      disabled={form.project_id && assignableUsers.length === 0}
+      emptyOptionLabel="Self Assign"
+      placeholder="Search employee by name or ID..."
+      getId={(u) => u.id}
+      getLabel={(u) => {
+        const project = projects.find((p) => p.id === form.project_id);
+        const membership = project?.members?.find((m) => (m.user_id || m.user?.id) === u.id);
+        const roleLabel = membership?.role?.name;
+        return `${u.name} (${u.employee_id})${roleLabel ? ` — ${roleLabel}` : ""}`;
+      }}
+      getSearchText={(u) => `${u.name} ${u.employee_id}`}
+    />
                 </div>
 
                 {/* Follow-up toggle — only when no transfer */}

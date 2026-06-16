@@ -67,7 +67,7 @@ const Projects = () => {
 
 
   useEffect(() => {
-    getAllProjects?.(page);
+    getAllProjects?.(page, limit, "", true);
     getAllRoles?.();
      getAllUsers?.();
   }, [page]);
@@ -80,7 +80,7 @@ console.log("🚀 ~ Projects ~ search:", search)
 
 useEffect(() => {
   const debounce = setTimeout(() => {
-    getAllProjects?.(1, limit, search);
+    getAllProjects?.(1, limit, search, true);
   }, 300);
   return () => clearTimeout(debounce);
 }, [filter]);

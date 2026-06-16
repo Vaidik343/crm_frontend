@@ -61,11 +61,14 @@ export const TaskProvider = ({ children }) => {
   }, [socket]);
 
   // ── API methods ───────────────────────────────────────────────────────────────
-  const getAllTasks = useCallback(async (pageNumber = 1, from, to, pageLimit = 10, ) => {
+  const getAllTasks = useCallback(async (pageNumber = 1, from, to, pageLimit = 10, search = "" ) => {
     try {
       setLoading(true);
 
         const params = new URLSearchParams({ page: pageNumber, limit: pageLimit });
+         if (search) params.set("search", search);
+
+         
     if (from && to) {
       params.append("from", from);
       params.append("to", to);

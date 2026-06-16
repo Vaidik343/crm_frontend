@@ -63,7 +63,10 @@ const [exportTarget, setExportTarget] = useState(null);
 
   const validate = () => {
     const errors = {};
+    // let num = form.mobile.length = 10 ? errors.mobile = ""  :  errors.mobile =  "invalid"
     if (!form.name.trim()) errors.name = "Name is required";
+    if(form.mobile.length>10) errors.mobile = "Invalid Number"
+    if(form.mobile.length<10) errors.mobile = "Invalid Number"
     if (!form.role_id) errors.role_id = "Role is required";
     if (form.email && !/\S+@\S+\.\S+/.test(form.email))
       errors.email = "Invalid email";
@@ -552,7 +555,7 @@ const [exportTarget, setExportTarget] = useState(null);
                 type="number"
                 value={form.mobile}
                 onChange={handleChange}
-                // error={fieldErrors.email}
+                error={fieldErrors.mobile}
                 placeholder="9911223344"
                 
               />

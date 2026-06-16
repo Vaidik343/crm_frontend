@@ -27,6 +27,9 @@ import {
   MdDownload 
 } from "react-icons/md";
 import { useUser } from "../../context/UserContext";
+import LocalSearchableSelect from "../../components/ui/LocalSearchableSelect";
+import SearchableSelect from "../../components/ui/SearchableSelect";
+import { ENDPOINTS } from "../../api/endpoints";
 // import ExportBar from "../../components/ui/ExportBar";
 
 const initialForm = {
@@ -417,15 +420,7 @@ const assignableUsers = useMemo(() => {
                         </div>
                       </div>
                     </td>
-                    {/* Project */}
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
-                        <MdFolder className="text-slate-300" size={18} />
-                        {task.project?.name || "—"}
-                      </div>
-                    </td>
-
-                    {/* Assigned to */}
+                                        {/* Assigned to */}
                     <td className="px-8 py-6">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[#132ea7] font-black text-[10px]">
@@ -439,6 +434,15 @@ const assignableUsers = useMemo(() => {
                         </div>
                       </div>
                     </td>
+
+                    {/* Project */}
+                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
+                        <MdFolder className="text-slate-300" size={18} />
+                        {task.project?.name || "—"}
+                      </div>
+                    </td>
+
 
 
                     {/* Due */}
@@ -687,29 +691,22 @@ const assignableUsers = useMemo(() => {
       Select a project to filter members
     </p>
   )}
-                   <select
-    name="assigned_to"
-    value={form.assigned_to}
-    onChange={handleChange}
-    disabled={form.project_id && assignableUsers.length === 0}
-    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-  >
-    <option value="">Self Assign</option>
-    {assignableUsers.map((u) => {
-      // find their role in this project if project is selected
-      const project = projects.find((p) => p.id === form.project_id);
-      const membership = project?.members?.find(
-        (m) => (m.user_id || m.user?.id) === u.id
-      );
-      const roleLabel = membership?.role?.name;
-      return (
-        <option key={u.id} value={u.id}>
-          {u.name} ({u.employee_id}){roleLabel ? ` — ${roleLabel}` : ""}
-        </option>
-      );
-    })}
-  </select>
-                </div>
+  <LocalSearchableSelect
+      options={assignableUsers}
+      value={form.assigned_to}
+      onChange={(id) => setForm((prev) => ({ ...prev, assigned_to: id }))}
+      disabled={form.project_id && assignableUsers.length === 0}
+      emptyOptionLabel="Self Assign"
+      placeholder="Search employee by name or ID..."
+      getId={(u) => u.id}
+      getLabel={(u) => {
+        const project = projects.find((p) => p.id === form.project_id);
+        const membership = project?.members?.find((m) => (m.user_id || m.user?.id) === u.id);
+        const roleLabel = membership?.role?.name;
+        return `${u.name} (${u.employee_id})${roleLabel ? ` — ${roleLabel}` : ""}`;
+      }}
+      getSearchText={(u) => `${u.name} ${u.employee_id}`}
+    />               </div>
               )}
 
 
@@ -720,24 +717,25 @@ const assignableUsers = useMemo(() => {
                    Linked Call{" "}
                   <span className="text-slate-300 font-bold normal-case tracking-normal">
                   Linked Call (Optional)
-                    (optional)
+                    
                   </span>
                 </label>
-                <select
-                  name="call_id"
-                  value={form.call_id}
-                  onChange={handleChange}
-                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all"
-                >
-                  <option value="">No Linked Call</option>
-                  {calls.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.display_id ? `[${c.display_id}] ` : ""}
-                      {c.caller_name} — {c.call_type}
-                      
-                    </option>
-                  ))}
-                </select>
+                           <SearchableSelect
+      endpoint={ENDPOINTS.CALLS.ALL}
+      value={form.call_id}
+      selectedLabel={
+        form.call_id
+          ? (() => {
+              const c = calls.find((c) => c.id === form.call_id);
+              return c ? `${c.display_id ? `[${c.display_id}] ` : ""}${c.caller_name} — ${c.call_type}` : "";
+            })()
+          : ""
+      }
+      onChange={(id) => setForm((prev) => ({ ...prev, call_id: id }))}
+      getLabel={(c) => `${c.display_id ? `[${c.display_id}] ` : ""}${c.caller_name} — ${c.call_type}`}
+      placeholder="Search calls by name, ID, or number..."
+      emptyOptionLabel="No Linked Call"
+    />
               </div>
             )}
 

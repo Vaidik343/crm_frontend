@@ -13,11 +13,12 @@ export const ProjectProvider = ({ children }) => {
   const [limit, setLimit] = useState(10);
   const [total, setTotal] = useState(0);
 
-const getAllProjects = useCallback(async (pageNumber = 1, pageLimit = 10, search = "") => {
+const getAllProjects = useCallback(async (pageNumber = 1, pageLimit = 10, search = "", includeInactive = false) => {
   try {
     setLoading(true);
     const params = new URLSearchParams({ page: pageNumber, limit: pageLimit });
     if (search) params.set("search", search);
+    if (includeInactive) params.set("include_inactive", "true");
 
     const { data } = await api.get(`${ENDPOINTS.PROJECTS.ALL}?${params.toString()}`);
 

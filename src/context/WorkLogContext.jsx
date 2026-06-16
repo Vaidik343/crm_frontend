@@ -13,10 +13,12 @@ export const WorkLogProvider = ({ children }) => {
   const [limit, setLimit] = useState(10);
   const [total, setTotal] = useState(0);
 
-  const getAllWorkLogs = useCallback(async (pageNumber = 1, from, to,pageLimit = 10) => {
+  const getAllWorkLogs = useCallback(async (pageNumber = 1, from, to,pageLimit = 10, search = "") => {
     try {
       setLoading(true);
       const params = new URLSearchParams({ page: pageNumber, limit: pageLimit });
+       if (search) params.set("search", search);
+
     if (from && to) {
       params.append("from", from);
       params.append("to", to);
@@ -25,8 +27,13 @@ export const WorkLogProvider = ({ children }) => {
         const { data } = await api.get(
         `${ENDPOINTS.WORKLOGS.ALL}?${params.toString()}`
       );
+        console.log("🚀 ~ WorkLogProvider ~ data:", data)
 
 setWorkLogs(data.data || []);
+ setPage(data.page || 1);
+    setLimit(data.limit || 10);
+    setTotal(data.total || 0);
+
       return data;
     } catch (error) {
       throw error;
@@ -48,6 +55,7 @@ setWorkLogs(data.data || []);
     try {
       const { data } = await api.post(ENDPOINTS.WORKLOGS.CREATE, payload);
       setWorkLogs((prev) => [data.workLog, ...prev]);
+      getAllWorkLogs?.()
       return data;
     } catch (error) {
       throw error;

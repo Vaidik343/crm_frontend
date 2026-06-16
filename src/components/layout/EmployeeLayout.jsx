@@ -22,18 +22,19 @@ const EmployeeLayout = () => {
     const [mobileOpen, setMobileOpen] = useState(false);
 
     return (
-        <div className="h-screen    bg-slate-50  flex flex-col  ">
+        <div className="h-screen    bg-slate-50  flex flex-col   ">
             {/* Top Navbar - Modernized Horizontal Layout */}
          <nav className="bg-[#132ea7] border-b   border-slate-200 sticky top-0 z-50 shadow-sm">
 
     {/* TOP BAR */}
-    <div className="h-[70px] px-4 md:px-8 flex  items-center justify-between">
+    <div className="h-[70px] px-4 md:px-6 flex items-center justify-between gap-4 max-w-full">
+
 
         {/* LEFT */}
-        <div className="flex items-center gap-10">
+ <div className="flex items-center gap-4 lg:gap-8 min-w-0 flex-1">
 
             {/* Brand */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 shrink-0">
                 <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-lg">
                     <span className="text-[#132ea7] font-black text-xs">CRM</span>
                 </div>
@@ -44,9 +45,9 @@ const EmployeeLayout = () => {
             </div>
 
             {/* Desktop Nav */}
-            <ul className="hidden md:flex  items-center gap-2">
+            <ul className="hidden min-[1180px]:flex   items-center gap-1 lg:gap-2 flex flex-wrap mt-4 p-1 no-scrollbar min-w-0">
                 {navItems.map((item) => (
-                    <li key={item.to}>
+                    <li key={item.to} className="shrink-0">
                         <NavLink
                             to={item.to}
                             className={({ isActive }) =>
@@ -67,7 +68,7 @@ const EmployeeLayout = () => {
         </div>
 
         {/* RIGHT */}
-        <div className="flex items-center gap-3 md:gap-6">
+        <div className="flex items-center gap-2  lg:gap-6 shrink-0">
 
             {/* Desktop User Info */}
             <div className="hidden sm:flex flex-col items-end">
@@ -82,12 +83,12 @@ const EmployeeLayout = () => {
 
             {/* Avatar */}
             <NotificationBell />
-            <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[#132ea7] font-black shadow-inner">
+            <div className="w-10 h-10 rounded-full bg-white flex items-center truncate max-w-[120px] lg:max-w-none justify-center text-[#132ea7] font-black shadow-inner">
                 {user?.name?.charAt(0) || "E"}
             </div>
 
             {/* Desktop Logout */}
-            <div className="hidden md:block">
+            <div className="hidden  min-[1180px]:block">
                 <Button
                     variant="ghost"
                     size="sm"
@@ -102,7 +103,7 @@ const EmployeeLayout = () => {
             {/* Mobile Toggle */}
             <button
                 onClick={() => setMobileOpen(!mobileOpen)}
-                className="md:hidden text-white p-2 rounded-lg hover:bg-white/10 transition"
+                className="min-[1180px]:hidden text-white p-2 rounded-lg hover:bg-white/10 transition"
             >
                 {mobileOpen ? <MdClose size={28} /> : <MdMenu size={28} />}
             </button>
@@ -111,7 +112,7 @@ const EmployeeLayout = () => {
 
     {/* MOBILE MENU */}
     <div
-        className={`md:hidden overflow-hidden transition-all duration-300 ${
+        className={`min-[1180px]:hidden  overflow-hidden transition-all duration-300 ${
             mobileOpen ? "max-h-[500px] border-t border-white/10" : "max-h-0"
         }`}
     >
@@ -149,8 +150,8 @@ const EmployeeLayout = () => {
 </nav>
 
             {/* Page Content */}
-            <main className="flex-1 p-8">
-                <div className="max-w-6md mx-auto">
+            <main className="flex-1 p-8  overflow-x-hidden ">
+                <div className="max-w-8xl mx-auto">
                     <Outlet />
                 </div>
             </main>

@@ -12,7 +12,7 @@ import {
 // ── Stat Card ─────────────────────────────────────────────────────────────────
 const StatCard = ({ label, value, icon, accent, textAccent, dark }) => (
   <div className={`rounded-[2rem] p-8 flex items-center gap-6 ${dark
-      ? "bg-[#132ea7] shadow-2xl shadow-[#132ea7]/30"
+      ? "bg-white border border-slate-100 shadow-2xl shadow-slate-200/40"
       : "bg-white border border-slate-100 shadow-2xl shadow-slate-200/40"
     }`}>
     <div className={`w-16 h-16 rounded-[1.25rem] flex items-center justify-center flex-shrink-0 shadow-inner ${accent}`}>
@@ -45,7 +45,7 @@ const ProgressBar = ({ open, ongoing, closed, total }) => {
 const TaskRow = ({ task }) => {
   const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== "closed";
   return (
-    <div className="flex items-center justify-between gap-4 py-5 border-b border-slate-50 last:border-0 group hover:bg-slate-50/50 px-2 rounded-2xl transition-all">
+    <div className="flex items-center justify-between gap-4 py-3 border-b border-slate-50 last:border-0 group hover:bg-slate-50/50 px-2 rounded-2xl transition-all">
       <div className="flex items-start gap-4 flex-1 min-w-0">
         <div className={`w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 shadow-sm ${task.status === "closed" ? "bg-emerald-400" :
             task.status === "ongoing" ? "bg-[#132ea7]" : "bg-slate-300"
@@ -175,8 +175,8 @@ const MyDashboard = () => {
         />
         <StatCard
           label="My Tasks" value={ts.total}
-          icon={<MdCheckCircle size={26} className="text-white" />}
-          accent="bg-white/20" dark
+          icon={<MdCheckCircle size={26} className="text-[#132ea7]" />}
+                    accent="bg-[#132ea7]/10"
         />
         <StatCard
           label="Calls" value={cs.total}
@@ -219,10 +219,11 @@ const MyDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
         {/* My Tasks */}
-        <div className="lg:col-span-2 bg-white rounded-[2rem] border border-slate-100 shadow-2xl shadow-slate-200/40 overflow-hidden">
+        <div className="lg:col-span-2 bg-white  overflow-auto max-h-[550px] scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent  rounded-[2rem] border border-slate-100 shadow-2xl shadow-slate-200/40 overflow-hidden">
           <div className="flex items-center justify-between px-10 py-6 border-b-2 border-slate-50">
-            <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">My Tasks</h3>
-            <div className="flex items-center gap-4">
+            <h3 className="text-sm font-black  text-slate-400 uppercase tracking-[0.2em]">My Tasks</h3>
+            <div className="flex items-center gap-4 ">
+              
               {[
                 { label: "Open", value: ts.open, color: "text-slate-600 bg-slate-50 border border-slate-100" },
                 { label: "Ongoing", value: ts.ongoing, color: "text-[#132ea7] bg-[#132ea7]/5 border border-[#132ea7]/10" },
@@ -253,7 +254,7 @@ const MyDashboard = () => {
 
         {/* My Teams */}
         {/* My Projects — replaces My Teams */}
-        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-2xl shadow-slate-200/40 overflow-hidden">
+        <div className="bg-white rounded-[2rem] border  overflow-auto max-h-[550px] scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent  border-slate-100 shadow-2xl shadow-slate-200/40 ">
           <div className="px-10 py-6 border-b-2 border-slate-50 flex items-center justify-between">
             <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">
               My Projects
@@ -300,15 +301,15 @@ const MyDashboard = () => {
       </div>
 
       {/* ── Bottom Grid: Tasks by Project + Recent Calls ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
         {/* Tasks by Project */}
-        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-2xl shadow-slate-200/40 overflow-hidden">
+        <div className="bg-white rounded-[2rem] border p-1 overflow-auto max-h-[570px] scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent border-slate-100 shadow-2xl shadow-slate-200/40 ">
           <div className="px-10 py-6 border-b-2 border-slate-50 flex items-center justify-between">
             <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Tasks by Project</h3>
             <span className="text-xs font-black text-slate-400 uppercase tracking-widest">{my_projects?.length ?? 0} projects</span>
           </div>
-          <div className="p-8">
+          <div className="p-5">
             {!tasks_by_project?.length ? (
               <div className="text-center py-10 text-slate-300 font-bold uppercase tracking-widest text-sm">
                 <MdFolder size={28} className="mx-auto mb-2 opacity-30" />
@@ -345,7 +346,7 @@ const MyDashboard = () => {
         </div>
 
         {/* Recent Calls */}
-        <div className="bg-white rounded-[2rem] border border-slate-100 shadow-2xl shadow-slate-200/40 overflow-hidden">
+        <div className="bg-white rounded-[2rem] border overflow-auto max-h-[570px] scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent border-slate-100 shadow-2xl shadow-slate-200/40 ">
           <div className="px-10 py-6 border-b-2 border-slate-50 flex items-center justify-between">
             <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Recent Calls</h3>
             <div className="flex items-center gap-3">
@@ -361,7 +362,7 @@ const MyDashboard = () => {
                 No calls logged
               </div>
             ) : (
-              <div className="max-h-[300px] overflow-y-auto custom-scrollbar pr-1">
+              <div className=" space-y-2">
                 {my_calls.slice(0, 8).map((call) => (
                   <div key={call.id} className="flex items-center justify-between py-3.5 px-2 rounded-2xl hover:bg-slate-50 transition-colors">
                     <div className="flex items-center gap-3">
