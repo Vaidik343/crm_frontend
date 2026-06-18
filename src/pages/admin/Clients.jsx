@@ -35,14 +35,15 @@ const Clients = () => {
   useEffect(() => { getAllClients(); }, []);
 
   const search = filter.toLowerCase().trim();
-  const filtered = search
-    ? clients.filter((c) =>
-        c.name?.toLowerCase().includes(search) ||
-        c.company?.toLowerCase().includes(search) ||
-        c.phone?.includes(search)
-      )
-    : clients;
-
+const filtered = search
+  ? clients.filter((c) =>
+      c.names?.some((n) =>
+        n?.toLowerCase().includes(search)
+      ) ||
+      c.company?.toLowerCase().includes(search) ||
+      c.phone?.includes(search)
+    )
+  : clients;
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -68,7 +69,7 @@ const Clients = () => {
   const openEdit = (client) => {
     setEditTarget(client);
     setForm({
-      name:    client.name    || "",
+      name:    client.name?.[0] || "",
       phone:   client.phone   || "",
       email:   client.email   || "",
       company: client.company || "",
@@ -216,11 +217,23 @@ const Clients = () => {
                     <td className="px-10 py-6">
                       <div className="flex items-center gap-4">
                         <div className="w-11 h-11 rounded-2xl bg-slate-50 text-[#132ea7] group-hover:bg-[#132ea7] group-hover:text-white flex items-center justify-center font-black text-lg shadow-inner transition-all flex-shrink-0">
-                          {client.name?.charAt(0).toUpperCase()}
+                          {client.names?.[0]?.charAt(0).toUpperCase()}
                         </div>
                         <div>
                           <div className="font-black text-slate-800 text-base leading-tight uppercase tracking-tight">
-                            {client.name}
+                            {client.names?.[0] || "Unnamed Client"}
+                            {client.names?.length > 1 && (
+  <div className="flex flex-wrap gap-1 mt-2">
+    {client.names.slice(1).map((name) => (
+      <span
+        key={name}
+        className="px-2 py-1 text-[10px] bg-slate-100 rounded-full font-bold text-slate-500"
+      >
+        {name}
+      </span>
+    ))}
+  </div>
+)}
                           </div>
                           <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
                             Added {new Date(client.createdAt).toLocaleDateString("default", {
@@ -372,7 +385,7 @@ const Clients = () => {
       {/* Delete Confirm */}
       <ConfirmDialog
         show={!!confirmDelete}
-        message={`Remove "${confirmDelete?.name}" from clients? This won't affect existing calls.`}
+        message={`Remove "${confirmDelete?.names?.[0]}" from clients? This won't affect existing calls.`}
         onConfirm={handleDelete}
         onCancel={() => setConfirmDelete(null)}
         loading={deleting}

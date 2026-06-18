@@ -16,6 +16,10 @@ import Select from "../../components/ui/Select";
 import Textarea from "../../components/ui/Textarea";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
 import { MdEdit, MdDelete, MdSearch,MdComment, MdAssignment , MdVisibility, MdTransferWithinAStation ,MdPhone, MdFolder, MdCalendarToday, MdInfoOutline, MdAdd } from "react-icons/md";
+import LocalSearchableSelect from "../../components/ui/LocalSearchableSelect";
+import SearchableSelect from "../../components/ui/SearchableSelect";
+import { ENDPOINTS } from "../../api/endpoints";
+
 
 const CALL_TYPES = {
   inquiry:   ["inquiry", "follow-back"],
@@ -102,10 +106,17 @@ const [remarkText, setRemarkText]       = useState("");
 const [remarkSubmitting, setRemarkSubmitting] = useState(false);
 const [showNewRemark, setShowNewRemark] = useState(false);
 
+const [selectedProject, setSelectedProject] = useState(null);
+const [selectedParentCall, setSelectedParentCall] = useState(null);
 
 const [dateFrom, setDateFrom] = useState("");
 const [dateTo, setDateTo] = useState("");
 const today = new Date().toISOString().split("T")[0];
+
+
+const [selectedClient, setSelectedClient] = useState(null);
+
+
 
   useEffect(() => {
     getAllCalls?.(page, dateFrom, dateTo, limit, search);
@@ -170,10 +181,29 @@ const filteredCalls = (calls || []).filter((c) => {
 
 
   // ── Handlers ──────────────────────────────────────────────────────────────
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    const newValue = type === "checkbox" ? checked : value;
- if (name === "call_type") {
+//   const handleChange = (e) => {
+//     const { name, value, type, checked } = e.target;
+//     const newValue = type === "checkbox" ? checked : value;
+//  if (name === "call_type") {
+//     setForm((prev) => ({ ...prev, call_type: newValue, call_subtype: "" }));
+//   } else if (name === "transfer_to") {
+//     setForm((prev) => ({ ...prev, transfer_to: newValue, is_task: false, task_assigned_to: "", is_follow_up: false, parent_call_id: "" }));
+//   } else if (name === "is_task" && !checked) {
+//     setForm((prev) => ({ ...prev, is_task: false, task_assigned_to: "" }));
+//   } else if (name === "is_follow_up" && !checked) {
+//     setForm((prev) => ({ ...prev, is_follow_up: false, parent_call_id: "" }));
+//   } else {
+//     setForm((prev) => ({ ...prev, [name]: newValue }));
+//   }
+
+
+//     if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: "" }));
+//   };
+
+const handleChange = (e) => {
+  const { name, value, type, checked } = e.target;
+  const newValue = type === "checkbox" ? checked : value;
+  if (name === "call_type") {
     setForm((prev) => ({ ...prev, call_type: newValue, call_subtype: "" }));
   } else if (name === "transfer_to") {
     setForm((prev) => ({ ...prev, transfer_to: newValue, is_task: false, task_assigned_to: "", is_follow_up: false, parent_call_id: "" }));
@@ -181,13 +211,24 @@ const filteredCalls = (calls || []).filter((c) => {
     setForm((prev) => ({ ...prev, is_task: false, task_assigned_to: "" }));
   } else if (name === "is_follow_up" && !checked) {
     setForm((prev) => ({ ...prev, is_follow_up: false, parent_call_id: "" }));
+  } else if (name === "caller_name" && selectedClient) {
+    // If the typed name no longer matches any name on the selected client record,
+    // this is a different person — let the backend's findOrCreateClientForCall
+    // handle merging/registering them instead of misattributing to this client_id.
+    const knownNames = selectedClient.names || [];
+    const stillMatches = knownNames.some((n) => n.toLowerCase() === newValue.toLowerCase());
+    setForm((prev) => ({
+      ...prev,
+      caller_name: newValue,
+      client_id: stillMatches ? prev.client_id : "",
+    }));
+    if (!stillMatches) setSelectedClient(null);
   } else {
     setForm((prev) => ({ ...prev, [name]: newValue }));
   }
 
-
-    if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: "" }));
-  };
+  if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: "" }));
+};
 
   const validate = () => {
     const errors = {};
@@ -297,17 +338,17 @@ const filteredCalls = (calls || []).filter((c) => {
   };
 
 
-  // Handler — when client selected, auto-fill name + number
-const handleClientSelect = (e) => {
-  const clientId = e.target.value;
-  const client = clients.find((c) => c.id === clientId);
-  setForm((prev) => ({
-    ...prev,
-    client_id: clientId,
-    caller_name: client?.name || prev.caller_name,
-    caller_number: client?.phone || prev.caller_number,
-  }));
-};
+  // Handler — when client selected, auto-fill name + number - no longer needed
+// const handleClientSelect = (e) => {
+//   const clientId = e.target.value;
+//   const client = clients.find((c) => c.id === clientId);
+//   setForm((prev) => ({
+//     ...prev,
+//     client_id: clientId,
+//     caller_name: client?.name || prev.caller_name,
+//     caller_number: client?.phone || prev.caller_number,
+//   }));
+// };
 
 
   if (loading && !calls.length) return (
@@ -373,7 +414,7 @@ const handleClientSelect = (e) => {
                               <input
                                 type="text"
                                 className="w-full bg-white border border-slate-200 rounded-2xl pl-12 pr-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/10 focus:border-[#132ea7] transition-all shadow-sm"
-                                placeholder="Search Tasks Display Id and Projects..."
+                                placeholder="Search Calls by Caller name and Display Id..."
                                 value={search}
 onChange={(e) => setSearch(e.target.value)}
                               />
@@ -668,31 +709,62 @@ onChange={(e) => setSearch(e.target.value)}
 
         <form onSubmit={handleSubmit} noValidate className="space-y-6">
                   {/* Client selector  */}
-<div>
-  <label className="block mb-2 font-bold text-slate-700 text-sm">
-    Select Client <span className="text-slate-400 font-normal">(optional)</span>
+{/* Client selector */}
+<div className="space-y-1.5">
+  <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
+    Select Client <span className="text-slate-300 font-bold normal-case tracking-normal">(optional)</span>
   </label>
-  <Select
-    name="client_id"
+  <LocalSearchableSelect
+    options={clients}
     value={form.client_id}
-    onChange={handleClientSelect}
-    options={[
-      { label: "-- Select existing client --", value: "" },
-      ...clients.map((c) => ({
-        label: c.company ? `${c.name} — ${c.company}` : c.name,
-        value: c.id,
-      })),
-    ]}
+    onChange={(id) => {
+      const client = clients.find((c) => c.id === id);
+      setSelectedClient(client || null);
+      setForm((prev) => ({
+        ...prev,
+        client_id: id,
+        caller_name: client?.names?.[0] || prev.caller_name,
+        caller_number: client?.phone || prev.caller_number,
+      }));
+    }}
+    emptyOptionLabel="No Client"
+    placeholder="Search by phone or name..."
+    getId={(c) => c.id}
+    getLabel={(c) => `${c.phone} — ${c.names?.[0] || "Unnamed"}`}
+    getSearchText={(c) => `${c.phone} ${(c.names || []).join(" ")} ${c.company || ""}`}
   />
-  {form.client_id && (
-    <button
-      type="button"
-      onClick={() => setForm((prev) => ({ ...prev, client_id: "", }))}
-      className="mt-1 text-[10px] font-black text-slate-400 hover:text-red-500 uppercase tracking-widest"
-    >
-      ✕ Clear client
-    </button>
+
+  {/* Secondary caller — only when this client has more than one name on file */}
+  {selectedClient?.names?.length > 1 && (
+    <div className="mt-2">
+      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block ml-1 mb-1">
+        Not {selectedClient.names[0]}? Pick who actually called
+      </label>
+      <LocalSearchableSelect
+        options={selectedClient.names.slice(1).map((n) => ({ name: n }))}
+        value={form.caller_name !== selectedClient.names[0] ? form.caller_name : ""}
+        onChange={(name) => {
+          if (name) setForm((prev) => ({ ...prev, caller_name: name }));
+        }}
+        emptyOptionLabel={selectedClient.names[0]}
+        placeholder="Search secondary names..."
+        getId={(o) => o.name}
+        getLabel={(o) => o.name}
+      />
+    </div> 
   )}
+  {form.client_id && (
+  <button
+    type="button"
+    onClick={() => {
+      setForm((prev) => ({ ...prev, client_id: "" }));
+      setSelectedClient(null);
+    }}
+    className="mt-1 text-[10px] font-black text-slate-400 hover:text-red-500 uppercase tracking-widest"
+  >
+    ✕ Clear client
+  </button>
+)}
 </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
@@ -702,12 +774,29 @@ onChange={(e) => setSearch(e.target.value)}
 
             <Input label="Caller Number" name="caller_number" value={form.caller_number}
               onChange={handleChange} placeholder="e.g. +91 98765 43210" />
+<div className="md:col-span-2 space-y-1.5">
+  <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
+    Project
+  </label>
+<SearchableSelect
+  endpoint={ENDPOINTS.PROJECTS.ALL}
+  value={form.project_id}
+  selectedLabel={selectedProject?.name || ""}
+  getLabel={(project) => project.name}
+  onChange={(project) => {
+    setSelectedProject(project);
 
-            <div className="md:col-span-2">
-              <Select label="Project" name="project_id" value={form.project_id}
-                onChange={handleChange} options={projectOptions}
-                error={fieldErrors.project_id} placeholder="Select associated project..." />
-            </div>
+    setForm((prev) => ({
+      ...prev,
+      project_id: project?.id || "",
+      assigned_to: "",
+    }));
+  }}
+/>
+  {fieldErrors.project_id && (
+    <p className="text-red-500 text-[10px] font-bold uppercase ml-1 mt-1">{fieldErrors.project_id}</p>
+  )}
+</div>
 
             <Select label="Call Type" name="call_type" value={form.call_type}
               onChange={handleChange} options={callTypeOptions}
@@ -801,29 +890,34 @@ onChange={(e) => setSearch(e.target.value)}
             {!editTarget && (
   <>
     {/* Transfer To */}
-    <div className="md:col-span-2 space-y-1.5">
-      <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
-        Transfer Call To <span className="text-slate-300 font-bold normal-case">(optional)</span>
-      </label>
-      <select name="transfer_to" value={form.transfer_to} onChange={handleChange}
-        className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all">
-        <option value="">No Transfer</option>
-        {assignableUsers.map((u) => {
-      // find their role in this project if project is selected
+{/* Transfer To */}
+<div className="md:col-span-2 space-y-1.5">
+  <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
+    Transfer Call To <span className="text-slate-300 font-bold normal-case">(optional)</span>
+  </label>
+  <LocalSearchableSelect
+    options={assignableUsers}
+    value={form.transfer_to}
+    onChange={(id) => setForm((prev) => ({
+      ...prev,
+      transfer_to: id,
+      is_task: false,
+      task_assigned_to: "",
+      is_follow_up: false,
+      parent_call_id: "",
+    }))}
+    emptyOptionLabel="No Transfer"
+    placeholder="Search employee by name or ID..."
+    getId={(u) => u.id}
+    getLabel={(u) => {
       const project = projects.find((p) => p.id === form.project_id);
-      const membership = project?.members?.find(
-        (m) => (m.user_id || m.user?.id) === u.id
-      );
+      const membership = project?.members?.find((m) => (m.user_id || m.user?.id) === u.id);
       const roleLabel = membership?.role?.name;
-      return (
-        <option key={u.id} value={u.id}>
-          {u.name} ({u.employee_id}){roleLabel ? ` — ${roleLabel}` : ""}
-        </option>
-      );
-    })}
-      </select>
-    </div>
-
+      return `${u.name} (${u.employee_id})${roleLabel ? ` — ${roleLabel}` : ""}`;
+    }}
+    getSearchText={(u) => `${u.name} ${u.employee_id}`}
+  />
+</div>
     {/* Follow-up toggle — only when no transfer */}
     {!form.transfer_to && (
       <div className="md:col-span-2">
@@ -845,29 +939,54 @@ onChange={(e) => setSearch(e.target.value)}
       </div>
     )}
 
-    {/* Original call selector — shown when is_follow_up */}
-    {form.is_follow_up && !form.transfer_to && (
-      <div className="md:col-span-2 space-y-1.5">
-        <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
-          Original Call <span className="text-red-500">*</span>
-        </label>
-        <select name="parent_call_id" value={form.parent_call_id} onChange={handleChange}
-          className={`w-full bg-slate-50 border ${fieldErrors.parent_call_id ? "border-red-400" : "border-slate-100"} rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all`}>
-          <option value="">Select the call where client made the request...</option>
-          {ownCalls.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.display_id ? `[${c.display_id}] ` : ""}{c.caller_name} — {c.call_subtype} ({new Date(c.createdAt).toLocaleDateString()})
-            </option>
-          ))}
-        </select>
-        {fieldErrors.parent_call_id && (
-          <p className="text-red-500 text-[10px] font-bold uppercase ml-1">{fieldErrors.parent_call_id}</p>
-        )}
-        {/* <p className="text-[10px] font-bold text-slate-400 ml-1">
-          e.g. Jay Shah called about banner change — select that call here
-        </p> */}
-      </div>
+ {/* Original call selector — shown when is_follow_up */}
+{form.is_follow_up && !form.transfer_to && (
+  <div className="md:col-span-2 space-y-1.5">
+    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
+      Original Call <span className="text-red-500">*</span>
+    </label>
+<SearchableSelect
+  endpoint={ENDPOINTS.CALLS.ALL}
+  extraParams={form.project_id ? { project_id: form.project_id } : {}}
+  value={form.parent_call_id}
+  selectedLabel={
+    selectedParentCall
+      ? `${selectedParentCall.display_id ? `[${selectedParentCall.display_id}] ` : ""}
+         ${selectedParentCall.caller_name} — ${selectedParentCall.call_subtype}
+         (${new Date(selectedParentCall.createdAt).toLocaleDateString()})`
+      : ""
+  }
+  onChange={(call) => {
+    setSelectedParentCall(call);
+
+    setForm((prev) => ({
+      ...prev,
+      parent_call_id: call?.id || "",
+    }));
+  }}
+  getLabel={(c) => {
+    const projectName = c.project?.name || c.Project?.name;
+
+    return `${c.display_id ? `[${c.display_id}] ` : ""}${c.caller_name}
+      — ${c.call_subtype}
+      ${projectName ? ` · ${projectName}` : ""}
+      (${new Date(c.createdAt).toLocaleDateString()})`;
+  }}
+  placeholder={
+    form.project_id
+      ? "Search calls for this project..."
+      : "Select a project first"
+  }
+  emptyOptionLabel="No selection"
+/>
+
+    {fieldErrors.parent_call_id && (
+      <p className="text-red-500 text-[10px] font-bold uppercase ml-1">
+        {fieldErrors.parent_call_id}
+      </p>
     )}
+  </div>
+)}
 
     {/* is_task toggle — no transfer */}
     {!form.transfer_to && (
@@ -893,29 +1012,27 @@ onChange={(e) => setSearch(e.target.value)}
 
     {/* Assign task to */}
     {form.is_task && !form.transfer_to && (
-      <div className="md:col-span-2 space-y-1.5">
-        <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
-          Assign Task To <span className="text-slate-300 font-bold normal-case">(blank = self)</span>
-        </label>
-        <select name="task_assigned_to" value={form.task_assigned_to} onChange={handleChange}
-          className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all">
-          <option value="">Self Assign</option>
-{assignableUsers.map((u) => {
-      // find their role in this project if project is selected
-      const project = projects.find((p) => p.id === form.project_id);
-      const membership = project?.members?.find(
-        (m) => (m.user_id || m.user?.id) === u.id
-      );
-      const roleLabel = membership?.role?.name;
-      return (
-        <option key={u.id} value={u.id}>
-          {u.name} ({u.employee_id}){roleLabel ? ` — ${roleLabel}` : ""}
-        </option>
-      );
-    })}
-        </select>
-      </div>
-    )}
+  <div className="md:col-span-2 space-y-1.5">
+    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
+      Assign Task To <span className="text-slate-300 font-bold normal-case">(blank = self)</span>
+    </label>
+    <LocalSearchableSelect
+      options={assignableUsers}
+      value={form.task_assigned_to}
+      onChange={(id) => setForm((prev) => ({ ...prev, task_assigned_to: id }))}
+      emptyOptionLabel="Self Assign"
+      placeholder="Search employee by name or ID..."
+      getId={(u) => u.id}
+      getLabel={(u) => {
+        const project = projects.find((p) => p.id === form.project_id);
+        const membership = project?.members?.find((m) => (m.user_id || m.user?.id) === u.id);
+        const roleLabel = membership?.role?.name;
+        return `${u.name} (${u.employee_id})${roleLabel ? ` — ${roleLabel}` : ""}`;
+      }}
+      getSearchText={(u) => `${u.name} ${u.employee_id}`}
+    />
+  </div>
+)}
 
     {/* Follow-up + task combined info */}
     {form.is_follow_up && form.is_task && (
@@ -1038,16 +1155,26 @@ onChange={(e) => setSearch(e.target.value)}
 
             {/* Parent call */}
             {viewTarget.parent_call_id && (
-              <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                <MdPhone size={18} className="text-slate-400 shrink-0" />
-                <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Follow-Back for original call</p>
-                  <p className="text-xs font-bold text-[#132ea7] mt-0.5 font-mono">
-                    {calls.find((c) => c.id === viewTarget.parent_call_id)?.display_id || viewTarget.parent_call_id}
-                  </p>
-                </div>
-              </div>
-            )}
+  <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+    <MdPhone size={18} className="text-slate-400 shrink-0" />
+    <div>
+      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+        Follow-Back for original call
+      </p>
+      <p className="text-xs font-bold text-[#132ea7] mt-0.5">
+        {(() => {
+          const parent = calls.find(
+            (c) => c.id === viewTarget.parent_call_id
+          );
+
+          return parent
+            ? `[${parent.display_id}] ${parent.caller_name}`
+            : viewTarget.parent_call_id;
+        })()}
+      </p>
+    </div>
+  </div>
+)}
 
             {/* Summary */}
             {viewTarget.call_summary && (

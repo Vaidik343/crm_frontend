@@ -41,7 +41,7 @@ const navItems = [
 const AdminLayout = () => {
     const [collapsed, setCollapsed] = useState(false);
     const { user, logout } = useAuth();
-
+ 
     return (
         <div className="flex h-screen overflow-hidden bg-slate-50">
             {/* sidebar */}

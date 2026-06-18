@@ -71,40 +71,44 @@ import LocalSearchableSelect from "../../components/ui/LocalSearchableSelect";
     const [remarkSubmitting, setRemarkSubmitting] = useState(false);
     const [showNewRemark, setShowNewRemark] = useState(false);
 
+    const [selectedProject, setSelectedProject] = useState(null);
+    const [selectedCall, setSelectedCall] = useState(null);
+    const [dueFilter, setDueFilter] = useState(""); // "" | "overdue" | "due_soon"
+    // console.log("🚀 ~ Tasks ~ dueFilter:", dueFilter)
+
+
     const [dateFrom, setDateFrom] = useState("");
 const [dateTo, setDateTo] = useState("");
 const today = new Date().toISOString().split("T")[0];
 
 
     
-    useEffect(() => {
-      getAllTasks?.(page, dateFrom, dateTo);
-      getAllUsers?.();
-      getAllProjects?.();
-      getAllCalls?.();
-    }, [page, dateFrom, dateTo]);
-
 
     
 
     // Members of the selected project — falls back to all users if no project selected
 const assignableUsers = useMemo(() => {
-  if (!form.project_id) return users;
-  const project = projects.find((p) => p.id === form.project_id);
-  if (!project?.members?.length) return [];
-  const memberUserIds = project.members.map((m) => m.user_id || m.user?.id);
+  if (!selectedProject) return users;
+  if (!selectedProject.members?.length) return [];
+  const memberUserIds = selectedProject.members.map((m) => m.user_id || m.user?.id);
   return users.filter((u) => memberUserIds.includes(u.id));
-}, [form.project_id, projects, users]);
-
+}, [selectedProject, users]);
     // filter
 const search = filter.toLowerCase().trim();
+
+    useEffect(() => {
+      getAllTasks?.(page, dateFrom, dateTo, limit, search, dueFilter);
+      getAllUsers?.();
+      getAllProjects?.();
+      getAllCalls?.();
+    }, [page, dateFrom, dateTo, dueFilter]);
 
 
 
     useEffect(() => {
       const debounce = setTimeout(() => {
         setPage(1);
-        getAllTasks?.(1, dateFrom, dateTo, limit, search);
+        getAllTasks?.(1, dateFrom, dateTo, limit, search,dueFilter);
       }, 300);
     
       return () => clearTimeout(debounce);
@@ -147,11 +151,13 @@ const filtered = tasks || [];
     // console.log("🚀 ~ validate ~ validate:", validate)
 
     const openCreate = () => {
-      setEditTarget(null);
-      setForm(initialForm);
-      setFieldErrors({});
-      setShowModal(true);
-    };
+  setEditTarget(null);
+  setForm(initialForm);
+  setFieldErrors({});
+  setSelectedProject(null);
+  setSelectedCall(null);
+  setShowModal(true);
+};
  
     const openEdit = (task) => {
 
@@ -159,30 +165,31 @@ const filtered = tasks || [];
   // console.log("RAW DUE DATE:", task.due_date);
   // console.log("PARSED:", new Date(task.due_date));
 
-      setEditTarget(task);
-      setForm({
-        task: task.task || "",
-        description: task.description || "",
-        // team_id: task.team_id || "",
-        project_id: task.project_id || "",
-        call_id: task.call_id || "",
-        assigned_to: task.assigned_to || "",
-        due_date: task.due_date
-          ? new Date(task.due_date).toISOString().split("T")[0]
-          : null,
-        status: task.status || "open",
-        remarks:      "",
-      });
-      setFieldErrors({});
-      setShowModal(true);
+ setEditTarget(task);
+  setForm({
+    task: task.task || "",
+    description: task.description || "",
+    project_id: task.project_id || "",
+    call_id: task.call_id || "",
+    assigned_to: task.assigned_to || "",
+    due_date: task.due_date ? new Date(task.due_date).toISOString().split("T")[0] : null,
+    status: task.status || "open",
+    remarks: "",
+  });
+  setSelectedProject(task.project || null);
+  setSelectedCall(task.call || null);
+  setFieldErrors({});
+  setShowModal(true);
     };
 
     const closeModal = () => {
-      setShowModal(false);
-      setEditTarget(null);
-      setForm(initialForm);
-      setFieldErrors({});
-    };
+  setShowModal(false);
+  setEditTarget(null);
+  setForm(initialForm);
+  setFieldErrors({});
+  setSelectedProject(null);
+  setSelectedCall(null);
+};
 
     const handleSubmit = async (e) => {
       e.preventDefault();
@@ -278,6 +285,27 @@ const filtered = tasks || [];
           </div> 
 
  <div className="flex flex-wrap items-center gap-3">
+
+  <div className="flex items-center gap-2">
+  {[
+    { value: "", label: "All" },
+    { value: "due_soon", label: "Due Soon" },
+    { value: "overdue", label: "Overdue" },
+  ].map((opt) => (
+    <button
+      key={opt.value}
+      onClick={() => { setPage(1); setDueFilter(opt.value); }}
+      className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+        dueFilter === opt.value
+          ? "bg-[#132ea7] text-white shadow-lg shadow-[#132ea7]/20"
+          : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+      }`}
+    >
+      {opt.label}
+    </button>
+  ))}
+</div>
+
 
  {/* Date range filter */}
     <div className="flex items-center gap-3 bg-white border border-slate-100 rounded-2xl px-4 py-2 shadow-sm">
@@ -611,28 +639,33 @@ const filtered = tasks || [];
 
 
 {/* Project */}
-              {!editTarget && (
-                <div className="space-y-1.5">
-  <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
-    Project
-  </label>
-  <select
-    name="project_id"
-    value={form.project_id}
-    onChange={handleChange}
-error={fieldErrors.project_id}
-    required
-    className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all"
-  >
-    <option value="">No Project</option>
-    {projects.map((p) => (
-      <option key={p.id} value={p.id}>
-        {p.name} {p.code ? `(${p.code})` : ""}
-      </option>
-    ))}
-  </select>
-</div>
-              )}
+{!editTarget && (
+  <div className="space-y-1.5">
+    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
+      Project
+    </label>
+    <SearchableSelect
+      endpoint={ENDPOINTS.PROJECTS.ALL}
+      value={form.project_id}
+      selectedLabel={selectedProject ? `${selectedProject.name}${selectedProject.code ? ` (${selectedProject.code})` : ""}` : ""}
+      onChange={(project) => {
+        setSelectedProject(project);
+        setForm((prev) => ({
+          ...prev,
+          project_id: project?.id || "",
+          assigned_to: "",
+          call_id: "",
+        }));
+      }}
+      getLabel={(p) => `${p.name}${p.code ? ` (${p.code})` : ""}`}
+      placeholder="Search project by name or code..."
+      emptyOptionLabel="No Project"
+    />
+    {fieldErrors.project_id && (
+      <p className="text-red-500 text-[10px] font-bold uppercase ml-1 mt-1">{fieldErrors.project_id}</p>
+    )}
+  </div>
+)}
               {/* Assign to — any employee, optional-  filtered by selected project (blank = self) */}
               {!editTarget && (
                 <div className="space-y-1.5">
@@ -652,49 +685,58 @@ error={fieldErrors.project_id}
       Select a project to filter members
     </p>
   )}
- <LocalSearchableSelect
-      options={assignableUsers}
-      value={form.assigned_to}
-      onChange={(id) => setForm((prev) => ({ ...prev, assigned_to: id }))}
-      disabled={form.project_id && assignableUsers.length === 0}
-      emptyOptionLabel="Self Assign"
-      placeholder="Search employee by name or ID..."
-      getId={(u) => u.id}
-      getLabel={(u) => {
-        const project = projects.find((p) => p.id === form.project_id);
-        const membership = project?.members?.find((m) => (m.user_id || m.user?.id) === u.id);
-        const roleLabel = membership?.role?.name;
-        return `${u.name} (${u.employee_id})${roleLabel ? ` — ${roleLabel}` : ""}`;
-      }}
-      getSearchText={(u) => `${u.name} ${u.employee_id}`}
-    />
+<LocalSearchableSelect
+  options={assignableUsers}
+  value={form.assigned_to}
+  onChange={(id) => setForm((prev) => ({ ...prev, assigned_to: id }))}
+  disabled={form.project_id && assignableUsers.length === 0}
+  emptyOptionLabel="Self Assign"
+  placeholder="Search employee by name or ID..."
+  getId={(u) => u.id}
+  getLabel={(u) => {
+    const membership = selectedProject?.members?.find((m) => (m.user_id || m.user?.id) === u.id);
+    const roleLabel = membership?.role?.name;
+    return `${u.name} (${u.employee_id})${roleLabel ? ` — ${roleLabel}` : ""}`;
+  }}
+  getSearchText={(u) => `${u.name} ${u.employee_id}`}
+/>
                 </div>
               )}
 
               
 
               {/* Linked Call */}
-              {!editTarget && (
-                <div className="space-y-1.5">
-                  <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">Linked Call (Optional)</label>
-                    <SearchableSelect
+              
+
+  {!editTarget && (
+  <div className="space-y-1.5">
+    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
+      Linked Call (Optional)
+    </label>
+    <SearchableSelect
       endpoint={ENDPOINTS.CALLS.ALL}
+      extraParams={form.project_id ? { project_id: form.project_id } : {}}
       value={form.call_id}
       selectedLabel={
-        form.call_id
-          ? (() => {
-              const c = calls.find((c) => c.id === form.call_id);
-              return c ? `${c.display_id ? `[${c.display_id}] ` : ""}${c.caller_name} — ${c.call_type}` : "";
-            })()
+        selectedCall
+          ? `${selectedCall.display_id ? `[${selectedCall.display_id}] ` : ""}${selectedCall.caller_name} — ${selectedCall.call_type}`
           : ""
       }
-      onChange={(id) => setForm((prev) => ({ ...prev, call_id: id }))}
+      onChange={(call) => {
+        setSelectedCall(call);
+        setForm((prev) => ({ ...prev, call_id: call?.id || "" }));
+      }}
       getLabel={(c) => `${c.display_id ? `[${c.display_id}] ` : ""}${c.caller_name} — ${c.call_type}`}
-      placeholder="Search calls by name, ID, or number..."
+      placeholder={form.project_id ? "Search calls for this project..." : "Select a project first, or search all calls..."}
       emptyOptionLabel="No Linked Call"
     />
-                </div>
-              )}
+    {form.project_id && (
+      <p className="text-[10px] font-bold text-[#132ea7] ml-1 mt-1 uppercase tracking-widest">
+        Showing calls for selected project only
+      </p>
+    )}
+  </div>
+)}
 
               {/* Due Date */}
               <Input label="Due Date" name="due_date" type="date" value={form.due_date} onChange={handleChange} />

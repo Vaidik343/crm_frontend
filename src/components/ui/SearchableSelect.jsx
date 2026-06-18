@@ -10,6 +10,7 @@ const SearchableSelect = ({
   placeholder = "Search...",
   emptyOptionLabel = "None",
   limit = 10,
+   extraParams = {}, 
 }) => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -22,7 +23,8 @@ const SearchableSelect = ({
   const fetchPage = async (pageNum, search, append = false) => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({ page: pageNum, limit });
+      const params = new URLSearchParams({ page: pageNum, limit, ...extraParams });
+      console.log("🚀 ~ fetchPage ~ params:", params)
       if (search) params.set("search", search);
       const { data } = await api.get(`${endpoint}?${params.toString()}`);
       setOptions((prev) => (append ? [...prev, ...(data.data || [])] : data.data || []));
@@ -68,7 +70,7 @@ const SearchableSelect = ({
           {options.map((opt) => (
             <div
               key={opt.id}
-              onClick={() => { onChange(opt.id); setOpen(false); }}
+              onClick={() => { onChange(opt); setOpen(false); }}
               className="p-3 text-sm font-bold hover:bg-slate-50 cursor-pointer border-t border-slate-50"
             >
               {getLabel(opt)}

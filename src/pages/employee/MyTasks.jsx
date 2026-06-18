@@ -49,6 +49,7 @@ const MyTasks = () => {
     tasks,
     loading,
     page,
+    limit, search, 
     setPage,
     totalPages,
     getAllTasks,
@@ -76,29 +77,44 @@ const MyTasks = () => {
   const [showNewRemark, setShowNewRemark] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
 
+    const [selectedProject, setSelectedProject] = useState(null);
+    const [selectedCall, setSelectedCall] = useState(null);
+    const [dueFilter, setDueFilter] = useState(""); // "" | "overdue" | "due_soon"
+    console.log("🚀 ~ Tasks ~ dueFilter:", dueFilter)
 
-  const today = new Date().toISOString().split("T")[0];
-const [dateFrom, setDateFrom] = useState(today);
+
+const today = new Date().toISOString().split("T")[0];
+const sevenDaysAgo = (() => {
+  const d = new Date();
+  d.setDate(d.getDate() - 7);
+  return d.toISOString().split("T")[0];
+})();
+
+const [dateFrom, setDateFrom] = useState(sevenDaysAgo);
 const [dateTo, setDateTo] = useState(today);
 
 
 
+
+
+    // Members of the selected project — falls back to all users if no project selected
+const assignableUsers = useMemo(() => {
+  if (!selectedProject) return users;
+  if (!selectedProject.members?.length) return [];
+  const memberUserIds = selectedProject.members.map((m) => m.user_id || m.user?.id);
+  return users.filter((u) => memberUserIds.includes(u.id));
+}, [selectedProject, users]);
+
+
+
   useEffect(() => {
-getAllTasks?.(page, dateFrom, dateTo);
+getAllTasks?.(page, dateFrom, dateTo, limit, search, dueFilter);
     getAllProjects?.();
     getAllCalls?.();
     // getAllTeams?.();
     getAllUsers?.();
-  }, [page, dateFrom, dateTo]);
+  }, [page, dateFrom, dateTo, dueFilter]);
 
-  // Members of the selected project — falls back to all users if no project selected
-const assignableUsers = useMemo(() => {
-  if (!form.project_id) return users;
-  const project = projects.find((p) => p.id === form.project_id);
-  if (!project?.members?.length) return [];
-  const memberUserIds = project.members.map((m) => m.user_id || m.user?.id);
-  return users.filter((u) => memberUserIds.includes(u.id));
-}, [form.project_id, projects, users]);
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleChange = (e) => {
@@ -125,6 +141,8 @@ const assignableUsers = useMemo(() => {
     setEditTarget(null);
     setForm(initialForm);
     setFieldErrors({});
+      setSelectedProject(null);
+  setSelectedCall(null);
     setShowModal(true);
   };
 
@@ -143,6 +161,8 @@ const assignableUsers = useMemo(() => {
       status: task.status || "ongoing",
       remark: "",
     });
+    setSelectedProject(task.project || null);
+  setSelectedCall(task.call || null);
     setFieldErrors({});
     setShowModal(true);
   };
@@ -153,6 +173,8 @@ const assignableUsers = useMemo(() => {
     setForm(initialForm);
     setFieldErrors({});
     setShowNewRemark(false);
+    setSelectedProject(null);
+    setSelectedCall(null);
   };
 
   const handleSubmit = async (e) => {
@@ -287,6 +309,28 @@ const assignableUsers = useMemo(() => {
             Total Tasks: {tasks.length}
           </p>
         </div>
+
+
+        
+  <div className="flex items-center gap-2">
+  {[
+    { value: "", label: "All" },
+    { value: "due_soon", label: "Due Soon" },
+    { value: "overdue", label: "Overdue" },
+  ].map((opt) => (
+    <button
+      key={opt.value}
+      onClick={() => { setPage(1); setDueFilter(opt.value); }}
+      className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+        dueFilter === opt.value
+          ? "bg-[#132ea7] text-white shadow-lg shadow-[#132ea7]/20"
+          : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+      }`}
+    >
+      {opt.label}
+    </button>
+  ))}
+</div>
 
         {/* export + btn*/}
         <div className="flex flex-wrap items-center gap-3 sm:justify-end">
@@ -652,21 +696,23 @@ const assignableUsers = useMemo(() => {
                 <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
                   Project
                 </label>
-                <select
-                  name="project_id"
-                  value={form.project_id}
-                  onChange={handleChange}
-                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all"
-                >
-                  <option value="">No Project</option>
-                  {projects.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                      {p.code ? ` (${p.code})` : ""}
-                      
-                    </option>
-                  ))}
-                </select>
+    <SearchableSelect
+      endpoint={ENDPOINTS.PROJECTS.ALL}
+      value={form.project_id}
+      selectedLabel={selectedProject ? `${selectedProject.name}${selectedProject.code ? ` (${selectedProject.code})` : ""}` : ""}
+      onChange={(project) => {
+        setSelectedProject(project);
+        setForm((prev) => ({
+          ...prev,
+          project_id: project?.id || "",
+          assigned_to: "",
+          call_id: "",
+        }));
+      }}
+      getLabel={(p) => `${p.name}${p.code ? ` (${p.code})` : ""}`}
+      placeholder="Search project by name or code..."
+      emptyOptionLabel="No Project"
+    />
               </div>
             )}
 
@@ -692,21 +738,20 @@ const assignableUsers = useMemo(() => {
     </p>
   )}
   <LocalSearchableSelect
-      options={assignableUsers}
-      value={form.assigned_to}
-      onChange={(id) => setForm((prev) => ({ ...prev, assigned_to: id }))}
-      disabled={form.project_id && assignableUsers.length === 0}
-      emptyOptionLabel="Self Assign"
-      placeholder="Search employee by name or ID..."
-      getId={(u) => u.id}
-      getLabel={(u) => {
-        const project = projects.find((p) => p.id === form.project_id);
-        const membership = project?.members?.find((m) => (m.user_id || m.user?.id) === u.id);
-        const roleLabel = membership?.role?.name;
-        return `${u.name} (${u.employee_id})${roleLabel ? ` — ${roleLabel}` : ""}`;
-      }}
-      getSearchText={(u) => `${u.name} ${u.employee_id}`}
-    />               </div>
+  options={assignableUsers}
+  value={form.assigned_to}
+  onChange={(id) => setForm((prev) => ({ ...prev, assigned_to: id }))}
+  disabled={form.project_id && assignableUsers.length === 0}
+  emptyOptionLabel="Self Assign"
+  placeholder="Search employee by name or ID..."
+  getId={(u) => u.id}
+  getLabel={(u) => {
+    const membership = selectedProject?.members?.find((m) => (m.user_id || m.user?.id) === u.id);
+    const roleLabel = membership?.role?.name;
+    return `${u.name} (${u.employee_id})${roleLabel ? ` — ${roleLabel}` : ""}`;
+  }}
+  getSearchText={(u) => `${u.name} ${u.employee_id}`}
+/>             </div>
               )}
 
 
@@ -720,20 +765,21 @@ const assignableUsers = useMemo(() => {
                     
                   </span>
                 </label>
-                           <SearchableSelect
+      <SearchableSelect
       endpoint={ENDPOINTS.CALLS.ALL}
+      extraParams={form.project_id ? { project_id: form.project_id } : {}}
       value={form.call_id}
       selectedLabel={
-        form.call_id
-          ? (() => {
-              const c = calls.find((c) => c.id === form.call_id);
-              return c ? `${c.display_id ? `[${c.display_id}] ` : ""}${c.caller_name} — ${c.call_type}` : "";
-            })()
+        selectedCall
+          ? `${selectedCall.display_id ? `[${selectedCall.display_id}] ` : ""}${selectedCall.caller_name} — ${selectedCall.call_type}`
           : ""
       }
-      onChange={(id) => setForm((prev) => ({ ...prev, call_id: id }))}
+      onChange={(call) => {
+        setSelectedCall(call);
+        setForm((prev) => ({ ...prev, call_id: call?.id || "" }));
+      }}
       getLabel={(c) => `${c.display_id ? `[${c.display_id}] ` : ""}${c.caller_name} — ${c.call_type}`}
-      placeholder="Search calls by name, ID, or number..."
+      placeholder={form.project_id ? "Search calls for this project..." : "Select a project first, or search all calls..."}
       emptyOptionLabel="No Linked Call"
     />
               </div>

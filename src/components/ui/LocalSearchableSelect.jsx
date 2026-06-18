@@ -54,7 +54,7 @@ const LocalSearchableSelect = ({
   };
 
   return (
-    <div className="relative" ref={wrapperRef}>
+    <div className="relative " ref={wrapperRef}>
       <button
         type="button"
         disabled={disabled}
@@ -76,7 +76,7 @@ const LocalSearchableSelect = ({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={placeholder}
-              className="w-full text-sm font-bold text-slate-700 focus:outline-none bg-transparent"
+              className="w-full text-sm font-bold text-slate-700  focus:outline-none bg-transparent"
             />
             {query && (
               <button type="button" onClick={() => setQuery("")} className="text-slate-300 hover:text-slate-500">

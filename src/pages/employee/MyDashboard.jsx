@@ -10,8 +10,8 @@ import {
 } from "react-icons/md";
 
 // ── Stat Card ─────────────────────────────────────────────────────────────────
-const StatCard = ({ label, value, icon, accent, textAccent, dark }) => (
-  <div className={`rounded-[2rem] p-8 flex items-center gap-6 ${dark
+const StatCard = ({ label, value, icon, accent, textAccent, dark,   onClick }) => (
+  <div   onClick={onClick} className={`rounded-[2rem] p-8 flex items-center gap-6 ${dark
       ? "bg-white border border-slate-100 shadow-2xl shadow-slate-200/40"
       : "bg-white border border-slate-100 shadow-2xl shadow-slate-200/40"
     }`}>
@@ -83,6 +83,7 @@ const MyDashboard = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -172,21 +173,25 @@ const MyDashboard = () => {
           label="Projects" value={summary?.total_projects}
           icon={<MdFolder size={26} className="text-[#132ea7]" />}
           accent="bg-[#132ea7]/10"
+          onClick = {() => navigate('/employee/projects')}
         />
         <StatCard
           label="My Tasks" value={ts.total}
           icon={<MdCheckCircle size={26} className="text-[#132ea7]" />}
                     accent="bg-[#132ea7]/10"
+                    onClick = {() => navigate('/employee/tasks')}
         />
         <StatCard
           label="Calls" value={cs.total}
           icon={<MdPhone size={26} className="text-emerald-500" />}
           accent="bg-emerald-50"
+          onClick = {() => navigate('/employee/calls')}
         />
         <StatCard
           label="Logs Today" value={summary?.today_logs}
           icon={<MdCalendarToday size={26} className="text-amber-500" />}
           accent="bg-amber-50"
+          onClick = {() => navigate('/employee/work-logs')}
         />
       </div>
       {/* ── Task Progress Bar ── */}
