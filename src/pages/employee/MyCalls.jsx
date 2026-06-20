@@ -17,7 +17,7 @@
   import ConfirmDialog from "../../components/ui/ConfirmDialog";
   // import ExportBar from "../../components/ui/ExportBar";
   import ExportModalMine from "../../components/ui/ExportModalMine";
-
+import MultiSearchableSelect from "../../components/ui/MultiSearchableSelect";
 
   import {
     MdPhone,
@@ -80,6 +80,7 @@
     transfer_to: "",
     task_assigned_to: "",
     parent_call_id: "",
+     attendees: [], 
   };
     console.log("🚀 ~ initialForm.task_assigned_to:", initialForm.task_assigned_to)
 
@@ -197,7 +198,14 @@ const handleChange = (e) => {
   const newValue = type === "checkbox" ? checked : value;
   if (name === "call_type") {
     setForm((prev) => ({ ...prev, call_type: newValue, call_subtype: "" }));
-  } else if (name === "transfer_to") {
+  } else if (name === "receive_type") {
+    setForm((prev) => ({
+      ...prev,
+      receive_type: newValue,
+      attendees: newValue === "meeting" ? prev.attendees : [],
+    }));
+  }
+  else if (name === "transfer_to") {
     setForm((prev) => ({ ...prev, transfer_to: newValue, is_task: false, task_assigned_to: "", is_follow_up: false, parent_call_id: "" }));
   } else if (name === "is_task" && !checked) {
     setForm((prev) => ({ ...prev, is_task: false, task_assigned_to: "" }));
@@ -221,11 +229,15 @@ const handleChange = (e) => {
 
   if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: "" }));
 };
-console.log("🚀 ~ handleChange ~ handleChange:", handleChange)
 
     const validate = () => {
       const errors = {};
       if (!form.caller_name.trim()) errors.caller_name  = "Caller name is required";
+const digitsOnly = (form.caller_number || "").replace(/\D/g, "");
+const isValid = digitsOnly.length === 10 || (digitsOnly.length === 12 && digitsOnly.startsWith("91"));
+if (!isValid) {
+  errors.caller_number = "Enter a valid 10-digit mobile number (with or without +91)";
+}
       if (!form.call_type)          errors.call_type    = "Call type is required";
       if (!form.call_subtype)       errors.call_subtype = "Call subtype is required";
       if (!form.receive_type)       errors.receive_type = "Receive type is required";
@@ -260,6 +272,7 @@ console.log("🚀 ~ handleChange ~ handleChange:", handleChange)
         transfer_to: "",
         task_assigned_to: "",
         parent_call_id: "",
+            attendees: call.attendees || [],
 
       });
       setFieldErrors({});
@@ -272,6 +285,7 @@ console.log("🚀 ~ handleChange ~ handleChange:", handleChange)
       setForm(initialForm);
       setFieldErrors({});
     };
+
 
     const handleSubmit = async (e) => {
       e.preventDefault();
@@ -293,6 +307,7 @@ console.log("🚀 ~ handleChange ~ handleChange:", handleChange)
             caller_number: form.caller_number || null,
             call_summary: form.call_summary || null,
             remarks: form.remarks || null,
+            attendees : form.attendees  || [],
             is_task:          form.is_task          || false,
             transfer_to:      form.transfer_to      || null,
             task_assigned_to: form.task_assigned_to || null,
@@ -300,10 +315,12 @@ console.log("🚀 ~ handleChange ~ handleChange:", handleChange)
             parent_call_id:   form.parent_call_id   || null,
           };
           const cc = await createCall(payload);
+          console.log("🚀 ~ handleSubmit ~ cc:", cc)
+          
           if (cc?.task) {
   setAlert({
             type: "success",
-            message: result?.task
+            message: cc?.task
               ? "Call logged and task auto-created"
               : form.transfer_to
                 ? "Call logged and transferred"
@@ -315,6 +332,7 @@ console.log("🚀 ~ handleChange ~ handleChange:", handleChange)
         }
         closeModal();
       } catch (err) {
+              console.log("🚀 ~ handleSubmit ~ err:", err)
         setAlert({
           type: "danger",
           message: err?.response?.data?.message || "Something went wrong",
@@ -633,20 +651,24 @@ console.log("🚀 ~ handleChange ~ handleChange:", handleChange)
                         >
                           <MdVisibility size={20} />
                         </button>
-                        <button
-                          className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 transition-all"
-                          onClick={() => openEdit(call)}
-                          title="Edit"
-                        >
-                          <MdEdit size={20} />
-                        </button>
-                        <button
-                          className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
-                          onClick={() => setConfirmDelete(call)}
-                          title="Delete"
-                        >
-                          <MdDelete size={20} />
-                        </button>
+                        {call.user_id === authUser?.id && (
+      <button
+        className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 transition-all"
+        onClick={() => openEdit(call)}
+        title="Edit"
+      >
+        <MdEdit size={20} />
+      </button>
+    )}
+    {call.user_id === authUser?.id && (
+      <button
+        className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
+        onClick={() => setConfirmDelete(call)}
+        title="Delete"
+      >
+        <MdDelete size={20} />
+      </button>
+    )}
                       </div>
                     </td>
                   </tr>
@@ -763,12 +785,16 @@ console.log("🚀 ~ handleChange ~ handleChange:", handleChange)
                   <button onClick={() => setViewTarget(call)} className="flex-1 h-10 rounded-xl bg-slate-50 text-slate-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all">
                     <MdVisibility size={16} /> View
                   </button>
-                  <button onClick={() => openEdit(call)} className="flex-1 h-10 rounded-xl bg-[#132ea7]/10 text-[#132ea7] font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/20 transition-all">
-                    <MdEdit size={16} /> Edit
-                  </button>
-                  <button onClick={() => setConfirmDelete(call)} className="flex-1 h-10 rounded-xl bg-red-50 text-red-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-red-100 transition-all">
-                    <MdDelete size={16} /> Delete
-                  </button>
+                  {call.user_id === authUser?.id && (
+    <button onClick={() => openEdit(call)} className="flex-1 h-10 rounded-xl bg-[#132ea7]/10 text-[#132ea7] font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/20 transition-all">
+      <MdEdit size={16} /> Edit
+    </button>
+  )}
+  {call.user_id === authUser?.id && (
+    <button onClick={() => setConfirmDelete(call)} className="flex-1 h-10 rounded-xl bg-red-50 text-red-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-red-100 transition-all">
+      <MdDelete size={16} /> Delete
+    </button>
+  )}
                 </div>
               </div>
             ))
@@ -893,6 +919,7 @@ console.log("🚀 ~ handleChange ~ handleChange:", handleChange)
                 name="caller_number"
                 value={form.caller_number}
                 onChange={handleChange}
+                 error={fieldErrors.caller_number}
                 placeholder="e.g. +91 98765 43210"
               />
   <div className="md:col-span-2 space-y-1.5">
@@ -950,7 +977,7 @@ console.log("🚀 ~ handleChange ~ handleChange:", handleChange)
                 required
               />
 
-              <div className="md:col-span-2">
+              {/* <div className="md:col-span-2">
                 <Select
                   label="Communication Medium"
                   name="receive_type"
@@ -961,7 +988,42 @@ console.log("🚀 ~ handleChange ~ handleChange:", handleChange)
                   placeholder="Select medium..."
                   required
                 />
-              </div>
+              </div> */}
+
+
+<div className="md:col-span-2">
+  <Select
+    label="Communication Medium"
+    name="receive_type"
+    value={form.receive_type}
+    onChange={handleChange}
+    options={RECEIVE_OPTIONS}
+    error={fieldErrors.receive_type}
+    placeholder="Select medium..."
+    required
+  />
+</div>
+
+{/* Meeting attendees — only relevant when receive_type is meeting */}
+{form.receive_type === "meeting" && (
+  <div className="md:col-span-2 space-y-1.5">
+    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
+      Other Attendees{" "}
+      <span className="text-slate-300 font-bold normal-case tracking-normal">
+        (optional — leave empty if it was just you)
+      </span>
+    </label>
+    <MultiSearchableSelect
+      options={users.filter((u) => u.id !== authUser?.id)}
+      value={form.attendees}
+      onChange={(ids) => setForm((prev) => ({ ...prev, attendees: ids }))}
+      getId={(u) => u.id}
+      getLabel={(u) => `${u.name} (${u.employee_id})`}
+      getSearchText={(u) => `${u.name} ${u.employee_id}`}
+      placeholder="Search employees who attended..."
+    />
+  </div>
+)}
 
               <div className="md:col-span-2">
                 <Textarea
@@ -1414,6 +1476,21 @@ console.log("🚀 ~ handleChange ~ handleChange:", handleChange)
                 </div>
               )}
 
+{viewTarget.attendees && Array.isArray(viewTarget.attendees) && viewTarget.attendees.length > 0 && (
+  <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-2xl border border-blue-100">
+    <MdAssignment size={20} className="text-blue-500 shrink-0 mt-0.5" />
+    <div>
+      <p className="text-xs font-black text-blue-600 uppercase tracking-widest">
+        Other Attendees
+      </p>
+      <p className="text-sm font-bold text-blue-700 mt-1">
+        {viewTarget.attendees
+          .map((id) => users.find((u) => u.id === id)?.name || id)
+          .join(", ")}
+      </p>
+    </div>
+  </div>
+)}
               {viewTarget.remarks &&
                 Array.isArray(viewTarget?.remarks) &&
                 viewTarget.remarks.length > 0 && (

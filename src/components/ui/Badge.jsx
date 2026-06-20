@@ -34,13 +34,41 @@ const Badge = ({ value, overrideColor }) => {
   );
 };
 
-export const DueDateBadge = ({ dueDate }) => {
+export const DueDateBadge = ({ dueDate, status, updatedAt }) => {
+  if (status === "closed") {
+    if (!dueDate) {
+      return (
+        <span className="inline-flex items-center px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-600 border border-emerald-100 line-through decoration-2">
+          Completed
+        </span>
+      );
+    }
+
+    const due = new Date(dueDate);
+    due.setHours(23, 59, 59, 999);
+    const completedAt = updatedAt ? new Date(updatedAt) : new Date();
+
+    const wasLate = completedAt > due;
+
+    if (wasLate) {
+      return (
+        <span className="inline-flex items-center px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-widest bg-red-50 text-red-600 border border-red-100 line-through decoration-2">
+          Completed (Late)
+        </span>
+      );
+    }
+
+    return (
+      <span className="inline-flex items-center px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-600 border border-emerald-100 line-through decoration-2">
+        Completed
+      </span>
+    );
+  }
+
   if (!dueDate) return <span className="text-slate-400 text-xs font-bold uppercase tracking-widest">No due date</span>;
 
   const now = new Date();
   const due = new Date(dueDate);
-
-  // Set to end of the day for fairer comparison
   due.setHours(23, 59, 59, 999);
 
   const diffMs = due - now;

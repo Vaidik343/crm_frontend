@@ -418,12 +418,12 @@ const filtered = tasks || [];
 
                       <td className="px-10 py-6">
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-xl bg-[#132ea7] text-white flex items-center justify-center font-black shadow-lg shadow-[#132ea7]/10">
+                          <div className="min-w-10 min-h-10 rounded-xl bg-[#132ea7] text-white flex items-center justify-center font-black shadow-lg shadow-[#132ea7]/10">
                             <MdAssignment size={18} />
                           </div>
                           <div>
                             {/* task */}
-                            <div className="font-black text-slate-800 text-lg leading-tight">
+                            <div className="font-black text-slate-800 text-lg  truncate max-w-[200px] leading-tight">
                               {task.task}
                             </div>
                             {task.description && (
@@ -481,7 +481,7 @@ const filtered = tasks || [];
 
 
                       <td className="px-8 py-6">
-                        <DueDateBadge dueDate={task.due_date} />
+           <DueDateBadge dueDate={task.due_date} status={task.status} updatedAt={task.updatedAt} />
                       </td>
  
                       
@@ -596,7 +596,7 @@ const filtered = tasks || [];
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-slate-400 font-bold uppercase text-[10px]">Due</span>
-                    <DueDateBadge dueDate={task.due_date} />
+                 <DueDateBadge dueDate={task.due_date} status={task.status} updatedAt={task.updatedAt} />
                   </div>
                 </div>
 

@@ -27,7 +27,7 @@ const EmployeeLayout = () => {
          <nav className="bg-[#132ea7] border-b   border-slate-200 sticky top-0 z-50 shadow-sm">
 
     {/* TOP BAR */}
-    <div className="h-[70px] px-4 md:px-6 flex items-center justify-between gap-4 max-w-full">
+    <div className="h-[70px] px-4 md:px-6 md:mb-4 flex items-center justify-between gap-4 max-w-full">
 
 
         {/* LEFT */}

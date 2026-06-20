@@ -6,9 +6,9 @@ import Badge, { DueDateBadge } from "../../components/ui/Badge";
 import {
   MdFolder, MdGroup, MdPhone, MdWarning, MdAccessTime,
   MdArrowBack, MdAssignment, MdCalendarToday, MdCheckCircle,
-  MdPerson
+  MdPerson, MdDownload 
 } from "react-icons/md";
-
+import ExportProjectModal from "../../components/ui/ExportProjectModal";
 const STATUS_COLORS = {
   planning:  "bg-slate-100 text-slate-600",
   active:    "bg-emerald-100 text-emerald-700",
@@ -34,6 +34,10 @@ const ProjectDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError]     = useState(null);
 
+  const [showExport, setShowExport] = useState(false);
+
+
+
   useEffect(() => {
     api.get(`/projects/${id}/dashboard`)
       .then((res) => setData(res.data))
@@ -41,6 +45,36 @@ const ProjectDashboard = () => {
       .finally(() => setLoading(false));
   }, [id]);
 
+
+  const handleExport = async () => {
+  setExporting(true);
+  try {
+    const params = {};
+    if (exportFrom && exportTo) {
+      params.from = exportFrom;
+      params.to = exportTo;
+    }
+    const res = await api.get(`/export/project/${id}`, {
+      params,
+      responseType: "blob",
+    });
+
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    const link = document.createElement("a");
+    link.href = url;
+    const fileLabel = exportFrom && exportTo ? `${exportFrom}_to_${exportTo}` : new Date().toISOString().split("T")[0];
+    link.setAttribute("download", `${project.name}_activity_${fileLabel}.xlsx`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+    setShowExport(false);
+  } catch (err) {
+    alert(err?.response?.data?.message || "Export failed");
+  } finally {
+    setExporting(false);
+  }
+};
   if (loading) return (
     <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
       <Spinner size="lg" />
@@ -92,7 +126,18 @@ const ProjectDashboard = () => {
             Created by {project.creator?.name || "—"} · {new Date(project.createdAt).toLocaleDateString("default", { month: "long", day: "numeric", year: "numeric" })}
           </p>
         </div>
+        
+
+  {/* Export */}
+<button
+  onClick={() => setShowExport(true)}
+  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#132ea7] text-white text-xs font-black uppercase tracking-widest shadow-sm hover:bg-[#132ea7]/90 transition-all mt-1"
+>
+  <MdDownload size={16} />
+  Export
+</button>
       </div>
+
 
       {/* Alerts */}
       {(alerts?.overdue_count > 0 || alerts?.due_soon_count > 0) && (
@@ -365,7 +410,7 @@ const ProjectDashboard = () => {
           </table>
         </div>
       </div>
-
+<ExportProjectModal show={showExport} onClose={() => setShowExport(false)} project={project} />
     </div>
   );
 };

@@ -436,7 +436,7 @@ getAllTasks?.(page, dateFrom, dateTo, limit, search, dueFilter);
                           <MdAssignment size={18} />
                         </div>
                         <div>
-                          <div className="font-black text-slate-800 text-lg leading-tight">
+                          <div className="font-black text-slate-800 text-lg truncate max-w-[200px] leading-tight">
                             {task.task}
                           </div>
                           {task.description && (
@@ -490,9 +490,7 @@ getAllTasks?.(page, dateFrom, dateTo, limit, search, dueFilter);
 
 
                     {/* Due */}
-                    <td className="px-8 py-6">
-                      <DueDateBadge dueDate={task.due_date} />
-                    </td>
+                    <DueDateBadge dueDate={task.due_date} status={task.status} updatedAt={task.updatedAt} />
 
                     {/* Actions */}
                     <td className="px-10 py-6 text-right">
@@ -622,7 +620,7 @@ getAllTasks?.(page, dateFrom, dateTo, limit, search, dueFilter);
                   <span className="text-slate-400 font-bold uppercase text-[10px]">
                     Due
                   </span>
-                  <DueDateBadge dueDate={task.due_date} />
+                  <DueDateBadge dueDate={task.due_date} status={task.status} updatedAt={task.updatedAt} />
                 </div>
 
                 
@@ -970,6 +968,12 @@ getAllTasks?.(page, dateFrom, dateTo, limit, search, dueFilter);
                   label: "Start Date",
                   value: viewTarget.start_date
                     ? new Date(viewTarget.start_date).toLocaleDateString()
+                    : "—",
+                },
+                {
+                  label: "Update Date",
+                  value: viewTarget.start_date
+                    ? new Date(viewTarget.updatedAt).toLocaleDateString()
                     : "—",
                 },
                 // { label: "Created",      value: new Date(viewTarget.createdAt).toLocaleDateString() },

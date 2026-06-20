@@ -62,16 +62,20 @@ const [exportTarget, setExportTarget] = useState(null);
   };
 
   const validate = () => {
-    const errors = {};
-    // let num = form.mobile.length = 10 ? errors.mobile = ""  :  errors.mobile =  "invalid"
-    if (!form.name.trim()) errors.name = "Name is required";
-    if(form.mobile.length>10) errors.mobile = "Invalid Number"
-    if(form.mobile.length<10) errors.mobile = "Invalid Number"
-    if (!form.role_id) errors.role_id = "Role is required";
-    if (form.email && !/\S+@\S+\.\S+/.test(form.email))
-      errors.email = "Invalid email";
-    return errors;
-  };
+  const errors = {};
+  if (!form.name.trim()) errors.name = "Name is required";
+
+  const digitsOnly = (form.mobile || "").replace(/\D/g, "");
+const isValid = digitsOnly.length === 10 || (digitsOnly.length === 12 && digitsOnly.startsWith("91"));
+if (!isValid) {
+  errors.mobile = "Enter a valid 10-digit mobile number (with or without +91)";
+}
+
+  if (!form.role_id) errors.role_id = "Role is required";
+  if (form.email && !/\S+@\S+\.\S+/.test(form.email))
+    errors.email = "Invalid email";
+  return errors;
+};
 
   const openCreate = () => {
     setEditTarget(null);
@@ -549,16 +553,16 @@ const [exportTarget, setExportTarget] = useState(null);
                 placeholder="john@example.com"
                 required
               />
-              <Input
-                label="Mobile no."
-                name="mobile"
-                type="number"
-                value={form.mobile}
-                onChange={handleChange}
-                error={fieldErrors.mobile}
-                placeholder="9911223344"
-                
-              />
+<Input
+  label="Mobile no."
+  name="mobile"
+  type="text"
+  inputMode="numeric"
+  value={form.mobile}
+  onChange={handleChange}
+  error={fieldErrors.mobile}
+  placeholder="9911223344"
+/>
               {/* <Input
                 label="Employee ID (Auto-generated if empty)"
                 name="employee_id"
