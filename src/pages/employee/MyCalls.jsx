@@ -52,7 +52,7 @@ import MultiSearchableSelect from "../../components/ui/MultiSearchableSelect";
 
   const FILTER_OPTIONS = [
     { value: "all", label: "All" },
-    { value: "inquiry", label: "Inquiry" },
+    { value: "inquiry", label: "Inquiry"  },
     { value: "request", label: "Request" },
     { value: "complaint", label: "Complaint" },
   ];
@@ -183,6 +183,7 @@ import MultiSearchableSelect from "../../components/ui/MultiSearchableSelect";
 
       // Own calls for parent_call_id dropdown (follow-up);
       const otherUsers = users.filter((u) => u.id !== authUser?.id);
+      console.log("🚀 ~ MyCalls ~ otherUsers:", otherUsers)
 
       //Own calls for parent_call_id dropdown (follow up)
       const ownCalls = calls.filter( (c) => !c.parent_call_id && !c.transfer_to)
@@ -314,6 +315,7 @@ if (!isValid) {
             follow_up_date:   form.follow_up_date   || null,
             parent_call_id:   form.parent_call_id   || null,
           };
+          console.log("🚀 ~ handleSubmit ~ payload:", payload)
           const cc = await createCall(payload);
           console.log("🚀 ~ handleSubmit ~ cc:", cc)
           
@@ -660,7 +662,7 @@ if (!isValid) {
         <MdEdit size={20} />
       </button>
     )}
-    {call.user_id === authUser?.id && (
+    {/* {call.user_id === authUser?.id && (
       <button
         className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
         onClick={() => setConfirmDelete(call)}
@@ -668,7 +670,7 @@ if (!isValid) {
       >
         <MdDelete size={20} />
       </button>
-    )}
+    )} */}
                       </div>
                     </td>
                   </tr>

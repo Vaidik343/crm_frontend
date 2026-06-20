@@ -34,6 +34,7 @@ const navItems = [
     { to: "/admin/permissions", label: "Permissions", icon: <MdLock size={20} /> },
     { to: "/admin/work-logs", label: "Work Logs", icon: <MdBook size={20} /> },
     {to: "/admin/clients", label:"Clients", icon: <ImUserTie size={20}/>},
+    //   { to: "/admin/notifications", label: "Notifications", icon: <MdNotifications size={20} /> },
     // { to: "/admin/teams", label: "Teams", icon: <MdGroup size={20} /> },
     
     // { to: "/admin/export", label: "Export", icon: <MdFileDownload size={20} /> },

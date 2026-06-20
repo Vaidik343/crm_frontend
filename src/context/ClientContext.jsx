@@ -19,9 +19,15 @@ export const ClientProvider = ({ children }) => {
   };
 
   const createClient = async (data) => {
-    const res = await api.post("/clients", data);
+    try {
+          const res = await api.post("/clients", data);
     setClients((prev) => [...prev, res.data.client]);
+
+    await getAllClients?.();
     return res.data.client;
+    } catch (error) {
+      throw error
+    }
   };
 
   const updateClient = async (id, data) => {

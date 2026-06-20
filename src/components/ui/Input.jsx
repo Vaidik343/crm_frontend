@@ -19,7 +19,7 @@ const Input = ({ label, type = "text", value, onChange, error, placeholder, requ
             ? "border-red-500 ring-4 ring-red-500/10" 
             : "border-slate-200 focus:border-[#e98937] focus:ring-4 focus:ring-[#e98937]/10"
           } 
-          ${disabled ? "bg-slate-50 cursor-not-allowed opacity-60" : "hover:border-slate-300"}
+          // ${disabled ? "bg-slate-50 cursor-not-allowed opacity-60" : "hover:border-slate-300"}
         `}
       />
       {error && <p className="mt-1.5 ml-1 text-xs font-medium text-red-500">{error}</p>}

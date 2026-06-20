@@ -300,71 +300,84 @@ getAllTasks?.(page, dateFrom, dateTo, limit, search, dueFilter);
   return (
     <div className="space-y-8 px-4 animate-in fade-in duration-700">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-2 uppercase">
-            Task <span className="text-[#132ea7]">Board</span>
-          </h2>
-          <p className="text-slate-500 font-bold text-base">
-            Total Tasks: {tasks.length}
-          </p>
-        </div>
 
+<div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+  <div>
+    <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-2 uppercase">
+      Task <span className="text-[#132ea7]">Board</span>
+    </h2>
+    <p className="text-slate-500 font-bold text-base">
+      Total Tasks: {tasks.length}
+    </p>
+  </div>
 
-        
-  <div className="flex items-center gap-2">
-  {[
-    { value: "", label: "All" },
-    { value: "due_soon", label: "Due Soon" },
-    { value: "overdue", label: "Overdue" },
-  ].map((opt) => (
-    <button
-      key={opt.value}
-      onClick={() => { setPage(1); setDueFilter(opt.value); }}
-      className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-        dueFilter === opt.value
-          ? "bg-[#132ea7] text-white shadow-lg shadow-[#132ea7]/20"
-          : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-      }`}
-    >
-      {opt.label}
-    </button>
-  ))}
+  <div className="flex flex-col lg:flex-row flex-wrap rounded items-stretch lg:items-center gap-3">
+    {/* Filter buttons */}
+    <div className="flex items-center gap-2.5">
+      {[
+        { value: "", label: "All" },
+        { value: "due_soon", label: "Due Soon" },
+        { value: "overdue", label: "Overdue" },
+      ].map((opt) => (
+        <button
+          key={opt.value}
+          onClick={() => { setPage(1); setDueFilter(opt.value); }}
+          className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+            dueFilter === opt.value
+              ? "bg-[#132ea7] text-white shadow-lg shadow-[#132ea7]/20"
+              : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+          }`}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+
+    {/* Date range */}
+    <div className="flex items-center max-w-[55dvw]  gap-2 bg-white  border flex-wrap border-slate-100 rounded-2xl px-4 py-2 shadow-sm">
+      <label className="text-xs font-black text-slate-400 uppercase">From</label>
+      <input
+        type="date"
+        value={dateFrom}
+        max={today}
+        onChange={(e) => setDateFrom(e.target.value)}
+        className="bg-slate-50 border border-slate-100 rounded-xl px-2 py-1.5 text-sm font-bold"
+      />
+      <label className="text-xs font-black text-slate-400 uppercase">To</label>
+      <input
+        type="date"
+        value={dateTo}
+        max={today}
+        onChange={(e) => setDateTo(e.target.value)}
+        className="bg-slate-50 border border-slate-100 rounded-xl px-2 py-1.5 text-sm font-bold"
+      />
+      <button
+        onClick={() => { setDateFrom(sevenDaysAgo); setDateTo(today); }}
+        className="text-[10px] font-black text-[#132ea7] uppercase tracking-widest hover:underline whitespace-nowrap"
+      >
+        Reset
+      </button>
+    </div>
+
+    {/* Action buttons */}
+    <div className="flex gap-3">
+      <Button
+        variant="ghost"
+        className="shadow-sm px-6 rounded-xl font-black uppercase tracking-widest text-sm whitespace-nowrap h-[52px] bg-white border border-slate-100"
+        onClick={() => setShowExportModal(true)}
+      >
+        <MdDownload size={20} className="mr-1" /> Download
+      </Button>
+      <Button
+        variant="primary"
+        className="shadow-lg shadow-[#132ea7]/20 px-8 rounded-xl h-[52px] font-black uppercase tracking-widest text-sm whitespace-nowrap"
+        onClick={openCreate}
+      >
+        <MdAdd size={22} className="mr-1" /> New Task
+      </Button>
+    </div>
+  </div>
 </div>
-
-        {/* export + btn*/}
-        <div className="flex flex-wrap items-center gap-3 sm:justify-end">
-<div className="flex items-center gap-3 bg-white border border-slate-100 rounded-2xl px-4 py-2 shadow-sm">
-  <label className="text-xs font-black text-slate-400 uppercase">From</label>
-  <input type="date" value={dateFrom} max={today} onChange={(e) => setDateFrom(e.target.value)}
-    className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-sm font-bold" />
-  <label className="text-xs font-black text-slate-400 uppercase">To</label>
-  <input type="date" value={dateTo} max={today} onChange={(e) => setDateTo(e.target.value)}
-    className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-sm font-bold" />
-  <button
-    onClick={() => { setDateFrom(today); setDateTo(today); }}
-    className="text-[10px] font-black text-[#132ea7] uppercase tracking-widest hover:underline"
-  >
-    Reset to Today
-  </button>
-</div>
-
-<Button
-  variant="ghost"
-  className="shadow-sm px-6 rounded font-black uppercase tracking-widest text-sm whitespace-nowrap h-[52px] bg-white border border-slate-100"
-  onClick={() => setShowExportModal(true)}
->
-  <MdDownload size={20} className="mr-1" /> Download
-</Button>
-          <Button
-            variant="primary"
-            className="shadow-lg shadow-[#132ea7]/20 py-3 px-8 rounded h-[52px] font-black uppercase tracking-widest text-sm"
-            onClick={openCreate}
-          >
-            <MdAdd size={22} /> New Task
-          </Button>
-        </div>
-      </div>
 
       <Alert
         type={alert.type}
@@ -490,8 +503,9 @@ getAllTasks?.(page, dateFrom, dateTo, limit, search, dueFilter);
 
 
                     {/* Due */}
+                    <td className="px-8 py-6">
                     <DueDateBadge dueDate={task.due_date} status={task.status} updatedAt={task.updatedAt} />
-
+                              </td>
                     {/* Actions */}
                     <td className="px-10 py-6 text-right">
                       <div className="flex items-center justify-end gap-3">
@@ -509,13 +523,13 @@ getAllTasks?.(page, dateFrom, dateTo, limit, search, dueFilter);
                         >
                           <MdEdit size={20} />
                         </button>
-                        <button
+                        {/* <button
                           onClick={() => setConfirmDelete(task)}
                           title="Delete"
                           className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:bg-red-500/10 hover:text-red-500 transition-all"
                         >
                           <MdDelete size={20} />
-                        </button>
+                        </button> */}
                       </div>
                     </td>
                   </tr>

@@ -1,6 +1,9 @@
 import React from 'react'
 import { Route, Routes, Navigate } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import { useAuth } from './context/AuthContext';
+
+
 
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
@@ -33,10 +36,26 @@ import ProjectDashboard from "./pages/employee/ProjectDashboard";
 // import MyProject from './pages/employee/MyProjects';
 import MyProjects from './pages/employee/MyProjects';
 
+import NotificationsPage from "./components/NotificationsPage"; 
+
 const App = () => {
 
   const {isAuthenticated, isAdmin} = useAuth();
   return (
+    <>
+
+     <Toaster
+        position="top-center"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            fontWeight: 700,
+            fontSize: "14px",
+            borderRadius: "12px",
+
+          },
+        }}
+      />
     <Routes>
     {/* public */}
     
@@ -66,6 +85,7 @@ const App = () => {
   <Route path='permissions' element={<Permissions />} />
   <Route path='work-logs' element={<AdminWorkLogs />} />
   <Route path ='clients' element={<Clients />} />
+  <Route path='notifications' element={<NotificationsPage />} />
 
   {/* Teams */}
   {/* <Route path='teams' element={<Teams />} />
@@ -97,8 +117,9 @@ const App = () => {
  
    {/* project */}
    <Route path="projects" element={<MyProjects />} />
+   <Route path="notifications" element={<NotificationsPage />} />
 
-  <Route index element={<Navigate to="tasks" replace />} />
+  <Route index element={<Navigate to="myDashboard" replace />} />
 </Route>
 
   {/* Root redirect */}
@@ -115,6 +136,7 @@ const App = () => {
       <Route path="*" element={<Navigate to="/" replace />} />
 
     </Routes>
+    </>
   )
 }
 

@@ -224,7 +224,7 @@ const MyDashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
         {/* My Tasks */}
-        <div className="lg:col-span-2 bg-white  overflow-auto max-h-[550px] scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent  rounded-[2rem] border border-slate-100 shadow-2xl shadow-slate-200/40 overflow-hidden">
+        <div className="lg:col-span-2 bg-white  overflow-auto max-h-[550px] scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent  rounded-[2rem] border border-slate-100 shadow-2xl shadow-slate-200/40 ">
           <div className="flex items-center justify-between px-10 py-6 border-b-2 border-slate-50">
             <h3 className="text-sm font-black  text-slate-400 uppercase tracking-[0.2em]">My Tasks</h3>
             <div className="flex items-center gap-4 ">
@@ -259,21 +259,21 @@ const MyDashboard = () => {
 
         {/* My Teams */}
         {/* My Projects — replaces My Teams */}
-        <div className="bg-white rounded-[2rem] border  overflow-auto max-h-[550px] scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent  border-slate-100 shadow-2xl shadow-slate-200/40 ">
-          <div className="px-10 py-6 border-b-2 border-slate-50 flex items-center justify-between">
+        <div className=" bg-white rounded-[2rem] border  overflow-auto max-h-[550px] scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent  border-slate-100 shadow-2xl shadow-slate-200/40  ">
+          <div className=" flex items-center justify-between px-10 py-6 border-b-2 border-slate-50  ">
             <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">
               My Projects
             </h3>
             <span className="bg-slate-100 text-slate-500 text-xs px-3 py-1 rounded-full font-black">{my_projects?.length ?? 0}</span>
           </div>
-          <div className="p-6">
+          <div className="p-6 ">
             {!my_projects?.length ? (
               <div className="text-center py-10 text-slate-300 font-bold uppercase tracking-widest text-sm">
                 <MdFolder size={28} className="mx-auto mb-2 opacity-30" />
                 No projects yet
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-2 max-h-[380px] overflow-y-auto custom-scrollbar pr-1">
                 {my_projects.map((project) => (
                   <button
                     key={project.id}
@@ -321,7 +321,7 @@ const MyDashboard = () => {
                 No projects
               </div>
             ) : (
-              <div className="space-y-5">
+              <div className="space-y-5 max-h-[380px] overflow-y-auto custom-scrollbar pr-1">
                 {tasks_by_project.map((p) => (
                   <div key={p.project_id}>
                     <div className="flex items-start justify-between mb-2.5">
@@ -367,7 +367,7 @@ const MyDashboard = () => {
                 No calls logged
               </div>
             ) : (
-              <div className=" space-y-2">
+              <div className=" space-y-2 max-h-[380px] overflow-y-auto custom-scrollbar pr-1">
                 {my_calls.slice(0, 8).map((call) => (
                   <div key={call.id} className="flex items-center justify-between py-3.5 px-2 rounded-2xl hover:bg-slate-50 transition-colors">
                     <div className="flex items-center gap-3">

@@ -88,7 +88,6 @@ export const TaskProvider = ({ children }) => {
       setLoading(false);
     }
   }, []);
-  console.log("🚀 ~ TaskProvider ~ getAllTasks:", getAllTasks)
 
   const getTaskById = useCallback(async (id) => {
     try {

@@ -284,6 +284,7 @@ const Calls = () => {
     if (!form.receive_type) errors.receive_type = "Receive type is required";
     if (form.is_task && !form.project_id)
       errors.project_id = "Project is required when creating a task";
+     if (form.transfer_to && !form.project_id)  errors.project_id = "Project is required when transferring a call";
     if (form.is_follow_up && !form.parent_call_id)
       errors.parent_call_id = "Select the original call";
     // if (form.transfer_to === authUser?.id)           errors.transfer_to   = "Cannot transfer to yourself";
@@ -454,7 +455,7 @@ const Calls = () => {
 
           <div className="flex flex-wrap items-center gap-3">
             {/* Date range filter */}
-            <div className="flex items-center gap-3 bg-white border border-slate-100 rounded-2xl px-4 py-2 shadow-sm">
+            {/* <div className="flex items-center gap-3 bg-white border border-slate-100 rounded-2xl px-4 py-2 shadow-sm">
               <label className="text-xs font-black text-slate-400 uppercase">
                 From
               </label>
@@ -488,7 +489,7 @@ const Calls = () => {
                   Show All
                 </button>
               )}
-            </div>
+            </div> */}
 
             {/* search */}
             <div className="relative w-full md:w-95">

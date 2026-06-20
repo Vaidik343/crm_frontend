@@ -308,7 +308,7 @@ const filtered = tasks || [];
 
 
  {/* Date range filter */}
-    <div className="flex items-center gap-3 bg-white border border-slate-100 rounded-2xl px-4 py-2 shadow-sm">
+    {/* <div className="flex items-center gap-3 bg-white border border-slate-100 rounded-2xl px-4 py-2 shadow-sm">
 
       
 
@@ -330,7 +330,7 @@ const filtered = tasks || [];
           Show All
         </button>
       )}
-    </div>
+    </div> */}
 
 {/* search */}
           <div className="relative w-full md:w-95">

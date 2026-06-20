@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import Button from "../ui/Button";
 
 import {  
-   MdLogout, MdTask, MdPhone, MdBook, MdLock, MdDashboard, MdMenu,MdClose, MdFolder} from "react-icons/md";
+   MdLogout, MdTask, MdPhone, MdBook, MdLock, MdDashboard, MdMenu,MdClose, MdFolder, MdNotifications } from "react-icons/md";
 import { useState } from "react";
 import NotificationBell from "../NotificationBell";
 
@@ -14,6 +14,7 @@ const navItems = [
     { to: "/employee/work-logs", label: "Work Log", icon: <MdBook size={18} /> },
     { to: "/employee/password", label: "Password", icon: <MdLock size={18} /> },
     { to: "/employee/projects", label: "Projects", icon: <MdFolder size={18} /> },
+    //   { to: "/employee/notifications", label: "Notifications", icon: <MdNotifications size={18} /> },
     //   {to: "/Team", label:"Team", }
 ];
 
@@ -90,10 +91,10 @@ const EmployeeLayout = () => {
             {/* Desktop Logout */}
             <div className="hidden  min-[1180px]:block">
                 <Button
-                    variant="ghost"
+                    // variant="white"
                     size="sm"
                     onClick={logout}
-                    className="text-red-200 hover:bg-red-50 hover:text-red-500 font-black uppercase tracking-widest text-xs gap-2"
+                    className="text-white rounded  hover:text-red-500 font-black uppercase tracking-widest text-xs gap-2"
                 >
                     <MdLogout size={18} />
                     Logout
@@ -112,11 +113,11 @@ const EmployeeLayout = () => {
 
     {/* MOBILE MENU */}
     <div
-        className={`min-[1180px]:hidden  overflow-hidden transition-all duration-300 ${
-            mobileOpen ? "max-h-[500px] border-t border-white/10" : "max-h-0"
+        className={`min-[1180px]:hidden  overflow-hidden transition-all duration-300  text-decoration-none ${
+            mobileOpen ? "max-h-[500px] border-t border-white/10 " : "max-h-0"
         }`}
     >
-        <div className="px-4 py-4 flex flex-col gap-2 bg-[#132ea7]">
+        <div className="px-4 py-4 flex flex-col  gap-2 bg-[#132ea7]">
 
             {navItems.map((item) => (
                 <NavLink
@@ -124,7 +125,7 @@ const EmployeeLayout = () => {
                     to={item.to}
                     onClick={() => setMobileOpen(false)}
                     className={({ isActive }) =>
-                        `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-all
+                        `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-black uppercase tracking-widest transition-all text-decoration-none
                         ${
                             isActive
                                 ? "bg-[#e98937] text-white"

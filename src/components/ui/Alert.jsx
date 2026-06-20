@@ -1,22 +1,37 @@
+import { useEffect, useRef } from "react";
+import toast from "react-hot-toast";
+
 const Alert = ({ type = "info", message, onClose }) => {
-  if (!message) return null;
+  const lastMessage = useRef(null);
 
-  const iconMap = {
-    success: "✓",
-    danger:  "✗",
-    warning: "⚠",
-    info:    "ℹ",
-  };
+  useEffect(() => {
+    if (!message) return;
+    // prevent re-firing the same toast on unrelated re-renders
+    if (lastMessage.current === message) return;
+    lastMessage.current = message;
 
-  return (
-    <div className={`alert alert-${type} alert-dismissible d-flex align-items-center gap-2`} role="alert">
-      <span>{iconMap[type]}</span>
-      <span>{message}</span>
-      {onClose && (
-        <button type="button" className="btn-close ms-auto" onClick={onClose} />
-      )}
-    </div>
-  );
+    if (type === "success") {
+      toast.success(message);
+    } else if (type === "danger") {
+      toast.error(message);
+    } else if (type === "warning") {
+      toast(message, { icon: "⚠️" });
+    } else {
+      toast(message, { icon: "ℹ️" });
+    }
+
+    // clear parent's alert state right after firing, so the next
+    // identical message (e.g. two consecutive "Export failed") still triggers a new toast
+    if (onClose) {
+      const id = setTimeout(() => {
+        onClose();
+        lastMessage.current = null;
+      }, 100);
+      return () => clearTimeout(id);
+    }
+  }, [message, type]);
+
+  return null;
 };
 
 export default Alert;
