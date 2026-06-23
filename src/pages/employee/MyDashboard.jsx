@@ -6,7 +6,7 @@ import Badge from "../../components/ui/Badge";
 import {
   MdCheckCircle, MdPhone, MdFolder, MdGroup, MdWarning,
   MdAccessTime, MdArrowForward, MdTrendingUp, MdTask,
-  MdCalendarToday, MdPerson
+  MdCalendarToday, MdPerson,MdAssignment 
 } from "react-icons/md";
 
 // ── Stat Card ─────────────────────────────────────────────────────────────────
@@ -168,7 +168,7 @@ const MyDashboard = () => {
       )}
 
       {/* ── Summary Stats ── */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <StatCard
           label="Projects" value={summary?.total_projects}
           icon={<MdFolder size={26} className="text-[#132ea7]" />}
@@ -182,7 +182,7 @@ const MyDashboard = () => {
                     onClick = {() => navigate('/employee/tasks')}
         />
         <StatCard
-          label="Calls" value={cs.total}
+          label="Calls" value={cs.total }  
           icon={<MdPhone size={26} className="text-emerald-500" />}
           accent="bg-emerald-50"
           onClick = {() => navigate('/employee/calls')}
@@ -193,6 +193,30 @@ const MyDashboard = () => {
           accent="bg-amber-50"
           onClick = {() => navigate('/employee/work-logs')}
         />
+      </div> */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+        {[
+                  { label: "Projects",   value: summary?.total_projects, icon: <MdGroup size={22} className="text-[#132ea7]" />,       color: "bg-[#132ea7]/10" },
+                  { label: "My Tasks",     value: ts.total,               icon: <MdAssignment size={22} className="text-violet-500" />, color: "bg-violet-50",    sub: `${ts.ongoing ?? 0} ongoing` },
+
+                  { label: "Calls",     value: cs.total,               icon: <MdPhone size={22} className="text-emerald-500" />,     color: "bg-emerald-50",   sub: `${cs.inquiry ?? 0} inquiries` },
+
+
+                  { label: "Today's Log", value: summary?.today_logs,              icon: <MdCheckCircle size={22} className="text-blue-500" />,  color: "bg-blue-50", },
+
+                  { label: "Completed", value: ts.closed,              icon: <MdCheckCircle size={22} className="text-blue-500" />,  color: "bg-blue-50",      sub: `${ts.total ? Math.round((ts.closed/ts.total)*100) : 0}% done` },
+                ].map((s) => (
+                  <div key={s.label} className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-xl shadow-slate-200/30 flex items-center gap-4">
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${s.color}`}>
+                      {s.icon}
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">{s.label}</p>
+                      <p className="text-2xl font-black text-slate-800">{s.value ?? 0}</p>
+                      {s.sub && <p className="text-[10px] font-bold text-slate-400 mt-0.5 uppercase tracking-widest">{s.sub}</p>}
+                    </div>
+                  </div>
+                ))}
       </div>
       {/* ── Task Progress Bar ── */}
       {ts.total > 0 && (

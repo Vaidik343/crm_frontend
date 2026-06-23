@@ -81,7 +81,7 @@ const updateWorkLog = useCallback(async (id, payload) => {
         w.id === id ? updatedWorkLog : w
       )
     );
-
+ getAllWorkLogs?.();
     return updatedWorkLog;
   } catch (error) {
     throw error;

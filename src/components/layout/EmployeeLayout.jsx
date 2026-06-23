@@ -8,7 +8,7 @@ import { useState } from "react";
 import NotificationBell from "../NotificationBell";
 
 const navItems = [
-    { to: "/employee/MyDashboard", label: "Dashboard", icon: <MdDashboard size={18} /> },
+    { to: "/employee/myDashboard", label: "Dashboard", icon: <MdDashboard size={18} /> },
     { to: "/employee/tasks", label: "My Tasks", icon: <MdTask size={18} /> },
     { to: "/employee/calls", label: "My Calls", icon: <MdPhone size={18} /> },
     { to: "/employee/work-logs", label: "Work Log", icon: <MdBook size={18} /> },

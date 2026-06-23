@@ -33,9 +33,10 @@ export const AuthProvider = ({ children }) => {
 
       // redirect based on role
       if (data.user.is_admin) {
-        navigate("/admin/dashboard");
+     navigate("/admin/dashboard");
+      console.log("🚀 ~ AuthProvider ~ nv:", nv)
       } else {
-        navigate("/employee/tasks");
+        navigate("/employee/myDashboard");
       }
 
       return data;
@@ -46,17 +47,25 @@ export const AuthProvider = ({ children }) => {
     }
   }, [navigate]);
 
+
   const logout = useCallback(async () => {
     try {
-      await api.post(ENDPOINTS.AUTH.LOGOUT);
-    } catch {
+   const lo =  await api.post(ENDPOINTS.AUTH.LOGOUT);
+   console.log("🚀 ~ AuthProvider ~ lo:", lo)
+
+    } catch (error) {
       // even if backend fails, clear frontend
+          console.log("🚀 ~ AuthProvider ~ error:", error)
+      throw error
     } finally {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("user");
       setToken(null);
       setUser(null);
-      navigate("/login");
+
+      
+    navigate("/login");
+    
     }
   }, [navigate]);
 

@@ -9,10 +9,16 @@ export const CallProvider = ({ children }) => {
   const [calls, setCalls] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // pagination states
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [total, setTotal] = useState(0);
+    // ── Batched pagination state — single update = single re-render ───────────
+  const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0 });
+  const page  = pagination.page;
+  const limit = pagination.limit;
+  const total = pagination.total;
+
+  // exposed to consumers for pagination button clicks
+  const setPage = useCallback((newPage) => {
+    setPagination((prev) => ({ ...prev, page: newPage }));
+  }, []);  
 
   const { socket } = useSocket();
 
@@ -21,13 +27,14 @@ export const CallProvider = ({ children }) => {
     if (!socket) return;
 
     // A call was transferred (or created as a task/transfer)
-    const handleCallTransferred = (call) => {
-      setCalls((prev) => {
-        if (prev.some((c) => c.id === call.id)) return prev;
-        return [call, ...prev];
-      });
-      setTotal((prev) => prev + 1);
-    };
+const handleCallTransferred = (call) => {
+  setCalls((prev) => {
+    if (prev.some((c) => c.id === call.id)) return prev;
+    return [call, ...prev];
+  });
+  setPagination((prev) => ({ ...prev, total: prev.total + 1 }));
+};
+
 
     const handleCallUpdated = (updatedCall) => {
       setCalls((prev) =>
@@ -36,9 +43,9 @@ export const CallProvider = ({ children }) => {
     };
 
     const handleCallDeleted = ({ id }) => {
-      setCalls((prev) => prev.filter((c) => c.id !== id));
-      setTotal((prev) => Math.max(0, prev - 1));
-    };
+  setCalls((prev) => prev.filter((c) => c.id !== id));
+  setPagination((prev) => ({ ...prev, total: Math.max(0, prev.total - 1) }));
+};
 
     socket.on("CALL_TRANSFERRED", handleCallTransferred);
     socket.on("CALL_UPDATED", handleCallUpdated);
@@ -79,13 +86,19 @@ export const CallProvider = ({ children }) => {
       const { data } = await api.get(
         `${ENDPOINTS.CALLS.ALL}?${params.toString()}`
       );
-      console.log("🚀 ~ CallProvider ~ data:", data)
+ setCalls((prev) => {
+        const next = data.data || [];
+        const same = JSON.stringify(prev) === JSON.stringify(next);
+        if (same) return prev;
+        return next;
+      });
 
-      setCalls(data.data || []);
-      setPage(data.page || 1);
-      setLimit(data.limit || 10);
-      setTotal(data.total || 0);
-
+      // ── Single state update instead of three separate ones ────────────────
+      setPagination({
+        page:  data.page  || 1,
+        limit: data.limit || 10,
+        total: data.total || 0,
+      });
       return data;
     } catch (error) {
       throw error;
@@ -151,9 +164,7 @@ export const CallProvider = ({ children }) => {
       total,
       totalPages, setPage, createCall, getAllCalls, getCallById, updateCall, deleteCall
     }),
-    [calls, loading, page,
-      limit,
-      total,
+    [calls, loading, pagination,
       totalPages, setPage, createCall, getAllCalls, getCallById, updateCall, deleteCall]
   );
 

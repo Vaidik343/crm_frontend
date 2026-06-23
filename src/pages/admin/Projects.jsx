@@ -11,7 +11,7 @@ import Spinner from "../../components/ui/Spinner";
 import Badge from "../../components/ui/Badge";
 
 
-import { MdAdd, MdGroup , MdAssignment , MdVisibility, MdSearch, MdChevronRight ,MdDashboard  , MdBusinessCenter, MdCalendarToday, MdEdit, MdDelete, MdPerson, MdPowerSettingsNew, MdFolder, MdPersonAdd, MdPersonRemove, MdCheckCircle } from "react-icons/md";
+import { MdAdd, MdGroup , MdAssignment,MdVisibility, MdSearch, MdChevronRight ,MdDashboard  , MdBusinessCenter, MdCalendarToday, MdEdit, MdDelete, MdPerson, MdPowerSettingsNew, MdFolder, MdPersonAdd, MdPersonRemove, MdCheckCircle } from "react-icons/md";
 import { useRole } from './../../context/RoleContext';
 import Select from './../../components/ui/Select';
 import { useUser } from './../../context/UserContext';
@@ -1484,7 +1484,31 @@ await createProject({
         ))
     )}
   </div>
-</div>
+</div>  
+
+{/* Members */}
+{viewTarget.members?.length > 0 && (
+  <div className="space-y-3">
+    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+      Members ({viewTarget.members.length})
+    </p>
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+      {viewTarget.members.map((m) => (
+        <div key={m.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-100">
+          <div className="w-9 h-9 rounded-xl bg-[#132ea7]/10 text-[#132ea7] flex items-center justify-center font-black text-sm flex-shrink-0">
+            {m.user?.name?.charAt(0) || "?"}
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-black text-slate-700 truncate">{m.user?.name || "Unknown"}</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">
+              {m.role?.name || m.user?.employee_id || "—"}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
 
 
 

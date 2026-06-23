@@ -59,7 +59,7 @@ const LocalSearchableSelect = ({
         type="button"
         disabled={disabled}
         onClick={() => setOpen((prev) => !prev)}
-        className="w-full flex items-center justify-between bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-left"
+        className="w-full flex items-center justify-between bg-slate-50 border border-slate-100 rounded px-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/5 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-left"
       >
         <span className={selected || emptyOptionLabel ? "text-slate-700" : "text-slate-400"}>
           {selectedLabel || placeholder}
@@ -68,7 +68,7 @@ const LocalSearchableSelect = ({
       </button>
 
       {open && (
-        <div className="absolute z-10 w-full bg-white border border-slate-100 rounded-2xl shadow-xl mt-1 overflow-hidden">
+        <div className="absolute z-10 w-full bg-white border border-slate-100 rounded shadow-xl mt-1 overflow-hidden">
           <div className="flex items-center gap-2 px-4 py-2.5 border-b border-slate-50">
             <MdSearch size={16} className="text-slate-300 shrink-0" />
             <input
@@ -77,6 +77,7 @@ const LocalSearchableSelect = ({
               onChange={(e) => setQuery(e.target.value)}
               placeholder={placeholder}
               className="w-full text-sm font-bold text-slate-700  focus:outline-none bg-transparent"
+               autoComplete="off"
             />
             {query && (
               <button type="button" onClick={() => setQuery("")} className="text-slate-300 hover:text-slate-500">

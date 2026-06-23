@@ -96,6 +96,17 @@ const ProjectDashboard = () => {
   const ts = summary?.task_stats || {};
   const cs = summary?.call_stats || {};
 
+
+const overdueTasks = (recent_tasks || []).filter(
+  (t) => t.due_date && new Date(t.due_date) < new Date() && t.status !== "closed"
+);
+const dueSoonTasks = (recent_tasks || []).filter((t) => {
+  if (!t.due_date || t.status === "closed") return false;
+  const diff = new Date(t.due_date) - new Date();
+  return diff > 0 && diff <= 48 * 60 * 60 * 1000;
+});
+
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
 
@@ -148,11 +159,21 @@ const ProjectDashboard = () => {
                 <MdWarning size={20} className="text-red-500" />
               </div>
               <div>
-                <p className="text-sm font-black text-red-700 uppercase tracking-widest">
-                  {alerts.overdue_count} Overdue Task{alerts.overdue_count !== 1 ? "s" : ""}
-                </p>
-                <p className="text-xs text-red-400 font-medium mt-0.5">Needs immediate attention</p>
-              </div>
+  <p className="text-sm font-black text-red-700 uppercase tracking-widest">
+    {alerts.overdue_count} Overdue Task{alerts.overdue_count !== 1 ? "s" : ""}
+  </p>
+  <p className="text-xs text-red-400 font-medium mt-0.5">Needs immediate attention</p>
+  {overdueTasks.length > 0 && (
+    <div className="flex flex-wrap gap-1.5 mt-2">
+      {[...new Set(overdueTasks.map((t) => t.assignee?.name).filter(Boolean))].map((name) => (
+        <span key={name} className="px-2 py-0.5 bg-red-100 text-red-600 rounded-lg text-[10px] font-black uppercase tracking-widest">
+          {name}
+        </span>
+      ))}
+    </div>
+  )}
+</div>
+
             </div>
           )}
           {alerts.due_soon_count > 0 && (
@@ -160,12 +181,21 @@ const ProjectDashboard = () => {
               <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
                 <MdAccessTime size={20} className="text-amber-500" />
               </div>
-              <div>
-                <p className="text-sm font-black text-amber-700 uppercase tracking-widest">
-                  {alerts.due_soon_count} Due Within 48 Hours
-                </p>
-                <p className="text-xs text-amber-400 font-medium mt-0.5">Plan accordingly</p>
-              </div>
+<div>
+  <p className="text-sm font-black text-amber-700 uppercase tracking-widest">
+    {alerts.due_soon_count} Due Within 48 Hours
+  </p>
+  <p className="text-xs text-amber-400 font-medium mt-0.5">Plan accordingly</p>
+  {dueSoonTasks.length > 0 && (
+    <div className="flex flex-wrap gap-1.5 mt-2">
+      {[...new Set(dueSoonTasks.map((t) => t.assignee?.name).filter(Boolean))].map((name) => (
+        <span key={name} className="px-2 py-0.5 bg-amber-100 text-amber-600 rounded-lg text-[10px] font-black uppercase tracking-widest">
+          {name}
+        </span>
+      ))}
+    </div>
+  )}
+</div>
             </div>
           )}
         </div>

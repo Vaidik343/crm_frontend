@@ -3,14 +3,20 @@ import { usePassword } from "../../context/PasswordContext";
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
 import Alert from "../../components/ui/Alert";
-import { MdLock, MdVpnKey, MdShield, MdCheckCircle, MdInfoOutline } from "react-icons/md";
+import { MdLock, MdVpnKey, MdShield, MdCheckCircle, MdInfoOutline ,  MdVisibility, MdVisibilityOff } from "react-icons/md";
+import { useAuth } from "../../context/AuthContext";
 
 const ChangePassword = () => {
-  const { changePassword } = usePassword();
-  const [form, setForm]     = useState({ oldPassword: "", newPassword: "", confirmPassword: "" });
+  // ADD logout to the useAuth import:
+const { logout } = useAuth();
+  const { changeOwnPassword } = usePassword();
+  const [form, setForm]     = useState({ current_password: "", new_password: "", confirmPassword: "" });
   const [error, setError]   = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showOld, setShowOld] = useState(false);
+const [showNew, setShowNew] = useState(false);
+const [showConfirm, setShowConfirm] = useState(false);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -25,10 +31,12 @@ const ChangePassword = () => {
     }
     try {
       setLoading(true);
-      await changePassword({ oldPassword: form.oldPassword, newPassword: form.newPassword });
-      setSuccess("Operational access code updated successfully.");
-      setForm({ oldPassword: "", newPassword: "", confirmPassword: "" });
+await changeOwnPassword({ current_password: form.oldPassword, new_password: form.newPassword });
+setSuccess("Operational access code updated successfully.");
+setTimeout(() => logout(), 2000);
     } catch (err) {
+      
+    console.log("🚀 ~ handleSubmit ~ err:", err)
       setError(err?.response?.data?.message || "Protocol update failed.");
     } finally {
       setLoading(false);
@@ -59,15 +67,20 @@ const ChangePassword = () => {
                   <div className="absolute inset-y-0 left-0 flex items-center pl-1 pt-6 text-[#132ea7]">
                      <MdVpnKey size={20} className="opacity-40" />
                   </div>
-                  <Input
+                  <Input 
                     label="Current Access Code"
                     name="oldPassword"
-                    type="password"
+                    type={showOld  ? "text" : "password"}
                     value={form.oldPassword}
                     onChange={handleChange}
                     placeholder="Enter current password"
                     required
                     className="pl-8"
+                     rightIcon={
+  <button type="button" onClick={() => setShowOld((p) => !p)} className="text-slate-400 hover:text-slate-600 transition" tabIndex={-1}>
+    {showOld ? <MdVisibilityOff size={20} /> : <MdVisibility size={20} />}
+  </button>
+}
                   />
                </div>
 
@@ -78,12 +91,17 @@ const ChangePassword = () => {
                   <Input
                     label="New Secure Code"
                     name="newPassword"
-                    type="password"
+                    type={showNew  ? "text" : "password"}
                     value={form.newPassword}
                     onChange={handleChange}
                     placeholder="Enter new password"
                     required
                     className="pl-8"
+                    rightIcon={
+  <button type="button" onClick={() => setShowNew((p) => !p)} className="text-slate-400 hover:text-slate-600 transition" tabIndex={-1}>
+    {showNew ? <MdVisibilityOff size={20} /> : <MdVisibility size={20} />}
+  </button>
+}
                   />
                </div>
 
@@ -94,12 +112,17 @@ const ChangePassword = () => {
                   <Input
                     label="Confirm New Code"
                     name="confirmPassword"
-                    type="password"
+                    type={showConfirm  ? "text" : "password"}
                     value={form.confirmPassword}
                     onChange={handleChange}
                     placeholder="Verify new password"
                     required
                     className="pl-8"
+                    rightIcon={
+  <button type="button" onClick={() => setShowConfirm((p) => !p)} className="text-slate-400 hover:text-slate-600 transition" tabIndex={-1}>
+    {showConfirm ? <MdVisibilityOff size={20} /> : <MdVisibility size={20} />}
+  </button>
+}
                   />
                </div>
             </div>

@@ -6,7 +6,7 @@ import Alert from './../components/ui/Alert';
 import loginBg from '../assets/login-bg.png';
 
 import {
-  MdAdminPanelSettings,
+   MdAdminPanelSettings, MdVisibility, MdVisibilityOff 
 } from "react-icons/md";
 
 const Login = () => {
@@ -15,6 +15,8 @@ const Login = () => {
   const [form, setForm] = useState({ employee_id: "", password: "" });
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
+  // ADD after the existing useState declarations:
+const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -34,6 +36,7 @@ const Login = () => {
     return errors;
   };
 
+   
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -47,6 +50,7 @@ const Login = () => {
     try {
       await login(form.employee_id.trim(), form.password);
     } catch (err) {
+       console.log("🚀 ~ handleSubmit ~ err:", err)
       const msg = err?.response?.data?.message || "Login failed. Please try again.";
       setError(msg);
     }
@@ -105,17 +109,26 @@ const Login = () => {
                 error={fieldErrors.employee_id}
                 required
               />
-              <Input
-                label="Password"
-                name="password"
-                type="password"
-                value={form.password}
-                onChange={handleChange}
-                placeholder=""
-                error={fieldErrors.password}
-                required
-              />
-
+<Input
+  label="Password"
+  name="password"
+  type={showPassword ? "text" : "password"}
+  value={form.password}
+  onChange={handleChange}
+  placeholder=""
+  error={fieldErrors.password}
+  required
+  rightIcon={
+    <button
+      type="button"
+      onClick={() => setShowPassword((prev) => !prev)}
+      className="text-slate-400 hover:text-slate-600 transition"
+      tabIndex={-1}
+    >
+      {showPassword ? <MdVisibilityOff size={20} /> : <MdVisibility size={20} />}
+    </button>
+  }
+/>
               <div className="pt-4">
                 <Button
                   type="submit"

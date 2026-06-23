@@ -11,6 +11,8 @@ const SearchableSelect = ({
   emptyOptionLabel = "None",
   limit = 10,
    extraParams = {}, 
+   required,
+error
 }) => {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -57,7 +59,14 @@ const SearchableSelect = ({
         value={open ? query : selectedLabel}
         onChange={(e) => setQuery(e.target.value)}
         placeholder={placeholder}
-        className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3.5 text-sm font-bold"
+        // className="w-full bg-slate-50  border border-slate-100 rounded px-5 py-3.5 text-sm font-bold"
+         autoComplete="off"
+required={required}
+  className={`w-full bg-slate-50 rounded px-5 py-3.5 text-sm font-bold ${
+    error
+      ? "border border-red-500"
+      : "border border-slate-100"
+  }`}
       />
       {open && (
         <div className="absolute z-10 w-full bg-white border border-slate-100 rounded-2xl shadow-xl mt-1 max-h-72 overflow-y-auto">

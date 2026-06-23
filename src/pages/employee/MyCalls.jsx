@@ -36,6 +36,7 @@ import MultiSearchableSelect from "../../components/ui/MultiSearchableSelect";
   import LocalSearchableSelect from "../../components/ui/LocalSearchableSelect";
   import SearchableSelect from "../../components/ui/SearchableSelect";
   import { ENDPOINTS } from "../../api/endpoints";
+import SearchInput from "../../components/ui/SearchInput";
 
   const CALL_TYPES = {
     inquiry: ["inquiry", "follow-back"],
@@ -98,6 +99,7 @@ import MultiSearchableSelect from "../../components/ui/MultiSearchableSelect";
       calls,
       loading,
       page,
+      limit,
       setPage,
       totalPages,
       getAllCalls,
@@ -146,15 +148,19 @@ import MultiSearchableSelect from "../../components/ui/MultiSearchableSelect";
     const [remarkSubmitting, setRemarkSubmitting] = useState(false);
     const [showNewRemark, setShowNewRemark] = useState(false);
     
+  const [search, setSearch] = useState("");
 
 
-    useEffect(() => {
-      getAllCalls?.(page, dateFrom, dateTo);
+  useEffect(() => {
+    const debounce = setTimeout(() => {
+      if (search && page !== 1) setPage(1);
+      getAllCalls?.(search ? 1 : page, dateFrom, dateTo, limit, search);
       getAllProjects?.();
       getAllUsers?.();
       getAllClients?.();
-    }, [page, dateFrom, dateTo]);
-
+    }, 500);
+    return () => clearTimeout(debounce);
+  }, [page, dateFrom, dateTo, search]);
 
           // Members of the selected project — falls back to all users if no project selected
       const assignableUsers = useMemo(() => {
@@ -191,6 +197,23 @@ import MultiSearchableSelect from "../../components/ui/MultiSearchableSelect";
     const filtered = filter === "all" ? calls : calls.filter((c) => c.call_type === filter);
 
     const expectedPrefix = getExpectedPrefix(form);
+
+
+    //filter
+
+  const searchData = search.toLowerCase().trim();
+
+  const filteredCalls = (calls || []).filter((c) => {
+    const matchesType = filter === "all" || c.call_type === filter;
+
+    const matchesSearch =
+      !searchData ||
+      c.caller_name?.toLowerCase().includes(searchData) ||
+      c.display_id?.toLowerCase().includes(searchData) ||
+      c.project?.name?.toLowerCase().includes(searchData);
+
+    return matchesType && matchesSearch;
+  });
 
 
     // ── Handlers ──────────────────────────────────────────────────────────────
@@ -242,7 +265,7 @@ if (!isValid) {
       if (!form.call_type)          errors.call_type    = "Call type is required";
       if (!form.call_subtype)       errors.call_subtype = "Call subtype is required";
       if (!form.receive_type)       errors.receive_type = "Receive type is required";
-      if (form.is_task && !form.project_id) errors.project_id = "Project is required when creating a task";
+      if (!editTarget && form.is_task && !form.project_id) errors.project_id = "Project is required when creating a task";
       if (form.follow_up_date && !form.parent_call_id) errors.parent_call_id = "Select the original call for follow-up";
       if (form.transfer_to === authUser?.id)           errors.transfer_to   = "Cannot transfer to yourself";
       return errors;
@@ -380,7 +403,7 @@ if (!isValid) {
             Accessing comms archives...
           </p>
         </div>
-      ); 
+      );  
 
     return (
       <div className="space-y-10 px-5  animate-in fade-in duration-700">
@@ -435,6 +458,11 @@ if (!isValid) {
           Reset
         </button>
       </div>
+<SearchInput 
+    value={search}
+  onChange={setSearch}
+    placeholder="Search Tasks, Projects, Employee name and Display Id"
+  />
 
       {/* Action buttons */}
       <div className="flex gap-3">
@@ -583,8 +611,8 @@ if (!isValid) {
                       </span>
                     </td>
 
-                    <td className="px-8 py-6">
-                      <div className="font-black text-slate-700 text-sm">
+                    <td className="px-6 py-5">
+                      <div className="font-black text-slate-700 text-lg">
                         {call.caller_name || <MdPhone size={16} />}
                       </div>
                       {call.caller_number && (
@@ -595,8 +623,8 @@ if (!isValid) {
                     </td>
 
                     
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-2 text-sm font-black text-slate-600">
+                    <td className="px-4 py-2">
+                      <div className="flex items-center gap-2 text-md font-black text-slate-600">
                         <MdFolder className="text-[#132ea7]" size={16} />
                         {call.project?.name || "—"}
                       </div>
@@ -924,7 +952,7 @@ if (!isValid) {
                  error={fieldErrors.caller_number}
                 placeholder="e.g. +91 98765 43210"
               />
-  <div className="md:col-span-2 space-y-1.5">
+  {/* <div className="md:col-span-2 space-y-1.5">
     <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
       Project
     </label>
@@ -949,7 +977,7 @@ if (!isValid) {
     {fieldErrors.project_id && (
       <p className="text-red-500 text-[10px] font-bold uppercase ml-1 mt-1">{fieldErrors.project_id}</p>
     )}
-  </div>
+  </div> */}
 
 
               <Select

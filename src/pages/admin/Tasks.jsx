@@ -22,7 +22,8 @@
     MdFolder,
     MdPerson,
     MdVisibility,
-    MdSearch 
+    MdSearch ,
+    MdClose
   } from "react-icons/md";
 import { ENDPOINTS } from "../../api/endpoints";
 import LocalSearchableSelect from "../../components/ui/LocalSearchableSelect";
@@ -35,6 +36,7 @@ import LocalSearchableSelect from "../../components/ui/LocalSearchableSelect";
     assigned_to: "",
     due_date: "",
     status: "open",
+    
     remarks: "",
   };
 
@@ -82,7 +84,7 @@ const [dateTo, setDateTo] = useState("");
 const today = new Date().toISOString().split("T")[0];
 
 
-    
+    const [filterProject, setFilterProject] = useState(null);
 
     
 
@@ -144,7 +146,7 @@ const filtered = tasks || [];
       
       const errors = {};
       if (!form.task.trim()) errors.task = "Task name is required";
-      if (!form.project_id) errors.project_id = "Project is required";
+      if ( !editTarget &&!form.project_id) errors.project_id = "Project is required";
       
       return errors;
     };
@@ -261,15 +263,15 @@ const filtered = tasks || [];
 
 
     
-    if (loading && !tasks.length)
-      return (
-        <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-          <Spinner size="lg" />
-          <p className="text-slate-400 font-bold animate-pulse uppercase tracking-[0.2em] text-sm">
-            Loading tasks...
-          </p>
-        </div>
-      );
+    // if (loading && !tasks.length)
+    //   return (
+    //     <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+    //       <Spinner size="lg" />
+    //       <p className="text-slate-400 font-bold animate-pulse uppercase tracking-[0.2em] text-sm">
+    //         Loading tasks...
+    //       </p>
+    //     </div>
+    //   );
 
     return (
       <div className="space-y-8 animate-in fade-in duration-700">
@@ -307,6 +309,7 @@ const filtered = tasks || [];
 </div>
 
 
+
  {/* Date range filter */}
     {/* <div className="flex items-center gap-3 bg-white border border-slate-100 rounded-2xl px-4 py-2 shadow-sm">
 
@@ -340,10 +343,19 @@ const filtered = tasks || [];
                     <input
                       type="text"
                       className="w-full bg-white border border-slate-200 rounded-2xl pl-12 pr-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/10 focus:border-[#132ea7] transition-all shadow-sm"
-                      placeholder="Search Tasks name and Display Id "
+                      placeholder="Search Tasks, Projects, Employee name and Display Id "
                       value={filter}
                       onChange={(e) => setFilter(e.target.value)}
                     />
+                   {filter && (
+    <button
+      type="button"
+      onClick={() => setFilter("")}
+      className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600 transition"
+    >
+      <MdClose size={18} />
+    </button>
+  )}
                   </div>
           <Button
             variant="primary"
@@ -352,7 +364,7 @@ const filtered = tasks || [];
           >
             <MdAdd size={22} /> Add New Task
           </Button>
-        </div>
+        </div> 
 
         <Alert
           type={alert.type}
@@ -394,7 +406,18 @@ const filtered = tasks || [];
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
-                  {filtered.length === 0 && (
+                  {loading ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-16">
+                    <div className="flex flex-col items-center justify-center gap-4">
+                      <Spinner size="lg" />
+                      <p className="text-slate-400 font-bold animate-pulse uppercase tracking-[0.2em] text-sm">
+                        Loading tasks...
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              ) : filtered.length === 0 && (
                     <tr>
                       <td
                         colSpan={7}
@@ -481,7 +504,13 @@ const filtered = tasks || [];
 
 
                       <td className="px-8 py-6">
-           <DueDateBadge dueDate={task.due_date} status={task.status} updatedAt={task.updatedAt} />
+           {/* <DueDateBadge dueDate={task.due_date} status={task.status} updatedAt={task.updatedAt} /> */}
+
+           <DueDateBadge
+  dueDate={task.due_date}
+  status={task.status}
+  completedAt={task.completed_at}
+/>
                       </td>
  
                       
@@ -596,7 +625,13 @@ const filtered = tasks || [];
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-slate-400 font-bold uppercase text-[10px]">Due</span>
-                 <DueDateBadge dueDate={task.due_date} status={task.status} updatedAt={task.updatedAt} />
+                 {/* <DueDateBadge dueDate={task.due_date} status={task.status} updatedAt={task.updatedAt} /> */}
+
+                 <DueDateBadge
+  dueDate={task.due_date}
+  status={task.status}
+  completedAt={task.completed_at}
+/>
                   </div>
                 </div>
 
@@ -647,6 +682,7 @@ const filtered = tasks || [];
     <SearchableSelect
       endpoint={ENDPOINTS.PROJECTS.ALL}
       value={form.project_id}
+        error={fieldErrors.project_id}
       selectedLabel={selectedProject ? `${selectedProject.name}${selectedProject.code ? ` (${selectedProject.code})` : ""}` : ""}
       onChange={(project) => {
         setSelectedProject(project);
@@ -885,7 +921,15 @@ const filtered = tasks || [];
                   { label: "Project", value: viewTarget.project?.name || "—" },
                   { label: "Due Date", value: viewTarget.due_date ? new Date(viewTarget.due_date).toLocaleDateString() : "—" },
                   { label: "Start Date", value: viewTarget.start_date ? new Date(viewTarget.start_date).toLocaleDateString() : "—" },
-                  // { label: "Created", value: new Date(viewTarget.createdAt).toLocaleDateString() },
+                  
+                  {
+                  label: "Update Date",
+                  value: viewTarget.start_date
+                    ? new Date(viewTarget.updatedAt).toLocaleDateString()
+                    : "—",
+                },
+                { label: "Completed",      value: viewTarget.completedAt ? new Date(viewTarget.completedAt).toLocaleDateString()
+                    : "—", },
                 ].map((item) => (
                   <div key={item.label} className="bg-slate-50 rounded-2xl p-4">
                     <p className="text-[12px] font-black text-slate-400 uppercase tracking-widest mb-1">{item.label}</p>

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../api/axiosInstance";
 import Spinner from "../components/ui/Spinner";
 import { MdAssignment, MdPhone, MdFolder, MdComment, MdCheckCircle } from "react-icons/md";
-
+import { useAuth } from "../context/AuthContext";
 const TYPE_META = {
   TASK_ASSIGNED:    { label: "Task Assigned",    icon: MdAssignment, color: "text-blue-600 bg-blue-100" },
   TASK_UPDATED:     { label: "Task Updated",     icon: MdAssignment, color: "text-purple-600 bg-purple-100" },
@@ -25,14 +25,16 @@ const TYPE_FILTERS = [
   { value: "MEETING_ATTENDEE", label: "Meeting Attendee" },
 ];
 
-const buildLink = (notification) => {
+const buildLink = (notification, isAdmin) => {
+  const prefix = isAdmin ? "/admin" : "/employee";
   const { type } = notification;
-  if (type.startsWith("TASK")) return "/tasks";
-  if (type.startsWith("CALL")) return "/calls";
-  if (type.startsWith("PROJECT")) return "/projects";
-  if (type === "MEETING_ATTENDEE") return "/calls";
+  if (type.startsWith("TASK")) return `${prefix}/tasks`;
+  if (type.startsWith("CALL")) return `${prefix}/calls`;
+  if (type.startsWith("PROJECT")) return `${prefix}/projects`;
+  if (type === "MEETING_ATTENDEE") return `${prefix}/calls`;
   return null;
 };
+
 
 const NotificationsPage = () => {
   const navigate = useNavigate();
@@ -45,9 +47,12 @@ const NotificationsPage = () => {
   const [loading, setLoading] = useState(true);
   const limit = 15;
 
+  const { isAdmin } = useAuth();
+
   const fetchData = useCallback(() => {
     setLoading(true);
     const params = { page, limit };
+    console.log("🚀 ~ NotificationsPage ~ params:", params)
     if (activeTab === "unread") params.is_read = "false";
     if (activeTab === "read")   params.is_read = "true";
     if (typeFilter) params.type = typeFilter;
@@ -71,7 +76,7 @@ const NotificationsPage = () => {
         setNotifications((prev) => prev.map((x) => x.id === n.id ? { ...x, is_read: true } : x));
         setUnread((u) => Math.max(0, u - 1));
       }
-      const link = buildLink(n);
+      const link = buildLink(n, isAdmin);
       if (link) navigate(link);
     };
 

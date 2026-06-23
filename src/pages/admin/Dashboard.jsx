@@ -65,6 +65,7 @@ const Dashboard = () => {
         setLoading(true);
         const params = fromDate ? { from: fromDate } : {};
         const { data: res } = await api.get(ENDPOINTS.DASHBOARD.ALL, { params });
+        console.log("🚀 ~ fetchDashboard ~ data:", data)
         setData(res);
       } catch (err) {
         setError(err?.response?.data?.message || "Failed to load dashboard");

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useCall } from "../../context/CallContext";
 import { useProject } from "../../context/ProjectContext";
 import { useTask } from "./../../context/TaskContext";
@@ -28,6 +28,7 @@ import {
   MdCalendarToday,
   MdInfoOutline,
   MdAdd,
+  MdClose
 } from "react-icons/md";
 import LocalSearchableSelect from "../../components/ui/LocalSearchableSelect";
 import SearchableSelect from "../../components/ui/SearchableSelect";
@@ -109,6 +110,7 @@ const Calls = () => {
 
   const { users, getAllUsers } = useUser();
   const { user: authUser } = useAuth();
+  const searchRef = useRef("");
 
   const [filter, setFilter] = useState("all");
   const [showModal, setShowModal] = useState(false);
@@ -137,20 +139,17 @@ const Calls = () => {
   const [selectedClient, setSelectedClient] = useState(null);
 
   useEffect(() => {
-    getAllCalls?.(page, dateFrom, dateTo, limit, search);
-    getAllProjects?.();
-    getAllUsers?.();
-    getAllClients?.();
-  }, [page, dateFrom, dateTo]);
-
-  useEffect(() => {
     const debounce = setTimeout(() => {
-      setPage(1);
-      getAllCalls?.(1, dateFrom, dateTo, limit, search);
-    }, 300);
-
+      if (search && page !== 1) setPage(1);
+      getAllCalls?.(search ? 1 : page, dateFrom, dateTo, limit, search);
+      getAllProjects?.();
+      getAllUsers?.();
+      getAllClients?.();
+    }, 500);
     return () => clearTimeout(debounce);
-  }, [search]);
+  }, [page, dateFrom, dateTo, search]);
+
+
   // Members of the selected project — falls back to all users if no project selected
   const assignableUsers = useMemo(() => {
     if (!form.project_id) return users;
@@ -222,15 +221,15 @@ const Calls = () => {
     const newValue = type === "checkbox" ? checked : value;
     if (name === "call_type") {
       setForm((prev) => ({ ...prev, call_type: newValue, call_subtype: "" }));
-    } 
-    
+    }
+
     else if (name === "receive_type") {
-    setForm((prev) => ({
-      ...prev,
-      receive_type: newValue,
-      attendees: newValue === "meeting" ? prev.attendees : [],
-    }));
-  }
+      setForm((prev) => ({
+        ...prev,
+        receive_type: newValue,
+        attendees: newValue === "meeting" ? prev.attendees : [],
+      }));
+    }
     else if (name === "transfer_to") {
       setForm((prev) => ({
         ...prev,
@@ -282,9 +281,9 @@ const Calls = () => {
     if (!form.call_type) errors.call_type = "Call type is required";
     if (!form.call_subtype) errors.call_subtype = "Call subtype is required";
     if (!form.receive_type) errors.receive_type = "Receive type is required";
-    if (form.is_task && !form.project_id)
+    if (!editTarget && form.is_task && !form.project_id)
       errors.project_id = "Project is required when creating a task";
-     if (form.transfer_to && !form.project_id)  errors.project_id = "Project is required when transferring a call";
+    // if (!editTarget && form.transfer_to && !form.project_id) errors.project_id = "Project is required when transferring a call";
     if (form.is_follow_up && !form.parent_call_id)
       errors.parent_call_id = "Select the original call";
     // if (form.transfer_to === authUser?.id)           errors.transfer_to   = "Cannot transfer to yourself";
@@ -355,7 +354,7 @@ const Calls = () => {
           caller_number: form.caller_number || null,
           call_summary: form.call_summary || null,
           remarks: form.remarks || null,
-            attendees:     form.attendees     || [],
+          attendees: form.attendees || [],
           is_task: form.is_task || false,
           transfer_to: form.transfer_to || null,
           task_assigned_to: form.task_assigned_to || null,
@@ -379,7 +378,7 @@ const Calls = () => {
       }
       closeModal();
     } catch (err) {
-       console.log("🚀 ~ handleSubmit ~ err:", err)
+      console.log("🚀 ~ handleSubmit ~ err:", err)
       setAlert({
         type: "danger",
         message: err?.response?.data?.message || "Something went wrong",
@@ -418,15 +417,7 @@ const Calls = () => {
   //   }));
   // };
 
-  if (loading && !calls.length)
-    return (
-      <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-        <Spinner size="lg" />
-        <p className="text-slate-400 font-bold animate-pulse uppercase tracking-[0.2em] text-sm">
-          Accessing comms archives...
-        </p>
-      </div>
-    );
+  // Removed full-screen loading to prevent search input from unmounting when results are empty
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
@@ -498,11 +489,26 @@ const Calls = () => {
               </div>
               <input
                 type="text"
-                className="w-full bg-white border border-slate-200 rounded-2xl pl-12 pr-5 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/10 focus:border-[#132ea7] transition-all shadow-sm"
+                className="w-full bg-white border border-slate-200 rounded-2xl pl-12 pr-10 py-3.5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/10 focus:border-[#132ea7] transition-all shadow-sm"
                 placeholder="Search Calls by Caller name and Display Id..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => {
+                  searchRef.current = e.target.value;
+                  setSearch(e.target.value);
+                }}
               />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    searchRef.current = "";
+                    setSearch("");
+                  }}
+                  className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600 transition"
+                >
+                  <MdClose size={18} />
+                </button>
+              )}
             </div>
             <Button
               variant="primary"
@@ -556,7 +562,18 @@ const Calls = () => {
             </thead>
 
             <tbody className="divide-y divide-slate-50">
-              {filteredCalls.length === 0 && (
+              {loading ? (
+                <tr>
+                  <td colSpan={8} className="text-center py-16">
+                    <div className="flex flex-col items-center justify-center gap-4">
+                      <Spinner size="lg" />
+                      <p className="text-slate-400 font-bold animate-pulse uppercase tracking-[0.2em] text-sm">
+                        Accessing comms archives...
+                      </p>
+                    </div>
+                  </td>
+                </tr>
+              ) : filteredCalls.length === 0 ? (
                 <tr>
                   <td
                     colSpan={8}
@@ -565,20 +582,20 @@ const Calls = () => {
                     No communication logs archived.
                   </td>
                 </tr>
-              )}
-              {filteredCalls.map((call) => (
-                <tr
-                  key={call.id}
-                  className="hover:bg-slate-50/80 transition-colors group"
-                >
-                  {/* Display ID */}
-                  <td className="px-6 py-5">
-                    <span className="px-3 py-1 bg-[#132ea7]/10 text-[#132ea7] rounded-lg text-[11px] font-black uppercase tracking-widest font-mono">
-                      {call.display_id || "—"}
-                    </span>
-                  </td>
+              ) : (
+                filteredCalls.map((call) => (
+                  <tr
+                    key={call.id}
+                    className="hover:bg-slate-50/80 transition-colors group"
+                  >
+                    {/* Display ID */}
+                    <td className="px-6 py-5">
+                      <span className="px-3 py-1 bg-[#132ea7]/10 text-[#132ea7] rounded-lg text-[11px] font-black uppercase tracking-widest font-mono">
+                        {call.display_id || "—"}
+                      </span>
+                    </td>
 
-                  {/* <td className="px-10 py-6">
+                    {/* <td className="px-10 py-6">
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-xl bg-slate-50 text-[#132ea7] flex items-center justify-center shadow-inner group-hover:bg-[#132ea7] group-hover:text-white transition-all">
                         <MdCalendarToday size={18} />
@@ -596,127 +613,127 @@ const Calls = () => {
                       </div>
                     </div>
                   </td> */}
-                  {/* Caller */}
-                  <td className="px-10 py-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-[#132ea7] text-white flex items-center justify-center font-black shadow-lg shadow-[#132ea7]/10">
-                        {call.caller_name?.charAt(0) || <MdPhone size={18} />}
-                      </div>
-                      <div>
-                        <div className="font-black text-slate-800 text-lg leading-tight">
-                          {call.caller_name}
+                    {/* Caller */}
+                    <td className="px-10 py-6">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-[#132ea7] text-white flex items-center justify-center font-black shadow-lg shadow-[#132ea7]/10">
+                          {call.caller_name?.charAt(0) || <MdPhone size={18} />}
                         </div>
-                        {call.caller_number && (
-                          <div className="text-xs font-bold text-slate-400 mt-1">
-                            {call.caller_number}
+                        <div>
+                          <div className="font-black text-slate-800 text-lg leading-tight">
+                            {call.caller_name}
                           </div>
-                        )}
+                          {call.caller_number && (
+                            <div className="text-xs font-bold text-slate-400 mt-1">
+                              {call.caller_number}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </td>
+                    </td>
 
-                  {/* Employee */}
-                  <td className="px-8 py-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[#132ea7] font-black text-[10px]">
-                        {call.caller?.name?.charAt(0) ||
-                          call.User?.name?.charAt(0) ||
-                          "?"}
+                    {/* Employee */}
+                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[#132ea7] font-black text-[10px]">
+                          {call.caller?.name?.charAt(0) ||
+                            call.User?.name?.charAt(0) ||
+                            "?"}
+                        </div>
+                        <div>
+                          <p className="text-sm font-black text-slate-700">
+                            {call.caller?.name || call.User?.name || "—"}
+                          </p>
+                          <p className="text-[10px] font-bold text-slate-400 uppercase">
+                            {call.caller?.employee_id ||
+                              call.User?.employee_id ||
+                              ""}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-sm font-black text-slate-700">
-                          {call.caller?.name || call.User?.name || "—"}
-                        </p>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase">
-                          {call.caller?.employee_id ||
-                            call.User?.employee_id ||
-                            ""}
-                        </p>
+                    </td>
+
+                    {/* Project */}
+                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
+                        <MdFolder className="text-slate-300" size={18} />
+                        {call.project?.name || call.Project?.name || "—"}
                       </div>
-                    </div>
-                  </td>
+                    </td>
 
-                  {/* Project */}
-                  <td className="px-8 py-6">
-                    <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
-                      <MdFolder className="text-slate-300" size={18} />
-                      {call.project?.name || call.Project?.name || "—"}
-                    </div>
-                  </td>
-
-                  {/* Type */}
-                  <td className="px-8 py-6">
-                    <div className="flex flex-col gap-1.5">
-                      <div>
-                        <Badge value={call.call_type} />
+                    {/* Type */}
+                    <td className="px-8 py-6">
+                      <div className="flex flex-col gap-1.5">
+                        <div>
+                          <Badge value={call.call_type} />
+                        </div>
+                        {/* Flags */}
+                        <div className="flex gap-1.5 flex-wrap">
+                          {call.is_task && (
+                            <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md text-[10px] font-black uppercase flex items-center gap-1">
+                              <MdAssignment size={12} /> Task
+                            </span>
+                          )}
+                          {call.transfer_to && (
+                            <span className="px-2 py-0.5 bg-orange-50 text-orange-600 rounded-md text-[10px] font-black uppercase flex items-center gap-1">
+                              <MdTransferWithinAStation size={12} /> Transfer
+                            </span>
+                          )}
+                          {call.parent_call_id && (
+                            <span className="px-2 py-0.5 bg-purple-50 text-purple-600 rounded-md text-[10px] font-black uppercase">
+                              Follow-up
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      {/* Flags */}
-                      <div className="flex gap-1.5 flex-wrap">
-                        {call.is_task && (
-                          <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md text-[10px] font-black uppercase flex items-center gap-1">
-                            <MdAssignment size={12} /> Task
-                          </span>
-                        )}
-                        {call.transfer_to && (
-                          <span className="px-2 py-0.5 bg-orange-50 text-orange-600 rounded-md text-[10px] font-black uppercase flex items-center gap-1">
-                            <MdTransferWithinAStation size={12} /> Transfer
-                          </span>
-                        )}
-                        {call.parent_call_id && (
-                          <span className="px-2 py-0.5 bg-purple-50 text-purple-600 rounded-md text-[10px] font-black uppercase">
-                            Follow-up
-                          </span>
-                        )}
+                    </td>
+
+                    {/* Medium */}
+                    <td className="px-8 py-6">
+                      <Badge value={call.receive_type} />
+                    </td>
+
+                    {/* Date */}
+                    <td className="px-8 py-6">
+                      <div className="flex items-center gap-2 text-sm font-black text-slate-700">
+                        <MdCalendarToday className="text-slate-300" size={16} />
+                        {new Date(call.createdAt).toLocaleDateString("default", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
                       </div>
-                    </div>
-                  </td>
+                    </td>
 
-                  {/* Medium */}
-                  <td className="px-8 py-6">
-                    <Badge value={call.receive_type} />
-                  </td>
-
-                  {/* Date */}
-                  <td className="px-8 py-6">
-                    <div className="flex items-center gap-2 text-sm font-black text-slate-700">
-                      <MdCalendarToday className="text-slate-300" size={16} />
-                      {new Date(call.createdAt).toLocaleDateString("default", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </div>
-                  </td>
-
-                  {/* Actions */}
-                  <td className="px-10 py-6 text-right">
-                    <div className="flex items-center justify-end gap-3">
-                      <button
-                        onClick={() => setViewTarget(call)}
-                        title="View"
-                        className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all"
-                      >
-                        <MdVisibility size={20} />
-                      </button>
-                      <button
-                        onClick={() => openEdit(call)}
-                        title="Edit"
-                        className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 transition-all"
-                      >
-                        <MdEdit size={20} />
-                      </button>
-                      <button
-                        onClick={() => setConfirmDelete(call)}
-                        title="Delete"
-                        className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
-                      >
-                        <MdDelete size={20} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+                    {/* Actions */}
+                    <td className="px-10 py-6 text-right">
+                      <div className="flex items-center justify-end gap-3">
+                        <button
+                          onClick={() => setViewTarget(call)}
+                          title="View"
+                          className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all"
+                        >
+                          <MdVisibility size={20} />
+                        </button>
+                        <button
+                          onClick={() => openEdit(call)}
+                          title="Edit"
+                          className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 transition-all"
+                        >
+                          <MdEdit size={20} />
+                        </button>
+                        <button
+                          onClick={() => setConfirmDelete(call)}
+                          title="Delete"
+                          className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
+                        >
+                          <MdDelete size={20} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )))}
+            </tbody> 
           </table>
         </div>
 
@@ -752,7 +769,14 @@ const Calls = () => {
 
       {/* Mobile Cards */}
       <div className="md:hidden space-y-4">
-        {filteredCalls.length === 0 ? (
+        {loading ? (
+          <div className="bg-white rounded-2xl p-8 flex flex-col items-center justify-center gap-4 border border-slate-100 shadow-sm">
+            <Spinner size="lg" />
+            <p className="text-slate-400 font-bold animate-pulse uppercase tracking-[0.2em] text-sm">
+              Accessing comms archives...
+            </p>
+          </div>
+        ) : filteredCalls.length === 0 ? (
           <div className="bg-white rounded-2xl p-8 text-center text-slate-400 font-bold uppercase tracking-widest text-sm">
             No communication logs archived.
           </div>
@@ -1009,7 +1033,7 @@ const Calls = () => {
               error={fieldErrors.caller_number}
               placeholder="e.g. +91 98765 43210"
             />
-            <div className="md:col-span-2 space-y-1.5">
+            {/* <div className="md:col-span-2 space-y-1.5">
               <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
                 Project
               </label>
@@ -1033,7 +1057,7 @@ const Calls = () => {
                   {fieldErrors.project_id}
                 </p>
               )}
-            </div>
+            </div> */}
 
             <Select
               label="Call Type"
@@ -1075,39 +1099,39 @@ const Calls = () => {
               />
             </div> */}
 
-<div className="md:col-span-2">
-  <Select
-    label="Communication Medium"
-    name="receive_type"
-    value={form.receive_type}
-    onChange={handleChange}
-    options={RECEIVE_OPTIONS}
-    error={fieldErrors.receive_type}
-    placeholder="Select medium..."
-    required
-  />
-</div>
+            <div className="md:col-span-2">
+              <Select
+                label="Communication Medium"
+                name="receive_type"
+                value={form.receive_type}
+                onChange={handleChange}
+                options={RECEIVE_OPTIONS}
+                error={fieldErrors.receive_type}
+                placeholder="Select medium..."
+                required
+              />
+            </div>
 
-{/* Meeting attendees — only relevant when receive_type is meeting */}
-{form.receive_type === "meeting" && (
-  <div className="md:col-span-2 space-y-1.5">
-    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
-      Other Attendees{" "}
-      <span className="text-slate-300 font-bold normal-case tracking-normal">
-        (optional — leave empty if it was just you)
-      </span>
-    </label>
-    <MultiSearchableSelect
-      options={users.filter((u) => u.id !== authUser?.id)}
-      value={form.attendees}
-      onChange={(ids) => setForm((prev) => ({ ...prev, attendees: ids }))}
-      getId={(u) => u.id}
-      getLabel={(u) => `${u.name} (${u.employee_id})`}
-      getSearchText={(u) => `${u.name} ${u.employee_id}`}
-      placeholder="Search employees who attended..."
-    />
-  </div>
-)}
+            {/* Meeting attendees — only relevant when receive_type is meeting */}
+            {form.receive_type === "meeting" && (
+              <div className="md:col-span-2 space-y-1.5">
+                <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
+                  Other Attendees{" "}
+                  <span className="text-slate-300 font-bold normal-case tracking-normal">
+                    (optional — leave empty if it was just you)
+                  </span>
+                </label>
+                <MultiSearchableSelect
+                  options={users.filter((u) => u.id !== authUser?.id)}
+                  value={form.attendees}
+                  onChange={(ids) => setForm((prev) => ({ ...prev, attendees: ids }))}
+                  getId={(u) => u.id}
+                  getLabel={(u) => `${u.name} (${u.employee_id})`}
+                  getSearchText={(u) => `${u.name} ${u.employee_id}`}
+                  placeholder="Search employees who attended..."
+                />
+              </div>
+            )}
             <div className="md:col-span-2">
               <Textarea
                 label="Executive Summary"
@@ -1138,7 +1162,7 @@ const Calls = () => {
 
               {/* Existing remarks log */}
               {Array.isArray(editTarget?.remarks) &&
-              editTarget.remarks.length > 0 ? (
+                editTarget.remarks.length > 0 ? (
                 <div className="space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar">
                   {[...editTarget.remarks].reverse().map((r, i) => (
                     <div
@@ -1595,21 +1619,21 @@ const Calls = () => {
               </div>
             )}
 
-{viewTarget.attendees && Array.isArray(viewTarget.attendees) && viewTarget.attendees.length > 0 && (
-  <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-2xl border border-blue-100">
-    <MdAssignment size={20} className="text-blue-500 shrink-0 mt-0.5" />
-    <div>
-      <p className="text-xs font-black text-blue-600 uppercase tracking-widest">
-        Attendees
-      </p>
-      <p className="text-sm font-bold text-blue-700 mt-1">
-        {viewTarget.attendees
-          .map((id) => users.find((u) => u.id === id)?.name || id)
-          .join(", ")}
-      </p>
-    </div>
-  </div>
-)}
+            {viewTarget.attendees && Array.isArray(viewTarget.attendees) && viewTarget.attendees.length > 0 && (
+              <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-2xl border border-blue-100">
+                <MdAssignment size={20} className="text-blue-500 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-xs font-black text-blue-600 uppercase tracking-widest">
+                    Attendees
+                  </p>
+                  <p className="text-sm font-bold text-blue-700 mt-1">
+                    {viewTarget.attendees
+                      .map((id) => users.find((u) => u.id === id)?.name || id)
+                      .join(", ")}
+                  </p>
+                </div>
+              </div>
+            )}
 
             {/* Remarks log */}
             {viewTarget.remarks &&

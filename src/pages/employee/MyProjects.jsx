@@ -2,10 +2,13 @@ import { useEffect, useState  } from "react";
 import { useProject } from "../../context/ProjectContext";
 import Spinner from "../../components/ui/Spinner";
 import Badge from "../../components/ui/Badge";
-import { MdFolder, MdGroup, MdChevronRight, MdPerson } from "react-icons/md";
+import { MdFolder, MdGroup, MdVisibility,MdDashboard ,MdAssignment , MdChevronRight, MdPerson } from "react-icons/md";
 import { FaChevronDown } from "react-icons/fa";
 
 import { useNavigate } from "react-router-dom";
+import Modal from "../../components/ui/Modal";
+import Button from "../../components/ui/Button";
+
 
 const STATUS_COLORS = {
   planning:  "bg-slate-100 text-slate-600",
@@ -19,7 +22,7 @@ const MyProjects = () => {
   // console.log("🚀 ~ MyProjects ~ projects:", projects)
   const [expandedRow, setExpandedRow] = useState(null);
   const navigate = useNavigate();
-
+const [viewTarget, setViewTarget] = useState(null);
   useEffect(() => {
     getAllProjects?.(page);
   }, [page]);
@@ -46,6 +49,8 @@ const MyProjects = () => {
         </p>
       </div>
 
+
+              
       {/* Empty */}
       {projects.length === 0 ? (
         <div className="bg-white rounded-[2.5rem] p-16 text-center border border-dashed border-slate-200 shadow-2xl shadow-slate-200/40">
@@ -67,7 +72,7 @@ const MyProjects = () => {
                   <th className="px-6 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Type</th>
                   <th className="px-6 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Tech</th>
                   <th className="px-6 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Members</th>
-                  <th className="px-6 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Created By</th>
+                  <th className="px-6 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Action</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
@@ -131,7 +136,7 @@ const MyProjects = () => {
 
                     {/* Tech details */}
 <td className="px-6 py-5">
-  <p className="text-xs font-bold text-slate-500 max-w-[160px] line-clamp-2">
+  <p className="text-md font-bold text-slate-500 max-w-[160px] line-clamp-2">
     {typeof project.tech_details === "string"
       ? project.tech_details
       : Array.isArray(project.tech_details)
@@ -158,18 +163,25 @@ const MyProjects = () => {
                         </button>
                       </td>
 
-                      
-                      {/* Creator */}
-<td className="px-6 py-6">
-  <div className="flex items-center gap-3">
-    <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-black text-[10px] uppercase">
-      {project.creator?.name?.charAt(0) || "?"}  {/* ← was || <MdPerson /> */}
-    </div>
-    <div className="text-sm font-black text-slate-600">
-      {project.creator?.name || "—"}
-    </div>
-  </div>
-</td>
+    
+
+  {/* Actions */}
+      <div className="flex gap-4 px-4 py-5 border-t border-slate-100">
+        <button
+          onClick={() => setViewTarget(project)}
+          className="flex-1 h-12 rounded-xl bg-slate-50 text-slate-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all"
+        >
+          <MdVisibility size={20} /> 
+        </button>
+        <button
+          onClick={() => navigate(`/employee/projects/${project.id}/dashboard`)}
+          className="flex-1 h-12 rounded-xl bg-slate-50 text-slate-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all"
+        >
+          <MdDashboard size={20} /> 
+        </button>
+
+      </div>
+
                     </tr>
 
                     {/* Expanded members */}
@@ -244,6 +256,197 @@ const MyProjects = () => {
           </div>
         </div>
       )}
+
+              {/* ── View Modal ───────────────────────────────────────────── */}
+              <Modal show={!!viewTarget} onClose={() => setViewTarget(null)} title="Project Details" size="lg">
+                {viewTarget && (
+                  <div className="space-y-6 py-2">
+      
+                    {/* Header */}
+                    <div className="flex items-start gap-4 pb-5 border-b border-slate-100">
+                      <div className="w-14 h-14 rounded-2xl bg-[#132ea7] text-white flex items-center justify-center shrink-0 shadow-xl shadow-[#132ea7]/20">
+                        <MdAssignment size={26} />
+                      </div>
+                      <div className="flex-1">
+                        {/* <div className="flex items-center gap-3 flex-wrap">
+                          <h3 className="text-xl font-black text-slate-800">{viewTarget.task}</h3>
+                          <Badge value={viewTarget.status} />
+                        </div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 font-mono">
+                          {viewTarget.display_id || "No display ID"}
+                        </p> */}
+      
+                        <div className="flex items-center gap-3 flex-wrap">
+                         <h3 className="text-xl font-black text-slate-800">
+        {viewTarget.name}
+      </h3>
+      
+                          <Badge value={viewTarget.development_status} />
+                        </div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 font-mono">
+        {viewTarget.code}
+      </p>
+                      </div>
+                    </div>
+      
+                    <div className="bg-slate-50 rounded-2xl p-5">
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
+          Project Types
+        </p>
+      
+        <div className="flex flex-wrap gap-2">
+          {Object.entries(viewTarget.project_types || {}).map(
+            ([type, subtypes]) =>
+              subtypes.map((sub) => (
+                <span
+                  key={`${type}-${sub}`}
+                  className="px-3 py-1 rounded-lg bg-[#132ea7]/10 text-[#132ea7] text-xs font-bold"
+                >
+                  {type} / {sub}
+                </span>
+              ))
+          )}
+        </div>
+      </div>
+      
+
+      {/* Members */}
+{viewTarget.members?.length > 0 && (
+  <div className="space-y-3">
+    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+      Members ({viewTarget.members.length})
+    </p>
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+      {viewTarget.members.map((m) => (
+        <div key={m.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-2xl border border-slate-100">
+          <div className="w-9 h-9 rounded-xl bg-[#132ea7]/10 text-[#132ea7] flex items-center justify-center font-black text-sm flex-shrink-0">
+            {m.user?.name?.charAt(0) || "?"}
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-black text-slate-700 truncate">{m.user?.name || "Unknown"}</p>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest truncate">
+              {m.role?.name || m.user?.employee_id || "—"}
+            </p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+      
+      
+                    {/* Info grid */}
+                    {/* <div className="grid grid-cols-2 gap-4">
+                      {[
+                        { label: "Name", value: viewTarget.name || "—" },
+                        { label: "Assigned By", value: viewTarget.assigner?.name || "—" },
+                        { label: "Project", value: viewTarget.project?.name || "—" },
+                        { label: "Due Date", value: viewTarget.due_date ? new Date(viewTarget.due_date).toLocaleDateString() : "—" },
+                        { label: "Start Date", value: viewTarget.start_date ? new Date(viewTarget.start_date).toLocaleDateString() : "—" },
+                        // { label: "Created", value: new Date(viewTarget.createdAt).toLocaleDateString() },
+                      ].map((item) => (
+                        <div key={item.label} className="bg-slate-50 rounded-2xl p-4">
+                          <p className="text-[12px] font-black text-slate-400 uppercase tracking-widest mb-1">{item.label}</p>
+                          <p className="font-black text-slate-700 text-sm">{item.value}</p>
+                        </div>
+                      ))}
+                    </div> */}
+      
+      
+                    {/* tech_details */}
+      {viewTarget.tech_details && (
+        <div className="space-y-3">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            Technical Details
+          </p>
+      
+          {Array.isArray(viewTarget.tech_details) ? (
+            <div className="space-y-2">
+              {viewTarget.tech_details.map((tech, index) => (
+                <div key={index} className="bg-[#132ea7] rounded-2xl p-4 text-white">
+                  {/* Tech name + version */}
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 rounded-md bg-white/20 flex items-center justify-center text-[10px] font-black flex-shrink-0">
+                      {index + 1}
+                    </div>
+                    <span className="font-black text-sm">
+                      {tech.name}
+                      {tech.version ? (
+                        <span className="ml-2 text-white/60 font-bold text-xs">v{tech.version}</span>
+                      ) : null}
+                    </span>
+                  </div>
+      
+                  {/* Databases nested under this tech */}
+                  {tech.databases?.length > 0 && (
+                    <div className="mt-3 pl-7 space-y-1.5">
+                      <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-2">
+                        Databases
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {tech.databases.map((db, dbIndex) => (
+                          <span
+                            key={dbIndex}
+                            className="px-3 py-1 rounded-lg bg-white/10 text-xs font-bold"
+                          >
+                            {db.name}
+                            {db.version ? (
+                              <span className="ml-1 text-white/50">v{db.version}</span>
+                            ) : null}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            // Legacy string fallback
+            <div className="bg-[#132ea7] rounded-2xl p-6 text-white">
+              <p className="font-medium opacity-90">{viewTarget.tech_details}</p>
+            </div>
+          )}
+        </div>
+      )}
+      
+                    {/* Description */}
+                    {viewTarget.description && (
+                      <div className="bg-[#132ea7] rounded-2xl p-6 text-white">
+                        <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-2">Description</p>
+                        <p className="font-medium leading-relaxed opacity-90">{viewTarget.description}</p>
+                      </div>
+                    )}
+      
+                  {/* Remarks log */}
+                    {viewTarget.remarks && Array.isArray(viewTarget.remarks) && viewTarget.remarks.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                          Remarks ({viewTarget.remarks.length})
+                        </p>
+                        <div className="space-y-2 max-h-[180px] overflow-y-auto custom-scrollbar">
+                          {[...viewTarget.remarks].reverse().map((r, i) => (
+                            <div key={i} className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                              <p className="text-sm font-bold text-slate-700">{r.text}</p>
+                              <div className="flex justify-between mt-1.5">
+                                <p className="text-[10px] font-black text-slate-400 uppercase">{r.added_by_name}</p>
+                                <p className="text-[10px] font-bold text-slate-300">
+                                  {new Date(r.created_at).toLocaleString("default", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+      
+                    <div className="flex justify-end pt-2">
+                      <Button variant="ghost" onClick={() => setViewTarget(null)} className="font-black uppercase tracking-widest text-xs">Close</Button>
+                    </div>
+                  </div>
+                )}
+              </Modal>
+      
     </div>
   );
 };

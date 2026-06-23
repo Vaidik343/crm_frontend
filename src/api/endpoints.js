@@ -1,6 +1,7 @@
 export const ENDPOINTS = {
     AUTH: {
-        LOGIN:"/auth/login"
+        LOGIN:"/auth/login",
+        LOGOUT:"/auth/logout",
     },
     CALLS: {
         CREATE: "/calls",
@@ -44,7 +45,7 @@ export const ENDPOINTS = {
     },
     
     PASSWORD: {
-        CHANGE: (id) => '/password/change', //PATCH
+        CHANGE: '/password/change', //PATCH
         RESET: (id) => `/password/reset/${id}`     // PATCH
     },
     ROLES: {

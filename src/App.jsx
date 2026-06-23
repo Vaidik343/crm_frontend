@@ -37,6 +37,7 @@ import ProjectDashboard from "./pages/employee/ProjectDashboard";
 import MyProjects from './pages/employee/MyProjects';
 
 import NotificationsPage from "./components/NotificationsPage"; 
+import NotFound from './components/NotFound';
 
 const App = () => {
 
@@ -62,7 +63,7 @@ const App = () => {
     <Route
      path="/login"
       element = {
-        isAuthenticated ? <Navigate to={isAdmin ? "/admin/dashboard" : "/employee/tasks"}  replace/> : <Login />
+        isAuthenticated ? <Navigate to={isAdmin ? "/admin/dashboard" : "/employee/myDashboard"}  replace/> : <Login />
       }
       />
 
@@ -133,7 +134,7 @@ const App = () => {
       />
 
       {/* 404 */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<NotFound />} />
 
     </Routes>
     </>

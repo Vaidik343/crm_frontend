@@ -57,7 +57,7 @@ export const SocketProvider = ({ children }) => {
     });
 
     newSocket.on("connect_error", (err) => {
-      // console.error("❌ [Socket] Connection error:", err.message);
+      console.error("❌ [Socket] Connection error:", err.message);
       setIsConnected(false);
     });
 
