@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import Input from './../components/ui/Input';
 import Button from '../components/ui/Button';
 import Alert from './../components/ui/Alert';
-import loginBg from '../assets/login-bg.png';
+import loginBg from '../assets/login.png';
 
 import {
    MdAdminPanelSettings, MdVisibility, MdVisibilityOff 
@@ -74,7 +74,7 @@ const [showPassword, setShowPassword] = useState(false);
       <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-[#0d6efd] rounded-full blur-[120px] opacity-20" />
 
       {/* Login Card */}
-      <div className='relative z-10 w-full max-w-[440px]'>
+      <div className='relative z-10 w-full max-w-[500px]'>
         <div className='backdrop-blur-xl bg-white/90 border border-white/20 shadow-2xl rounded-3xl overflow-hidden'>
           <div className='p-8 sm:p-12'>
             <div className='text-center mb-10'>

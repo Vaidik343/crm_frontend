@@ -166,6 +166,7 @@ const [viewTarget, setViewTarget] = useState(null);
     
 
   {/* Actions */}
+  <td >
       <div className="flex gap-4 px-4 py-5 border-t border-slate-100">
         <button
           onClick={() => setViewTarget(project)}
@@ -181,7 +182,7 @@ const [viewTarget, setViewTarget] = useState(null);
         </button>
 
       </div>
-
+</td>
                     </tr>
 
                     {/* Expanded members */}
@@ -225,7 +226,9 @@ const [viewTarget, setViewTarget] = useState(null);
           </div>
 
           {/* Pagination */}
-          <div className="flex items-center justify-between px-6 py-6 border-t border-slate-100">
+
+          {totalPages > 1 && (
+                <div className="flex items-center justify-between px-6 py-6 border-t border-slate-100">
             <button
               disabled={page === 1}
               onClick={() => getAllProjects(page - 1)}
@@ -254,6 +257,8 @@ const [viewTarget, setViewTarget] = useState(null);
               Next
             </button>
           </div>
+          )}
+          
         </div>
       )}
 

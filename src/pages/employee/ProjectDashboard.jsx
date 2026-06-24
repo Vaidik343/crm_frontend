@@ -111,7 +111,7 @@ const dueSoonTasks = (recent_tasks || []).filter((t) => {
     <div className="space-y-8 animate-in fade-in duration-500">
 
       {/* Header */}
-      <div className="flex items-start gap-4">
+      <div className="flex items-start gap-4 flex-wrap">
         <button
           onClick={() => navigate(-1)}
           className="mt-1 p-2.5 rounded-xl bg-white border border-slate-100 text-slate-400 hover:text-[#132ea7] hover:border-[#132ea7]/20 transition-all shadow-sm"
@@ -227,7 +227,7 @@ const dueSoonTasks = (recent_tasks || []).filter((t) => {
         <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/30 px-8 py-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Task Progress</h3>
-            <div className="flex items-center gap-5">
+            <div className="flex items-center gap-4 flex-wrap justify-end">
               {[
                 { dot: "bg-slate-300",   label: "Open",    val: ts.open },
                 { dot: "bg-[#132ea7]",   label: "Ongoing", val: ts.ongoing },
@@ -385,7 +385,7 @@ const dueSoonTasks = (recent_tasks || []).filter((t) => {
       <div className="bg-white rounded-[2rem] border border-slate-100 shadow-xl shadow-slate-200/30 overflow-hidden">
         <div className="px-8 py-5 border-b border-slate-50 flex items-center justify-between">
           <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Recent Calls</h3>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap justify-end">
             <span className="text-[9px] font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded-lg uppercase tracking-widest">{cs.inquiry ?? 0} Inquiry</span>
             <span className="text-[9px] font-black text-[#132ea7] bg-[#132ea7]/10 border border-[#132ea7]/20 px-2 py-1 rounded-lg uppercase tracking-widest">{cs.request ?? 0} Request</span>
             <span className="text-[9px] font-black text-red-500 bg-red-50 border border-red-100 px-2 py-1 rounded-lg uppercase tracking-widest">{cs.complaint ?? 0} Complaint</span>

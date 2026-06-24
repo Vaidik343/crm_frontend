@@ -1032,33 +1032,37 @@ const Calls = () => {
               onChange={handleChange}
               error={fieldErrors.caller_number}
               placeholder="e.g. +91 98765 43210"
+              required
             />
-            {/* <div className="md:col-span-2 space-y-1.5">
-              <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
-                Project
-              </label>
-              <SearchableSelect
-                endpoint={ENDPOINTS.PROJECTS.ALL}
-                value={form.project_id}
-                selectedLabel={selectedProject?.name || ""}
-                getLabel={(project) => project.name}
-                onChange={(project) => {
-                  setSelectedProject(project);
 
-                  setForm((prev) => ({
-                    ...prev,
-                    project_id: project?.id || "",
-                    assigned_to: "",
-                  }));
-                }}
-              />
-              {fieldErrors.project_id && (
-                <p className="text-red-500 text-[10px] font-bold uppercase ml-1 mt-1">
-                  {fieldErrors.project_id}
-                </p>
+              {!editTarget && (
+<div className="md:col-span-2 space-y-1.5">
+    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
+      Project
+    </label>
+    <SearchableSelect
+    endpoint={ENDPOINTS.PROJECTS.ALL}
+    value={form.project_id}
+    selectedLabel={selectedProject?.name || ""}
+    getLabel={(project) => project.name}
+    onChange={(project) => {
+      setSelectedProject(project);
+
+      setForm((prev) => ({
+        ...prev,
+        project_id: project?.id || "",
+        assigned_to: "",
+      }));
+    }}
+      getLabel={(p) => `${p.name}${p.code ? ` (${p.code})` : ""}`}
+      placeholder="Search project by name or code..."
+      emptyOptionLabel="No Project"
+    />
+    {fieldErrors.project_id && (
+      <p className="text-red-500 text-[10px] font-bold uppercase ml-1 mt-1">{fieldErrors.project_id}</p>
+    )}
+  </div>
               )}
-            </div> */}
-
             <Select
               label="Call Type"
               name="call_type"

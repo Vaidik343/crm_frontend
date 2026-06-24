@@ -15,7 +15,7 @@ const Textarea = ({ label, value, onChange, error, rows = 3, placeholder, requir
         placeholder={placeholder}
         disabled={disabled}
         rows={rows}
-        className={`w-full px-4 py-3 bg-white border rounded-2xl transition-all duration-200 outline-none resize-none
+        className={`w-full max-h-[50dvh]  px-4 py-3 bg-white border rounded-2xl transition-all duration-200 outline-none resize-none
           ${error 
             ? "border-red-500 ring-4 ring-red-500/10" 
             : "border-slate-200 focus:border-[#e98937] focus:ring-4 focus:ring-[#e98937]/10"

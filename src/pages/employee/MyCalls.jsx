@@ -172,6 +172,9 @@ import SearchInput from "../../components/ui/SearchInput";
       }, [form.project_id, projects, users]);
       
 
+      const noSelf = assignableUsers.filter((u) => u.id !== authUser?.id)
+
+
 
     // right now its just display name which is good but if code needs then use claudes code
     const projectOptions = projects.map((p) => ({ value: p.id, label: p.name }));
@@ -951,8 +954,11 @@ if (!isValid) {
                 onChange={handleChange}
                  error={fieldErrors.caller_number}
                 placeholder="e.g. +91 98765 43210"
+                required
               />
-  {/* <div className="md:col-span-2 space-y-1.5">
+
+              {!editTarget && (
+<div className="md:col-span-2 space-y-1.5">
     <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
       Project
     </label>
@@ -977,7 +983,9 @@ if (!isValid) {
     {fieldErrors.project_id && (
       <p className="text-red-500 text-[10px] font-bold uppercase ml-1 mt-1">{fieldErrors.project_id}</p>
     )}
-  </div> */}
+  </div>
+              )}
+  
 
 
               <Select
@@ -1168,7 +1176,7 @@ if (!isValid) {
                     </select> */}
 
                     <LocalSearchableSelect
-        options={assignableUsers}
+        options={noSelf}
                             value={form.transfer_to}
         onChange={(id) => setForm((prev) => ({ ...prev, transfer_to: id }))}
         // disabled={form.project_id && assignableUsers.length === 0}
@@ -1331,7 +1339,7 @@ if (!isValid) {
       })}
                       </select> */}
                           <LocalSearchableSelect
-        options={assignableUsers}
+        options={noSelf}
         value={form.task_assigned_to}
         onChange={(id) => setForm((prev) => ({ ...prev, task_assigned_to: id }))}
         emptyOptionLabel="Self Assign"

@@ -62,7 +62,7 @@
     const { projects, getAllProjects } = useProject();
     const { calls, getAllCalls } = useCall();
     // const { teams, getAllTeams } = useTeam();
-    const { user } = useAuth();
+    const {user: authUser} = useAuth();
     const { users, getAllUsers } = useUser();
     // console.log("🚀 ~ MyTasks ~ users:", users);
 
@@ -108,7 +108,7 @@ const [search, setSearch] = useState("");
     return users.filter((u) => memberUserIds.includes(u.id));
   }, [selectedProject, users]);
 
-
+const noSelf = assignableUsers.filter((u) => u.id !== authUser?.id)
 
     useEffect(() => {
   getAllTasks?.(page, dateFrom, dateTo, limit, search, dueFilter);
@@ -305,7 +305,7 @@ const [search, setSearch] = useState("");
     // loading state
     if (loading && !tasks.length)
       return (
-        <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+        <div className="flex flex-col items-center justify-center h-[60vh] gap-4 ">
           <Spinner size="lg" />
           <p className="text-slate-400 font-bold animate-pulse uppercase tracking-[0.2em] text-sm">
             Loading tasks...
@@ -329,7 +329,7 @@ const [search, setSearch] = useState("");
 
     <div className="flex flex-col lg:flex-row flex-wrap rounded items-stretch w-full lg:items-center gap-3">
       {/* Filter buttons */}
-      <div className="flex items-center gap-2.5">
+      <div className="flex items-center gap-3">
         {[
           { value: "", label: "All" },
           { value: "due_soon", label: "Due Soon" },
@@ -349,15 +349,16 @@ const [search, setSearch] = useState("");
         ))}
       </div>
 
+               <div className="w-[19dvw] flex">                                                                                                                                                 
   <SearchInput 
     value={search}
   onChange={setSearch}
-    placeholder="Search Tasks, Projects, Employee name and Display Id"
+    placeholder="Search Tasks, Projects..."
   />
-  
+  </div>
   
       {/* Date range */}
-      <div className="flex items-center max-w-[55dvw]  gap-2 bg-white  border flex-wrap border-slate-100 rounded-2xl px-4 py-2 shadow-sm">
+      <div className="flex items-center max-w-[48dvw]  gap-2 bg-white  border flex-wrap border-slate-100 rounded-2xl px-4 py-2 shadow-sm">
         <label className="text-xs font-black text-slate-400 uppercase">From</label>
         <input
           type="date"
@@ -418,7 +419,7 @@ const [search, setSearch] = useState("");
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-200/50">
-                      <th className="px-10 py-4 text-md font-black text-slate-400 uppercase tracking-[0.2em]">
+                      <th className="px-6 py-5 text-md font-black text-slate-400 uppercase tracking-[0.2em]">
                       Register At
                     </th>
                     <th className="px-6 py-5 text-md font-black text-slate-400 uppercase tracking-[0.2em]">
@@ -492,15 +493,15 @@ const [search, setSearch] = useState("");
                       {/* Task */}
                       <td className="px-6 py-5">
                         <div className="flex items-center gap-4">
-                          <div className="w-10 h-10 rounded-xl bg-[#132ea7] text-white flex items-center justify-center font-black shadow-lg shadow-[#132ea7]/10">
+                          <div className="w-10 h-10 rounded-xl bg-[#132ea7] text-white flex items-center justify-center font-black shadow-lg shadow-[#132ea7]/10 shrink-0">
                             <MdAssignment size={18} />
                           </div>
-                          <div>
-                            <div className="font-black text-slate-800 text-lg truncate max-w-[100px] leading-tight">
+                          <div className="min-w-0">
+                            <div className="font-black text-slate-800 text-lg truncate max-w-25 leading-tight">
                               {task.task}
                             </div>
                             {task.description && (
-                              <div className="text-xs  text-slate-400 mt-1 truncate max-w-[200px] italic">
+                              <div className="text-xs  text-slate-400 mt-1 truncate max-w-50 italic">
                                 {task.description}
                               </div>
                             )}
@@ -788,7 +789,7 @@ const [search, setSearch] = useState("");
       <p className="text-red-500 text-[10px] font-bold uppercase ml-1 mt-1">{fieldErrors.project_id}</p>
     )}
                 </div>
-              )}
+              )} 
 
 
 
@@ -812,7 +813,7 @@ const [search, setSearch] = useState("");
       </span>
     )}
     <LocalSearchableSelect
-    options={assignableUsers}
+    options={noSelf}
     value={form.assigned_to}
     onChange={(id) => setForm((prev) => ({ ...prev, assigned_to: id }))}
     disabled={form.project_id && assignableUsers.length === 0}
@@ -830,7 +831,8 @@ const [search, setSearch] = useState("");
 
 
               {/* Linked call — only on create */}
-              {!editTarget && (
+              {!editTarget &&
+               (
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
                     Linked Call{" "}
@@ -898,8 +900,8 @@ const [search, setSearch] = useState("");
 
 
               {/* Remarks section in edit modal */}
-              <div className="md:col-span-2 space-y-3">
-                <div className="flex items-center justify-between ml-1">
+              <div className="md:col-span-2    space-y-3">
+                <div className="flex items-center  justify-between ml-1">
                   <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
                     Remarks
                   </label>

@@ -82,7 +82,8 @@ const Dashboard = () => {
       <p className="text-slate-400 font-medium animate-pulse">Loading intelligence...</p>
     </div>
   );
-
+console.log(data.task_status_breakdown);
+console.log(data.task_status_breakdown_all_time);
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       {/* Header */}
@@ -180,13 +181,18 @@ const Dashboard = () => {
         <div className="bg-white rounded-[2rem] p-6 px-10 border border-slate-100 shadow-xl shadow-slate-200/30 space-y-5">
 
           {/* Real-time row */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6" 
+
+          >
             <h3 className="text-xl font-black text-slate-800 flex items-center gap-3 whitespace-nowrap">
               <span className="w-2 h-8 bg-[#132ea7] rounded-full" />
               Task Status <span className="text-slate-300 font-bold text-xs tracking-widest uppercase ml-1">Real-time</span>
             </h3>
-            <div className="flex flex-wrap items-center gap-4 md:gap-8">
+            <div className="flex flex-wrap items-center gap-4 md:gap-8"
+                      onClick = {() => navigate('/admin/tasks')}
+            >
               {renderStatusItems(data?.task_status_breakdown)}
+              
             </div>
           </div>
 
@@ -196,7 +202,9 @@ const Dashboard = () => {
               <span className="w-2 h-8 bg-slate-300 rounded-full" />
               Task Status <span className="text-slate-300 font-bold text-xs tracking-widest uppercase ml-1">All-time</span>
             </h3>
-            <div className="flex flex-wrap items-center gap-4 md:gap-8">
+            <div className="flex flex-wrap items-center gap-4 md:gap-8"
+                       onClick = {() => navigate('/admin/tasks')}
+            >
               {renderStatusItems(data?.task_status_breakdown_all_time)}
             </div>
           </div>

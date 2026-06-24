@@ -120,7 +120,7 @@ const MyDashboard = () => {
   const cs = summary?.call_stats || {};
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8 px-4 animate-in fade-in duration-500">
 
       {/* ── Header ── */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-2">
@@ -194,7 +194,7 @@ const MyDashboard = () => {
           onClick = {() => navigate('/employee/work-logs')}
         />
       </div> */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-left">
         {[
                   { label: "Projects",   value: summary?.total_projects, icon: <MdGroup size={22} className="text-[#132ea7]" />,       color: "bg-[#132ea7]/10" },
                   { label: "My Tasks",     value: ts.total,               icon: <MdAssignment size={22} className="text-violet-500" />, color: "bg-violet-50",    sub: `${ts.ongoing ?? 0} ongoing` },
@@ -223,7 +223,7 @@ const MyDashboard = () => {
         <div className="bg-white rounded-[2rem] border border-slate-100 shadow-2xl shadow-slate-200/40 px-10 py-8">
           <div className="flex items-center justify-between mb-5">
             <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Task Overview</h3>
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4 flex-wrap justify-end">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-slate-300 shadow-inner" />
                 <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Open ({ts.open})</span>
@@ -251,7 +251,7 @@ const MyDashboard = () => {
         <div className="lg:col-span-2 bg-white  overflow-auto max-h-[550px] scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent  rounded-[2rem] border border-slate-100 shadow-2xl shadow-slate-200/40 ">
           <div className="flex items-center justify-between px-10 py-6 border-b-2 border-slate-50">
             <h3 className="text-sm font-black  text-slate-400 uppercase tracking-[0.2em]">My Tasks</h3>
-            <div className="flex items-center gap-4 ">
+            <div className="flex items-center gap-2 flex-wrap justify-end">
               
               {[
                 { label: "Open", value: ts.open, color: "text-slate-600 bg-slate-50 border border-slate-100" },
@@ -378,7 +378,7 @@ const MyDashboard = () => {
         <div className="bg-white rounded-[2rem] border overflow-auto max-h-[570px] scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent border-slate-100 shadow-2xl shadow-slate-200/40 ">
           <div className="px-10 py-6 border-b-2 border-slate-50 flex items-center justify-between">
             <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Recent Calls</h3>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap justify-end">
               <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 border border-emerald-100 px-2.5 py-1.5 rounded-xl uppercase tracking-widest">{cs.inquiry ?? 0} Inquiry</span>
               <span className="text-[10px] font-black text-[#132ea7] bg-[#132ea7]/10 border border-[#132ea7]/20 px-2.5 py-1.5 rounded-xl uppercase tracking-widest">{cs.request ?? 0} Request</span>
               <span className="text-[10px] font-black text-red-500 bg-red-50 border border-red-100 px-2.5 py-1.5 rounded-xl uppercase tracking-widest">{cs.complaint ?? 0} Complaint</span>

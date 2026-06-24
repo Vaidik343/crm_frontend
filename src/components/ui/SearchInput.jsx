@@ -7,7 +7,7 @@ const SearchInput = ({
   className = "",
 }) => {
     return(
-        <div className={`relative w-full md:w-95 ${className}`}>
+        <div className={`relative w-full md:w-95 min-w-90 ${className}`}>
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
                 <MdSearch  size={20}/>
             </div>

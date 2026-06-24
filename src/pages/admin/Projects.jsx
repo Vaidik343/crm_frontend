@@ -1141,6 +1141,7 @@ await createProject({
     <button
       type="button"
       onClick={addTechRow}
+      
       className="flex items-center gap-1 px-3 py-1.5 bg-[#132ea7]/10 text-[#132ea7] rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#132ea7]/20 transition-all"
     >
       <MdAdd size={14} /> Add Tech
