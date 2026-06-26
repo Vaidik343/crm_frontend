@@ -38,6 +38,9 @@ import MyProjects from './pages/employee/MyProjects';
 
 import NotificationsPage from "./components/NotificationsPage"; 
 import NotFound from './components/NotFound';
+import EmployeeReport from './pages/admin/EmployeeReport';
+
+
 
 const App = () => {
 
@@ -88,6 +91,8 @@ const App = () => {
   <Route path ='clients' element={<Clients />} />
   <Route path='notifications' element={<NotificationsPage />} />
 
+  {/* Employee Report */}
+  <Route path="reports/:id" element={<EmployeeReport />} />
   {/* Teams */}
   {/* <Route path='teams' element={<Teams />} />
   <Route path='teams/:id/dashboard' element={<TeamDashboard />} /> */}

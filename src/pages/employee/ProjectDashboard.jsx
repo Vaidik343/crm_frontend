@@ -20,7 +20,7 @@ const ProgressBar = ({ open, ongoing, closed, total }) => {
   if (!total) return <div className="h-2 rounded-full bg-slate-100 w-full" />;
   return (
     <div className="flex h-2 rounded-full overflow-hidden w-full gap-px">
-      {open    > 0 && <div className="bg-slate-300 rounded-full" style={{ width: `${(open/total)*100}%` }} />}
+      {open    > 0 && <div className="bg-[#e98937] rounded-full" style={{ width: `${(open/total)*100}%` }} />}
       {ongoing > 0 && <div className="bg-[#132ea7] rounded-full" style={{ width: `${(ongoing/total)*100}%` }} />}
       {closed  > 0 && <div className="bg-emerald-400 rounded-full" style={{ width: `${(closed/total)*100}%` }} />}
     </div>
@@ -229,7 +229,7 @@ const dueSoonTasks = (recent_tasks || []).filter((t) => {
             <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Task Progress</h3>
             <div className="flex items-center gap-4 flex-wrap justify-end">
               {[
-                { dot: "bg-slate-300",   label: "Open",    val: ts.open },
+                { dot: "bg-[#e98937]",   label: "Open",    val: ts.open },
                 { dot: "bg-[#132ea7]",   label: "Ongoing", val: ts.ongoing },
                 { dot: "bg-emerald-400", label: "Done",    val: ts.closed },
               ].map((s) => (

@@ -34,7 +34,7 @@ const ProgressBar = ({ open, ongoing, closed, total }) => {
   if (!total) return <div className="h-1.5 rounded-full bg-slate-100 w-full" />;
   return (
     <div className="flex h-1.5 rounded-full overflow-hidden w-full gap-px">
-      {open > 0 && <div className="bg-slate-300 rounded-full" style={{ width: `${(open / total) * 100}%` }} />}
+      {open > 0 && <div className="bg-[#e98937] rounded-full" style={{ width: `${(open / total) * 100}%` }} />}
       {ongoing > 0 && <div className="bg-[#132ea7] rounded-full" style={{ width: `${(ongoing / total) * 100}%` }} />}
       {closed > 0 && <div className="bg-emerald-400 rounded-full" style={{ width: `${(closed / total) * 100}%` }} />}
     </div>
@@ -142,6 +142,7 @@ const MyDashboard = () => {
             <div className="flex items-center gap-4 bg-red-50 border border-red-100 rounded-2xl px-5 py-4 flex-1">
               <div className="w-9 h-9 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
                 <MdWarning size={18} className="text-red-500" />
+                  
               </div>
               <div>
                 <p className="text-sm font-black text-red-700 uppercase tracking-widest">
@@ -157,8 +158,8 @@ const MyDashboard = () => {
                 <MdAccessTime size={18} className="text-amber-500" />
               </div>
               <div>
-                <p className="text-sm font-black text-amber-700 uppercase tracking-widest">
-                  {alerts.due_soon_count} Due Soon
+                <p className="text-sm font-black text-amber-700 uppercase tracking-widest" onClick = {() => navigate('/employee/tasks')}>
+                  {alerts.due_soon_count } Due Soon
                 </p>
                 <p className="text-xs text-amber-400 font-medium mt-0.5">Due within 48 hours</p>
               </div>
@@ -225,7 +226,7 @@ const MyDashboard = () => {
             <h3 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Task Overview</h3>
             <div className="flex items-center gap-4 flex-wrap justify-end">
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-slate-300 shadow-inner" />
+                <div className="w-3 h-3 rounded-full bg-[#e98937] shadow-inner" />
                 <span className="text-xs font-black text-slate-500 uppercase tracking-widest">Open ({ts.open})</span>
               </div>
               <div className="flex items-center gap-2">

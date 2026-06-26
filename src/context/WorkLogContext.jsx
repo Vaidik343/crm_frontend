@@ -6,33 +6,37 @@ export const WorkLogContext = createContext(null);
 
 export const WorkLogProvider = ({ children }) => {
   const [workLogs, setWorkLogs] = useState([]);
-  const [loading, setLoading]   = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [pagination, setPagination] = useState({ page: 1, limit: 10, total: 0 });
 
-      // pagination states
-  const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
-  const [total, setTotal] = useState(0);
+  const page  = pagination.page;
+  const limit = pagination.limit;
+  const total = pagination.total;
 
-  const getAllWorkLogs = useCallback(async (pageNumber = 1, from, to,pageLimit = 10, search = "") => {
+  const setPage = useCallback((newPage) => {
+    setPagination((prev) => ({ ...prev, page: newPage }));
+  }, []);
+
+  // ✅ Fixed signature: (pageNumber, from, to, search, pageLimit)
+  // search moved before pageLimit so callers don't need to pass limit every time
+  const getAllWorkLogs = useCallback(async (pageNumber = 1, from = "", to = "", search = "", pageLimit = 10) => {
     try {
       setLoading(true);
       const params = new URLSearchParams({ page: pageNumber, limit: pageLimit });
-       if (search) params.set("search", search);
+      if (search) params.set("search", search);
+      if (from && to) {
+        params.append("from", from);
+        params.append("to", to);
+      }
 
-    if (from && to) {
-      params.append("from", from);
-      params.append("to", to);
-    }
+      const { data } = await api.get(`${ENDPOINTS.WORKLOGS.ALL}?${params.toString()}`);
 
-        const { data } = await api.get(
-        `${ENDPOINTS.WORKLOGS.ALL}?${params.toString()}`
-      );
-        console.log("🚀 ~ WorkLogProvider ~ data:", data)
-
-setWorkLogs(data.data || []);
- setPage(data.page || 1);
-    setLimit(data.limit || 10);
-    setTotal(data.total || 0);
+      setWorkLogs(data.data || []);
+      setPagination({
+        page:  data.page  || 1,
+        limit: data.limit || 10,
+        total: data.total || 0,
+      });
 
       return data;
     } catch (error) {
@@ -55,38 +59,25 @@ setWorkLogs(data.data || []);
     try {
       const { data } = await api.post(ENDPOINTS.WORKLOGS.CREATE, payload);
       setWorkLogs((prev) => [data.workLog, ...prev]);
-      getAllWorkLogs?.()
+      getAllWorkLogs();
       return data;
     } catch (error) {
       throw error;
     }
-  }, []);
+  }, [getAllWorkLogs]);
 
-const updateWorkLog = useCallback(async (id, payload) => {
-  try {
-    const response = await api.patch(
-      ENDPOINTS.WORKLOGS.UPDATE(id),
-      payload
-    );
+  const updateWorkLog = useCallback(async (id, payload) => {
+    try {
+      const response = await api.patch(ENDPOINTS.WORKLOGS.UPDATE(id), payload);
+      const updatedWorkLog = response.data.workLog || response.data.data || response.data;
+      setWorkLogs((prev) => prev.map((w) => w.id === id ? updatedWorkLog : w));
+      getAllWorkLogs();
+      return updatedWorkLog;
+    } catch (error) {
+      throw error;
+    }
+  }, [getAllWorkLogs]);
 
-    console.log("UPDATE WORKLOG RESPONSE:", response.data);
-
-    const updatedWorkLog =
-      response.data.workLog ||
-      response.data.data ||
-      response.data;
-
-    setWorkLogs((prev) =>
-      prev.map((w) =>
-        w.id === id ? updatedWorkLog : w
-      )
-    );
- getAllWorkLogs?.();
-    return updatedWorkLog;
-  } catch (error) {
-    throw error;
-  }
-}, []);
   const deleteWorkLog = useCallback(async (id) => {
     try {
       const { data } = await api.delete(ENDPOINTS.WORKLOGS.DELETE(id));
@@ -97,22 +88,18 @@ const updateWorkLog = useCallback(async (id, payload) => {
     }
   }, []);
 
-     const totalPages = Math.ceil(total / limit);
-
+  const totalPages = Math.ceil(total / limit);
 
   const value = useMemo(
-    () => ({ workLogs, loading, page,
-      limit,
-      total,
-      totalPages,
-
-      setPage, getAllWorkLogs, getWorkLogById, createWorkLog, updateWorkLog, deleteWorkLog }),
-    [workLogs, loading, page,
-      limit,
-      total,
-      totalPages,
-
-      setPage, getAllWorkLogs, getWorkLogById, createWorkLog, updateWorkLog, deleteWorkLog]
+    () => ({
+      workLogs, loading,
+      page, limit, total, totalPages,
+      setPage, getAllWorkLogs, getWorkLogById,
+      createWorkLog, updateWorkLog, deleteWorkLog
+    }),
+    [workLogs, loading, pagination, totalPages,
+      setPage, getAllWorkLogs, getWorkLogById,
+      createWorkLog, updateWorkLog, deleteWorkLog]
   );
 
   return <WorkLogContext.Provider value={value}>{children}</WorkLogContext.Provider>;

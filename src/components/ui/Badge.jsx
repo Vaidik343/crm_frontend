@@ -6,6 +6,7 @@ const colorMap = {
   "in-progress": "bg-blue-50 text-blue-600 border border-blue-100",
   completed: "bg-emerald-50 text-emerald-600 border border-emerald-100",
   cancelled: "bg-red-50 text-red-600 border border-red-100",
+  hold: "bg-yellow-50 text-yellow-600 border border-yellow-100",
 
   // Call Types
   inbound: "bg-indigo-50 text-indigo-600 border border-indigo-100",

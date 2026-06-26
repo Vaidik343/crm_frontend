@@ -310,6 +310,7 @@ if (!isValid) {
       setShowModal(false);
       setEditTarget(null);
       setForm(initialForm);
+      setSelectedProject(null);
       setFieldErrors({});
     };
 
@@ -437,7 +438,7 @@ if (!isValid) {
       </select>
 
       {/* Date range */}
-      <div className="flex items-center gap-2 bg-white border flex-wrap border-slate-100 rounded-2xl px-4 h-[52px] shadow-sm">
+      <div className="flex items-center max-w-[48dvw] gap-2 bg-white border flex-wrap border-slate-100 rounded-2xl px-4 py-2 shadow-sm">
         <label className="text-xs font-black text-slate-400 uppercase">From</label>
         <input
           type="date"
@@ -966,7 +967,7 @@ if (!isValid) {
     endpoint={ENDPOINTS.PROJECTS.ALL}
     value={form.project_id}
     selectedLabel={selectedProject?.name || ""}
-    getLabel={(project) => project.name}
+    // getLabel={(project) => project.name}
     onChange={(project) => {
       setSelectedProject(project);
 

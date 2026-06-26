@@ -42,7 +42,7 @@
     call_id: "",
     assigned_to: "",
     due_date: "",
-    status: "ongoing",
+    status: "ongoing" ,
     remark: "",
   }; 
 
@@ -130,7 +130,7 @@ const noSelf = assignableUsers.filter((u) => u.id !== authUser?.id)
         }, [search]);
         
     const filtered = tasks || [];
-
+ 
     // ── Handlers ──────────────────────────────────────────────────────────────
     const handleChange = (e) => {
       const { name, value } = e.target;
@@ -149,8 +149,9 @@ const noSelf = assignableUsers.filter((u) => u.id !== authUser?.id)
     const validate = () => {
       const errors = {};
       if (!form.task.trim()) errors.task = "Task name is required";
-      return errors;
       if ( !editTarget && !form.project_id) errors.project_id = "Project is required";
+      return errors;
+      
     };
 
     const openCreate = () => {
@@ -568,13 +569,17 @@ const noSelf = assignableUsers.filter((u) => u.id !== authUser?.id)
                           >
                             <MdVisibility size={20} />
                           </button>
-                          <button
+
+                          {(task.assigned_by === authUser?.id )&& (
+                                  <button
                             onClick={() => openEdit(task)}
                             title="Edit"
                             className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all"
                           >
                             <MdEdit size={20} />
                           </button>
+                          )}
+                    
                           {/* <button
                             onClick={() => setConfirmDelete(task)}
                             title="Delete"
@@ -764,7 +769,7 @@ const noSelf = assignableUsers.filter((u) => u.id !== authUser?.id)
                 <div className="space-y-1.5">
                   <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
                     Project
-                  </label>
+                  </label> <span className="text-red-500">*</span>
       <SearchableSelect
         endpoint={ENDPOINTS.PROJECTS.ALL}
         value={form.project_id}
@@ -876,8 +881,8 @@ const noSelf = assignableUsers.filter((u) => u.id !== authUser?.id)
                 </label>
                 <div className="flex flex-wrap gap-2">
                   {(editTarget
-                    ? [  "closed"]
-                    : ["open", "ongoing"]
+                    ? [ "hold", "closed"]
+                    : [ "ongoing","hold"]
                   ).map((s) => (
                     <button
                       key={s}

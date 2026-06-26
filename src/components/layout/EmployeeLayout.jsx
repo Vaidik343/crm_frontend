@@ -22,6 +22,13 @@ const EmployeeLayout = () => {
     const { user, logout } = useAuth();
     const [mobileOpen, setMobileOpen] = useState(false);
 
+
+    const handleLogout = () => {
+  if (window.confirm('Are you sure you want to logout?')) {
+    logout()
+  }
+}
+
     return (
         <div className="h-screen    bg-slate-50  flex flex-col   ">
             {/* Top Navbar - Modernized Horizontal Layout */}
@@ -93,7 +100,7 @@ const EmployeeLayout = () => {
                 <Button
                     // variant="white"
                     size="sm"
-                    onClick={logout}
+                    onClick={handleLogout}
                     className="text-white rounded  hover:text-red-500 font-black uppercase tracking-widest text-xs gap-2"
                 >
                     <MdLogout size={18} />

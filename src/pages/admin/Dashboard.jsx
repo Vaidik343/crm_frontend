@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../api/axiosInstance";
 import { ENDPOINTS } from "../../api/endpoints";
 import Badge from "../../components/ui/Badge";
 import Spinner from "../../components/ui/Spinner";
-import Alert from "../../components/ui/Alert";
+import Alert from "../../components/ui/Alert";  
 import { MdPeople, MdPhone, MdCheckCircle, MdBook ,MdGroups } from "react-icons/md";
 import Export from "./Export";
 
@@ -59,8 +59,8 @@ const Dashboard = () => {
   
   const today = new Date().toISOString().split('T')[0];
 
-  useEffect(() => {
-    const fetchDashboard = async () => {
+
+  const fetchDashboard = useCallback( async () => {
       try {
         setLoading(true);
         const params = fromDate ? { from: fromDate } : {};
@@ -72,9 +72,14 @@ const Dashboard = () => {
       } finally {
         setLoading(false);
       }
-    };
+    },[fromDate])
+
+
+
+  useEffect(() => {
+    
     fetchDashboard();
-  }, [fromDate]); 
+  }, [fetchDashboard]); 
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
@@ -427,7 +432,7 @@ console.log(data.task_status_breakdown_all_time);
 
         {/* ── Last 7 days Activity ─────────────────────── */}
         <div className="bg-white rounded-[2.5rem] p-10 border border-slate-100 shadow-2xl shadow-slate-200/40">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+          {/* <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
             <h3 className="text-2xl font-black text-slate-800 flex items-center gap-3">
               <span className="w-2.5 h-10 bg-[#132ea7] rounded-full" />
               Operational Activity <span className="text-slate-300 font-bold text-sm ml-2 tracking-widest uppercase">(Last 7 Days)</span>
@@ -448,9 +453,9 @@ console.log(data.task_status_breakdown_all_time);
                 <p className={`text-4xl font-black text-center ${item.color}`}>{item.value ?? 0}</p>
               </div>
             ))}
-          </div>
+          </div> */}
           
-          <div className="mt-10 pt-10 border-t border-slate-50">
+          <div className=" border-t border-slate-50">
             <Export />
           </div>
         </div>

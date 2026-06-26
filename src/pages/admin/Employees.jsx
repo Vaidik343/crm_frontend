@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useUser } from "../../context/UserContext";
 import { useRole } from "../../context/RoleContext";
 import { usePassword } from "../../context/PasswordContext";
@@ -23,6 +23,12 @@ import {
   MdPhone,
   MdDownload
 } from "react-icons/md";
+import api from "../../api/axiosInstance";
+import { ENDPOINTS } from './../../api/endpoints';
+import { useNavigate } from "react-router-dom";
+
+
+
 
 const initialForm = {
   employee_id: "", 
@@ -32,10 +38,12 @@ const initialForm = {
   role_id: "" };
 
 const Employees = () => {
-  const { users, loading, getAllUsers, createUser, updateUser, deleteUser } =
+  const { users, loading, setLoading, getAllUsers, createUser, updateUser, deleteUser } =
     useUser();
   const { roles, getAllRoles } = useRole();
   const { resetPassword } = usePassword();
+
+  const navigate = useNavigate();
 
   const [showModal, setShowModal] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
@@ -179,6 +187,8 @@ if (!isValid) {
     setTimeout(() => setCopied(false), 2000);
   };
 
+
+
   if (loading && !users.length)
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
@@ -262,9 +272,12 @@ if (!isValid) {
                         {user.name.charAt(0)}
                       </div>
                       <div>
-                        <div className="font-black text-slate-800 text-lg leading-tight">
-                          {user.name}
-                        </div>
+                        <div
+  onClick={() => navigate(`/admin/reports/${user.id}`)}
+  className="font-black text-slate-800 text-lg leading-tight cursor-pointer hover:text-[#132ea7] transition-colors"
+>
+  {user.name}
+</div>
                         <div className="flex items-center gap-1.5 mt-1">
                           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200">
                             {user.employee_id}
@@ -361,9 +374,12 @@ if (!isValid) {
                   {user.name.charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-black text-slate-800 leading-tight truncate">
-                    {user.name}
-                  </p>
+               <p
+  onClick={() => navigate(`/admin/reports/${user.id}`)}
+  className="font-black text-slate-800 leading-tight truncate cursor-pointer hover:text-[#132ea7] transition-colors"
+>
+  {user.name}
+</p>
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-2 py-0.5 rounded-md">
                     {user.employee_id}
                   </span>

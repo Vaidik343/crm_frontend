@@ -6,6 +6,8 @@ import Modal from "../../components/ui/Modal";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import { MdBook, MdVisibility, MdCalendarToday, MdPerson, MdAccessTime, MdOutlineSpeakerNotes, MdSearch } from "react-icons/md";
+import SearchInput from "../../components/ui/SearchInput";
+import { useProject } from "../../context/ProjectContext";
 
 const AdminWorkLogs = () => {
   const { workLogs = [], loading, page, limit,
@@ -26,18 +28,27 @@ const [dateFrom, setDateFrom] = useState("");
 const [dateTo, setDateTo] = useState("");
 const today = new Date().toISOString().split("T")[0];
   
-const search = filter.toLowerCase().trim();
+
+const [search, setSearch] = useState("");
+  const { projects, getAllProjects } = useProject();
+
+// const search = filter.toLowerCase().trim();
 
 
 useEffect(() => {
   const debounce = setTimeout(() => {
-    getAllWorkLogs?.(page, dateFrom, dateTo, limit, search);
+    getAllWorkLogs(search ? 1 : page, dateFrom, dateTo, search);
   }, 300);
   return () => clearTimeout(debounce);
 }, [page, dateFrom, dateTo, search]);
-    // filter
 
-   
+useEffect(() => {
+  if (search && page !== 1) setPage(1);
+}, [search]);
+
+useEffect(() => {
+  getAllProjects?.();
+}, []);
 
   // filter by employee name
 
@@ -50,12 +61,12 @@ useEffect(() => {
 //     )
 //   : (workLogs || []);
 
-  if (loading && !workLogs.length) return (
-    <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-      <Spinner size="lg" />
-      <p className="text-slate-400 font-bold animate-pulse uppercase tracking-[0.2em] text-sm">Accessing historical archives...</p>
-    </div>
-  );
+  // if (loading && !workLogs.length) return (
+  //   <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
+  //     <Spinner size="lg" />
+  //     <p className="text-slate-400 font-bold animate-pulse uppercase tracking-[0.2em] text-sm">Accessing historical archives...</p>
+  //   </div>
+  // );
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
@@ -93,7 +104,15 @@ useEffect(() => {
       )}
     </div>
 
-        <div className="relative w-full md:w-72">
+      
+       
+          <SearchInput 
+    value={search}
+  onChange={setSearch}
+placeholder="Search  Projects and Employee "
+  />
+       
+        {/* <div className="relative w-full md:w-72">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
             <MdSearch size={20} />
           </div>
@@ -104,7 +123,7 @@ useEffect(() => {
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
           />
-        </div>
+        </div> */}
 
 </div>
       </div>
@@ -255,14 +274,14 @@ useEffect(() => {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 pb-8 border-b border-slate-50">
                <div className="flex items-center gap-5">
                   <div className="w-20 h-20 rounded-[2rem] bg-[#132ea7] text-white flex items-center justify-center font-black text-3xl shadow-2xl shadow-[#132ea7]/20">
-                     {viewTarget.User?.name?.charAt(0) || <MdPerson size={32} />}
+                     {viewTarget.user?.name?.charAt(0) || <MdPerson size={32} />}
                   </div>
                   <div>
-                     <h3 className="text-2xl font-black text-slate-800 leading-tight">{viewTarget.User?.name || "—"}</h3>
+                     <h3 className="text-2xl font-black text-slate-800 leading-tight">{viewTarget.user?.name || "—"}</h3>
                       <p className="text-sm font-bold text-[#132ea7] uppercase tracking-widest mt-0.5">
    {viewTarget.Project?.name || "No Project Assigned"}
 </p>
-                     <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-xs mt-1">Employee Identification: {viewTarget.User?.employee_id || "N/A"}</p>
+                     <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-xs mt-1">Employee Identification: {viewTarget.user?.employee_id || "N/A"}</p>
                   </div>
                </div>
 

@@ -43,6 +43,12 @@ const AdminLayout = () => {
     const [collapsed, setCollapsed] = useState(false);
     const { user, logout } = useAuth();
  
+       const handleLogout = () => {
+  if (window.confirm('Are you sure you want to logout?')) {
+    logout()
+  }
+}
+
     return (
         <div className="flex h-screen overflow-hidden bg-slate-50">
             {/* sidebar */}
@@ -113,7 +119,7 @@ const AdminLayout = () => {
                     )}
                     <button
                         className={`flex items-center justify-center gap-2 py-2.5 rounded border border-white/20 hover:bg-red-500 hover:border-red-500 transition-all duration-200 group text-white/80 hover:text-white ${collapsed ? "w-10 h-10 p-0" : "w-full"}`}
-                        onClick={logout}
+                        onClick={handleLogout}
                     >
                         <CgLogOut size={collapsed ? 20 : undefined} className="group-hover:translate-x-0.5 transition-transform" />
                         {!collapsed && <span className="text-sm font-medium">Logout</span>}

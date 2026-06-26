@@ -12,6 +12,11 @@ import Select from "../../components/ui/Select";
 // import ExportBar from "../../components/ui/ExportBar";
 import ExportModalMine from "../../components/ui/ExportModalMine";
 import LocalSearchableSelect from "../../components/ui/LocalSearchableSelect";
+import SearchInput from "../../components/ui/SearchInput";
+
+
+
+
 const initialForm = { 
   description: "",
   project_id: "", 
@@ -42,19 +47,42 @@ const {projects, getAllProjects} = useProject();
   const [showNewRemark, setShowNewRemark] = useState(false);
 
   const today = new Date().toISOString().split("T")[0];
-const [dateFrom, setDateFrom] = useState(today);
+        const sevenDaysAgo = (() => {
+        const d = new Date();
+        d.setDate(d.getDate() - 7);
+        return d.toISOString().split("T")[0];
+      })();
+      
+
+const [dateFrom, setDateFrom] = useState(sevenDaysAgo);
 const [dateTo, setDateTo] = useState(today);
 const [showExportModal, setShowExportModal] = useState(false);
 
+const [search, setSearch] = useState("");
 
+
+ 
   //project options
   const projectOptions = projects.map((p) => ({ value: p.id, label: p.name }));
   // console.log("🚀 ~ WorkLog ~ projectOptions:", projectOptions)
+useEffect(() => {
+  const debounce = setTimeout(() => {
+    getAllWorkLogs(search ? 1 : page, dateFrom, dateTo, search);
+  }, 300);
+  return () => clearTimeout(debounce);
+}, [page, dateFrom, dateTo, search]);
 
-  useEffect(() => {
-    getAllWorkLogs?.(page, dateFrom, dateTo);
-    getAllProjects?.()
-  }, [page, dateFrom, dateTo]);
+useEffect(() => {
+  if (search && page !== 1) setPage(1);
+}, [search]);
+
+useEffect(() => {
+  getAllProjects?.();
+}, []);
+
+
+
+  const filtered = workLogs || [];
 
   const totalEntries = workLogs.length;
   
@@ -149,7 +177,7 @@ const [showExportModal, setShowExportModal] = useState(false);
         
 
     <div className="flex flex-wrap items-center gap-3">
-      <div className="flex items-center gap-3 bg-white border border-slate-100 rounded-2xl px-4 py-2 shadow-sm">
+      <div className="flex items-center max-w-[48dvw] gap-2 bg-white flex-wrap border border-slate-100 rounded-2xl px-4 py-2 shadow-sm">
         <label className="text-xs font-black text-slate-400 uppercase">From</label>
         <input type="date" value={dateFrom} max={today} onChange={(e) => setDateFrom(e.target.value)}
           className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-sm font-bold" />
@@ -157,12 +185,20 @@ const [showExportModal, setShowExportModal] = useState(false);
         <input type="date" value={dateTo} max={today} onChange={(e) => setDateTo(e.target.value)}
           className="bg-slate-50 border border-slate-100 rounded-xl px-3 py-2 text-sm font-bold" />
         <button
-          onClick={() => { setDateFrom(today); setDateTo(today); }}
+          onClick={() => { setDateFrom(sevenDaysAgo); setDateTo(today); }}
           className="text-[10px] font-black text-[#132ea7] uppercase tracking-widest hover:underline whitespace-nowrap"
         >
           Reset
         </button>
       </div>
+
+
+<SearchInput 
+    value={search}
+  onChange={setSearch}
+    placeholder="Search  Projects and Employee "
+  />
+
 
       <Button
         variant="ghost"

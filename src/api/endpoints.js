@@ -93,5 +93,10 @@ export const ENDPOINTS = {
         GET_BY_ID: (id) => `/work-logs/${id}`,
         UPDATE: (id) => `/work-logs/${id}`,
         DELETE: (id) => `/work-logs/${id}`,
+    },
+    REPORTS: {
+        CALLS: (id) => `/report/${id}/calls`,
+        TASKS: (id) => `/report/${id}/tasks`,
+        WORKLOGS: (id) => `/report/${id}/workLogs`,
     }
 }
