@@ -194,7 +194,7 @@ if (!isValid) {
       <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
         <Spinner size="lg" />
         <p className="text-slate-400 font-medium animate-pulse">
-          Syncing team records...
+          Syncing  records...
         </p>
       </div>
     );

@@ -15,7 +15,8 @@ import {
     MdMenuOpen,
     MdBook,
     MdGroup,
-    MdNotifications
+    MdNotifications,
+    MdLogout 
 } from "react-icons/md";
 import { ImUserTie } from "react-icons/im";
 
@@ -42,12 +43,19 @@ const navItems = [
 const AdminLayout = () => {
     const [collapsed, setCollapsed] = useState(false);
     const { user, logout } = useAuth();
+
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
  
-       const handleLogout = () => {
-  if (window.confirm('Are you sure you want to logout?')) {
-    logout()
-  }
-}
+//        const handleLogout = () => {
+//   if (window.confirm('Are you sure you want to logout?')) {
+//     logout()
+//   }
+// }
+
+const handleLogout = () => setShowLogoutModal(true);
+const confirmLogout = () => { setShowLogoutModal(false); logout(); };
+const cancelLogout = () => setShowLogoutModal(false);
+
 
     return (
         <div className="flex h-screen overflow-hidden bg-slate-50">
@@ -158,6 +166,45 @@ const AdminLayout = () => {
                     </div>
                 </main>
             </div>
+            {/* Logout Confirmation Modal */}
+{showLogoutModal && (
+  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+    <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm mx-4 flex flex-col items-center gap-4">
+      
+      {/* Icon */}
+      <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
+        <MdLogout size={32} className="text-red-500" />
+      </div>
+
+      {/* Text */}
+      <div className="text-center">
+        <h2 className="text-lg font-black text-slate-800 uppercase tracking-wide">
+          Logout
+        </h2>
+        <p className="text-sm text-slate-500 mt-1 font-medium">
+          Are you sure you want to logout?
+        </p>
+      </div>
+
+      {/* Buttons */}
+      <div className="flex gap-3 w-full mt-2">
+        <button
+          onClick={cancelLogout}
+          className="flex-1 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-black text-sm uppercase tracking-widest hover:bg-slate-50 transition"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={confirmLogout}
+          className="flex-1 py-3 rounded-xl bg-red-500 text-white font-black text-sm uppercase tracking-widest hover:bg-red-600 transition"
+        >
+          Logout
+        </button>
+      </div>
+
+    </div>
+  </div>
+)}
         </div>
     );
 };

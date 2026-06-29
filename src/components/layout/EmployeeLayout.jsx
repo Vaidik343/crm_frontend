@@ -22,12 +22,18 @@ const EmployeeLayout = () => {
     const { user, logout } = useAuth();
     const [mobileOpen, setMobileOpen] = useState(false);
 
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-    const handleLogout = () => {
-  if (window.confirm('Are you sure you want to logout?')) {
-    logout()
-  }
-}
+    // Add this handler
+const handleLogout = () => setShowLogoutModal(true);
+const confirmLogout = () => { setShowLogoutModal(false); logout(); };
+const cancelLogout = () => setShowLogoutModal(false);
+
+//     const handleLogout = () => {
+//   if (window.confirm('Are you sure you want to logout?')) {
+//     logout()
+//   }
+// }
 
     return (
         <div className="h-screen    bg-slate-50  flex flex-col   ">
@@ -147,7 +153,7 @@ const EmployeeLayout = () => {
 
             {/* Mobile Logout */}
             <button
-                onClick={logout}
+                onClick={handleLogout}
                 className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-black uppercase tracking-widest text-red-200 hover:bg-red-50 hover:text-red-500 transition-all"
             >
                 <MdLogout size={18} />
@@ -163,6 +169,47 @@ const EmployeeLayout = () => {
                     <Outlet />
                 </div>
             </main>
+
+
+            {/* Logout Confirmation Modal */}
+{showLogoutModal && (
+  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm">
+    <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm mx-4 flex flex-col items-center gap-4">
+      
+      {/* Icon */}
+      <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center">
+        <MdLogout size={32} className="text-red-500" />
+      </div>
+
+      {/* Text */}
+      <div className="text-center">
+        <h2 className="text-lg font-black text-slate-800 uppercase tracking-wide">
+          Logout
+        </h2>
+        <p className="text-sm text-slate-500 mt-1 font-medium">
+          Are you sure you want to logout?
+        </p>
+      </div>
+
+      {/* Buttons */}
+      <div className="flex gap-3 w-full mt-2">
+        <button
+          onClick={cancelLogout}
+          className="flex-1 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-black text-sm uppercase tracking-widest hover:bg-slate-50 transition"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={confirmLogout}
+          className="flex-1 py-3 rounded-xl bg-red-500 text-white font-black text-sm uppercase tracking-widest hover:bg-red-600 transition"
+        >
+          Logout
+        </button>
+      </div>
+
+    </div>
+  </div>
+)}
         </div>
     );
 };

@@ -61,7 +61,7 @@ export const TaskProvider = ({ children }) => {
   }, [socket]);
 
   // ── API methods ───────────────────────────────────────────────────────────────
-  const getAllTasks = useCallback(async (pageNumber = 1, from = "", to = "", pageLimit = 10, search = "" , due_filter = "") => {
+  const getAllTasks = useCallback(async (pageNumber = 1, from = "", to = "", pageLimit = 10, search = "" , due_filter = "", statusFilter = "") => {
     try {
       setLoading(true);
 
@@ -71,6 +71,7 @@ export const TaskProvider = ({ children }) => {
     if (to) params.set("to", to);
     if (search) params.set("search", search);
     if (due_filter) params.set("due_filter", due_filter);
+     if (statusFilter) params.set("status_filter", statusFilter);
          
 
       const { data } = await api.get(

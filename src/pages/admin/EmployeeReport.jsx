@@ -225,7 +225,7 @@ onChange={(e) => setFrom(e.target.value)}
     </div>
   </div>
 )}
-<div className="flex gap-2 border-b mb-6">
+<div className="flex gap-2  mb-6">
 
     {["calls","tasks","worklogs"].map(tab => (
 

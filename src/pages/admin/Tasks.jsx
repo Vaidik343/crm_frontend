@@ -86,7 +86,8 @@ const today = new Date().toISOString().split("T")[0];
 
     const [filterProject, setFilterProject] = useState(null);
 
-    
+    const [statusFilter, setStatusFilter] = useState("");
+    console.log("🚀 ~ Tasks ~ statusFilter:", statusFilter)
 
     // Members of the selected project — falls back to all users if no project selected
 const assignableUsers = useMemo(() => {
@@ -99,18 +100,18 @@ const assignableUsers = useMemo(() => {
 const search = filter.toLowerCase().trim();
 
     useEffect(() => {
-      getAllTasks?.(page, dateFrom, dateTo, limit, search, dueFilter);
+      getAllTasks?.(page, dateFrom, dateTo, limit, search, dueFilter, statusFilter);
       getAllUsers?.();
       getAllProjects?.();
       getAllCalls?.();
-    }, [page, dateFrom, dateTo, dueFilter]);
+    }, [page, dateFrom, dateTo, dueFilter, statusFilter]);
 
 
 
     useEffect(() => {
       const debounce = setTimeout(() => {
         setPage(1);
-        getAllTasks?.(1, dateFrom, dateTo, limit, search,dueFilter);
+        getAllTasks?.(1, dateFrom, dateTo, limit, search,dueFilter, statusFilter);
       }, 300);
     
       return () => clearTimeout(debounce);
@@ -276,7 +277,7 @@ const filtered = tasks || [];
     return (
       <div className="space-y-8 animate-in fade-in duration-700">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
           <div>
             <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-2 uppercase">
               Task <span className="text-[#132ea7]">Board</span>
@@ -291,6 +292,7 @@ const filtered = tasks || [];
   <div className="flex items-center gap-2">
   {[
     { value: "", label: "All" },
+      
     { value: "due_soon", label: "Due Soon" },
     { value: "overdue", label: "Overdue" },
   ].map((opt) => (
@@ -305,7 +307,22 @@ const filtered = tasks || [];
     >
       {opt.label}
     </button>
+    
   ))}
+
+{["Open", "Ongoing", "Hold"].map((s) => (
+  <button
+    key={s}
+    onClick={() => { setPage(1); setStatusFilter(statusFilter === s ? "" : s); }}
+    className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+      statusFilter === s
+        ? "bg-[#132ea7] text-white shadow-lg shadow-[#132ea7]/20"
+        : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+    }`}
+  >
+    {s}
+  </button>
+))}
 </div>
 
 
@@ -336,7 +353,7 @@ const filtered = tasks || [];
     </div> */}
 
 {/* search */}
-          <div className="relative w-full md:w-95">
+          <div className="relative w-full md:w-80">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
                       <MdSearch size={20} />
                     </div>
@@ -381,26 +398,26 @@ const filtered = tasks || [];
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-50/50">
-                  <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Display ID</th>
-                    <th className="px-10 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em]">
+                  <th className="px-6 py-4 text-md font-black text-slate-400 uppercase tracking-[0.2em]">Register At</th>
+                    <th className="px-6 py-5 text-md font-black text-slate-400 uppercase tracking-[0.2em]">
                       Task
                     </th>
-                    <th className="px-8 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em]">
+                    <th className="px-6 py-4 text-md font-black text-slate-400 uppercase tracking-[0.2em]">
                       Status
                     </th>
-                    <th className="px-8 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em]">
+                    <th className="px-6 py-4 text-md font-black text-slate-400 uppercase tracking-[0.2em]">
                       Assigned By
                     </th>
-                    <th className="px-6 py-5 text-md font-black text-slate-400 uppercase tracking-[0.2em]">Assigned To</th>
+                    <th className="px-6 py-4 text-md font-black text-slate-400 uppercase tracking-[0.2em]">Assigned To</th>
 
 
-                    <th className="px-8 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em]">
+                    <th className="px-6 py-4 text-md font-black text-slate-400 uppercase tracking-[0.2em]">
                       Project
                     </th>
-                    <th className="px-8 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em]">
+                    <th className="px-4 py-4 text-md font-black text-slate-400 uppercase tracking-[0.2em]">
                       Due Date
                     </th>
-                    <th className="px-10 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em] text-right">
+                    <th className="px-6 py-4 text-md font-black text-slate-400 uppercase tracking-[0.2em] text-right">
                       Actions
                     </th>
                   </tr>
@@ -434,12 +451,18 @@ const filtered = tasks || [];
                     >
   {/* Display ID */}
                       <td className="px-6 py-5">
-                      <span className="px-3 py-1 bg-[#132ea7]/10 text-[#132ea7] rounded-lg text-[11px] font-black uppercase tracking-widest font-mono">
-                        {task.display_id || "—"}
-                      </span>
+                                               <div className="font-black text-slate-800 text-base">
+                              {new Date(task.createdAt).toLocaleDateString()}
+                            </div>
+                            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                              {new Date(task.createdAt).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </div>
                     </td> 
 
-                      <td className="px-10 py-6">
+                      <td className="px-6 py-5">
                         <div className="flex items-center gap-4">
                           <div className="min-w-10 min-h-10 rounded-xl bg-[#132ea7] text-white flex items-center justify-center font-black shadow-lg shadow-[#132ea7]/10">
                             <MdAssignment size={18} />
@@ -458,12 +481,12 @@ const filtered = tasks || [];
                         </div>
                       </td>
                       
-                      <td className="px-8 py-6">
+                      <td className="px-6 py-5">
                         <Badge value={task.status} />
                       </td>
 
                           {/* Assigned by */}
-                    <td className="px-6 py-6">
+                    <td className="px-6 py-5">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[#132ea7] font-black text-[10px]">
                           {task.assigner?.name?.charAt(0) || "?"}
@@ -474,7 +497,7 @@ const filtered = tasks || [];
 
                       
   {/* assign to */}
-                      <td className="px-6 py-6">
+                      <td className="px-6 py-5">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[#132ea7] font-black text-[10px]">
                             {task.assignee?.name?.charAt(0) || "?"}
@@ -503,7 +526,7 @@ const filtered = tasks || [];
                       </td> */}
 
 
-                      <td className="px-8 py-6">
+                      <td className="px-4 py-4">
            {/* <DueDateBadge dueDate={task.due_date} status={task.status} updatedAt={task.updatedAt} /> */}
 
            <DueDateBadge
@@ -540,7 +563,9 @@ const filtered = tasks || [];
             </div>
 
             {/* Pagination */}
-            <div className="flex items-center justify-between px-6 py-6 border-t border-slate-100">
+
+            {totalPages > 1 && (
+<div className="flex items-center justify-between px-6 py-6 border-t border-slate-100">
               <button
                 disabled={page === 1}
                 onClick={() => setPage(page - 1)}
@@ -567,6 +592,8 @@ const filtered = tasks || [];
                 Next
               </button>
             </div>
+            )}
+            
           </div>
         </div>
 

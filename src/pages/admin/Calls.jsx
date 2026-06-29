@@ -28,7 +28,8 @@ import {
   MdCalendarToday,
   MdInfoOutline,
   MdAdd,
-  MdClose
+  MdClose,
+  MdArrowBack   
 } from "react-icons/md";
 import LocalSearchableSelect from "../../components/ui/LocalSearchableSelect";
 import SearchableSelect from "../../components/ui/SearchableSelect";
@@ -137,6 +138,8 @@ const Calls = () => {
   const today = new Date().toISOString().split("T")[0];
 
   const [selectedClient, setSelectedClient] = useState(null);
+
+  const [viewHistory, setViewHistory] = useState([]);
 
   useEffect(() => {
     const debounce = setTimeout(() => {
@@ -404,6 +407,11 @@ const Calls = () => {
       setConfirmDelete(null);
     }
   };
+
+  const closeViewModal = () => {
+  setViewTarget(null);
+  setViewHistory([]);
+};
 
   // Handler — when client selected, auto-fill name + number - no longer needed
   // const handleClientSelect = (e) => {
@@ -681,7 +689,7 @@ const Calls = () => {
                           )}
                           {call.parent_call_id && (
                             <span className="px-2 py-0.5 bg-purple-50 text-purple-600 rounded-md text-[10px] font-black uppercase">
-                              Follow-up
+                              Follow-Back
                             </span>
                           )}
                         </div>
@@ -737,8 +745,10 @@ const Calls = () => {
           </table>
         </div>
 
-        {/* Pagination */}
-        <div className="flex items-center justify-between px-6 py-6 border-t border-slate-100">
+    {/* Pagination */}
+    
+{totalPages > 1 && (
+    <div className="flex items-center justify-between px-6 py-6 border-t border-slate-100">
           <button
             disabled={page === 1}
             onClick={() => setPage(page - 1)}
@@ -765,6 +775,9 @@ const Calls = () => {
             Next
           </button>
         </div>
+)}
+    
+      
       </div>
 
       {/* Mobile Cards */}
@@ -854,7 +867,7 @@ const Calls = () => {
                     )}
                     {call.parent_call_id && (
                       <span className="px-2 py-0.5 bg-purple-50 text-purple-600 rounded-md text-[10px] font-black uppercase">
-                        Follow-up
+                        Follow-Back
                       </span>
                     )}
                   </div>
@@ -1462,13 +1475,28 @@ const Calls = () => {
       {/* View Modal */}
       <Modal
         show={!!viewTarget}
-        onClose={() => setViewTarget(null)}
+         onClose={closeViewModal} 
         title="Call Details"
         size="lg"
       >
+        
         {viewTarget && (
           <div className="space-y-6 py-2">
             {/* Header */}
+
+            {/* Back button — only shows when navigated from follow-up */}
+    {viewHistory.length > 0 && (
+      <button
+        onClick={() => {
+          setViewTarget(viewHistory[viewHistory.length - 1]);
+          setViewHistory(prev => prev.slice(0, -1));
+        }}
+        className="flex items-center gap-1 text-xs font-black text-slate-400 hover:text-[#132ea7] uppercase tracking-widest transition-colors mb-2"
+      >
+        <MdArrowBack size={14} /> Back to Follow-Back call
+      </button>
+    )}
+
             <div className="flex items-start gap-4 pb-5 border-b border-slate-100">
               <div className="w-14 h-14 rounded-2xl bg-[#132ea7] text-white flex items-center justify-center font-black text-2xl shadow-xl shadow-[#132ea7]/20 shrink-0">
                 {viewTarget.caller_name?.charAt(0) || <MdPhone size={24} />}
@@ -1589,27 +1617,35 @@ const Calls = () => {
             )} */}
 
             {/* Parent call */}
-            {viewTarget.parent_call_id && (
-              <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                <MdPhone size={18} className="text-slate-400 shrink-0" />
-                <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                    Follow-Back for original call
-                  </p>
-                  <p className="text-xs font-bold text-[#132ea7] mt-0.5">
-                    {(() => {
-                      const parent = calls.find(
-                        (c) => c.id === viewTarget.parent_call_id,
-                      );
-
-                      return parent
-                        ? `[${parent.display_id}] ${parent.caller_name}`
-                        : viewTarget.parent_call_id;
-                    })()}
-                  </p>
-                </div>
-              </div>
-            )}
+  {viewTarget.parent_call_id && (
+  <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+    <MdPhone size={18} className="text-slate-400 shrink-0" />
+    <div>
+      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+        Follow-Back for original call
+      </p>
+      {(() => {
+        const parent = calls.find((c) => c.id === viewTarget.parent_call_id);
+        return parent ? (
+          <button
+            onClick={() => {
+              setViewHistory(prev => [...prev, viewTarget]);
+              setViewTarget(parent);
+            }}
+            className="text-xs font-black text-[#132ea7] mt-0.5 hover:underline cursor-pointer flex items-center gap-1"
+          >
+            [{parent.display_id}] {parent.caller_name} — {parent.call_subtype}
+            <MdVisibility size={12} />
+          </button>
+        ) : (
+          <p className="text-xs font-bold text-slate-400 mt-0.5">
+            {viewTarget.parent_call_id}
+          </p>
+        );
+      })()}
+    </div>
+  </div>
+)}
 
             {/* Summary */}
             {viewTarget.call_summary && (

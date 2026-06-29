@@ -31,7 +31,8 @@ import MultiSearchableSelect from "../../components/ui/MultiSearchableSelect";
     MdHistory,
     MdDownload ,
     MdTransferWithinAStation ,
-    MdAssignment 
+    MdAssignment ,
+    MdArrowBack
   } from "react-icons/md";
   import LocalSearchableSelect from "../../components/ui/LocalSearchableSelect";
   import SearchableSelect from "../../components/ui/SearchableSelect";
@@ -151,6 +152,9 @@ import SearchInput from "../../components/ui/SearchInput";
   const [search, setSearch] = useState("");
 
 
+    const [viewHistory, setViewHistory] = useState([]);
+  
+
   useEffect(() => {
     const debounce = setTimeout(() => {
       if (search && page !== 1) setPage(1);
@@ -269,7 +273,7 @@ if (!isValid) {
       if (!form.call_subtype)       errors.call_subtype = "Call subtype is required";
       if (!form.receive_type)       errors.receive_type = "Receive type is required";
       if (!editTarget && form.is_task && !form.project_id) errors.project_id = "Project is required when creating a task";
-      if (form.follow_up_date && !form.parent_call_id) errors.parent_call_id = "Select the original call for follow-up";
+      if (form.follow_up_date && !form.parent_call_id) errors.parent_call_id = "Select the original call for follow-Back";
       if (form.transfer_to === authUser?.id)           errors.transfer_to   = "Cannot transfer to yourself";
       return errors;
     };
@@ -398,6 +402,13 @@ if (!isValid) {
       caller_number: client?.phone || prev.caller_number,
     }));
   };
+
+
+   const closeViewModal = () => {
+  setViewTarget(null);
+  setViewHistory([]);
+};
+
 
     if (loading && !calls.length)
       return (
@@ -652,7 +663,7 @@ if (!isValid) {
                           )}
                           {call.parent_call_id && (
                             <span className="px-1.5 py-0.5 bg-purple-50 text-purple-600 rounded text-[9px] font-black uppercase">
-                              Follow-up
+                              Follow-Back
                             </span>
                           )}
                         </div>
@@ -801,7 +812,7 @@ if (!isValid) {
                         </span>
                       )}
                       {call.parent_call_id && (
-                        <span className="px-1.5 py-0.5 bg-purple-50 text-purple-600 rounded text-[9px] font-black uppercase">Follow-up</span>
+                        <span className="px-1.5 py-0.5 bg-purple-50 text-purple-600 rounded text-[9px] font-black uppercase">Follow-Back</span>
                       )}
                     </div>
                   </div>
@@ -1200,7 +1211,7 @@ if (!isValid) {
                       <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
                         <div>
                           <p className="text-sm font-black text-slate-700 uppercase tracking-widest">
-                            Follow-up Call
+                            Follow-Back Call
                           </p>
                           <p className="text-xs font-bold text-slate-400 mt-0.5">
                             {form.is_follow_up
@@ -1361,7 +1372,7 @@ if (!isValid) {
                   {form.is_follow_up && form.is_task && (
                     <div className="md:col-span-2 bg-amber-50 border border-amber-100 rounded-2xl px-5 py-3">
                       <p className="text-xs font-black text-amber-600 uppercase tracking-widest">
-                        Follow-up call with new task — prefix:{" "}
+                        Follow-Back call with new task — prefix:{" "}
                         {form.task_assigned_to ? "CTA" : "CT"}
                       </p>
                       <p className="text-xs font-bold text-amber-500 mt-1">
@@ -1418,6 +1429,20 @@ if (!isValid) {
         >
           {viewTarget && (
             <div className="space-y-5 py-2">
+
+                    {/* Back button — only shows when navigated from follow-up */}
+                  {viewHistory.length > 0 && (
+                    <button
+                      onClick={() => {
+                        setViewTarget(viewHistory[viewHistory.length - 1]);
+                        setViewHistory(prev => prev.slice(0, -1));
+                      }}
+                      className="flex items-center gap-1 text-xs font-black text-slate-400 hover:text-[#132ea7] uppercase tracking-widest transition-colors mb-2"
+                    >
+                      <MdArrowBack size={14} /> Back to follow-Back call
+                    </button>
+                  )}
+
               <div className="flex items-start gap-4 pb-5 border-b border-slate-100">
                 <div className="w-14 h-14 rounded-2xl bg-[#132ea7] text-white flex items-center justify-center font-black text-2xl shadow-xl shadow-[#132ea7]/20 shrink-0">
                   {viewTarget.caller_name?.charAt(0) || <MdPhone size={24} />}
@@ -1489,17 +1514,33 @@ if (!isValid) {
                 </div>
               )}
 
-              {viewTarget.parent_call_id && (
-                <div className="flex items-center gap-3 p-4 bg-purple-50 rounded-2xl border border-purple-100">
-                  <MdPhone size={18} className="text-purple-500 shrink-0" />
+{/* parent call */}
+                {viewTarget.parent_call_id && (
+                <div className="flex items-center gap-3 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <MdPhone size={18} className="text-slate-400 shrink-0" />
                   <div>
-                    <p className="text-[10px] font-black text-purple-500 uppercase tracking-widest">
-                      Follow-up for original call
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                      Follow-Back for original call
                     </p>
-                    <p className="text-xs font-bold text-purple-700 font-mono mt-0.5">
-                      {calls.find((c) => c.id === viewTarget.parent_call_id)
-                        ?.display_id || viewTarget.parent_call_id}
-                    </p>
+                    {(() => {
+                      const parent = calls.find((c) => c.id === viewTarget.parent_call_id);
+                      return parent ? (
+                        <button
+                          onClick={() => {
+                            setViewHistory(prev => [...prev, viewTarget]);
+                            setViewTarget(parent);
+                          }}
+                          className="text-xs font-black text-[#132ea7] mt-0.5 hover:underline cursor-pointer flex items-center gap-1"
+                        >
+                          [{parent.display_id}] {parent.caller_name} — {parent.call_subtype}
+                          <MdVisibility size={12} />
+                        </button>
+                      ) : (
+                        <p className="text-xs font-bold text-slate-400 mt-0.5">
+                          {viewTarget.parent_call_id}
+                        </p>
+                      );
+                    })()}
                   </div>
                 </div>
               )}

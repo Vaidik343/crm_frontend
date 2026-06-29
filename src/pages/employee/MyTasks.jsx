@@ -404,7 +404,7 @@ const noSelf = assignableUsers.filter((u) => u.id !== authUser?.id)
         </Button>
       </div>
     </div>
-  </div>
+  </div> 
 
         <Alert
           type={alert.type}
