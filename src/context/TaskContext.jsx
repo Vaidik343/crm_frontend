@@ -128,6 +128,14 @@ export const TaskProvider = ({ children }) => {
     }
   }, []);
 
+const getTaskStatusLogs = async (taskId) => {
+    try {
+        const { data } = await api.get(ENDPOINTS.TASKS.STATUS_LOGS(taskId));
+        return data;
+    } catch (error) {
+        throw error;
+    }
+};
   const deleteTask = useCallback(async (id) => {
     try {
       const { data } = await api.delete(ENDPOINTS.TASKS.DELETE(id));
@@ -153,9 +161,10 @@ export const TaskProvider = ({ children }) => {
       getTaskById,
       createTask,
       updateTask,
+      getTaskStatusLogs,
       deleteTask,
     }),
-    [tasks, loading, page, limit, total, totalPages, setPage, getAllTasks, getTaskById, createTask, updateTask, deleteTask]
+    [tasks, loading, page, limit, total, totalPages, setPage, getAllTasks, getTaskById, createTask, updateTask, getTaskStatusLogs, deleteTask]
   );
 
   return <TaskContext.Provider value={value}>{children}</TaskContext.Provider>;

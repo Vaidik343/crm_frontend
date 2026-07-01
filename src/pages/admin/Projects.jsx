@@ -29,7 +29,7 @@ const initialForm = {
 };
 
 const Projects = () => {
-  const { projects, loading,  page, limit,
+  const { projects, loading,  page, limit,  total, 
   totalPages, getAllProjects, createProject, updateProject, deleteProject,
   addMemberToProject, removeMember: removeMemberFromProject } = useProject();
   
@@ -458,7 +458,7 @@ await createProject({
   //     setConfirmDelete(null);
   //   }
   // };
-
+ 
   if (loading && !projects.length) return (
     <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
       <Spinner size="lg" />
@@ -474,7 +474,7 @@ await createProject({
           <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-2 uppercase">
             <span className="text-[#132ea7]">Projects</span>
           </h2>
-          <p className="text-slate-500 font-bold text-base">Total Projects: {projects.length} </p>
+          <p className="text-slate-500 font-bold text-base">Total Projects: { total} </p>
         </div>
 
         <div className="relative w-full md:w-95">
@@ -536,7 +536,8 @@ await createProject({
                 {filtered.map((project) => (
                   <>
                   <tr key={project.id} className={`hover:bg-slate-50/80 transition-colors group ${!project.is_active ? "opacity-60" : ""}`}>
-                    <td className="px-10 py-6">
+                  
+<td className="px-10 py-6 cursor-pointer" onClick={() => navigate(`/employee/projects/${project.id}/dashboard`)}>
                       <div className="flex items-center gap-4">
                         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-lg shadow-inner transition-all ${project.is_active ? 'bg-slate-50 text-[#132ea7] group-hover:bg-[#132ea7] group-hover:text-white' : 'bg-slate-100 text-slate-400'}`}>
                           <MdFolder size={24} />

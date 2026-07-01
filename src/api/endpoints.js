@@ -60,7 +60,8 @@ export const ENDPOINTS = {
         ALL: "/tasks", 
         GET_BY_ID: (id) => `/tasks/${id}`,
         UPDATE: (id) => `/tasks/${id}`,
-        DELETE: (id) => `/tasks/${id}`
+        DELETE: (id) => `/tasks/${id}`,
+        STATUS_LOGS: (id) => `/tasks/${id}/status-logs`,
 
     },
     TEAMS: {

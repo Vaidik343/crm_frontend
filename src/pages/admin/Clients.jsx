@@ -146,9 +146,9 @@ const filtered = search
           <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-2 uppercase">
             <span className="text-[#132ea7]">Clients</span>
           </h2>
-          <p className="text-slate-500 font-bold text-base">
+          {/* <p className="text-slate-500 font-bold text-base">
             Total Clients: {clients.length}
-          </p>
+          </p> */}
         </div>
 
         {/* Search */}

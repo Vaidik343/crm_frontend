@@ -13,6 +13,7 @@
   import Textarea from "../../components/ui/Textarea";
   import ConfirmDialog from "../../components/ui/ConfirmDialog";
   import Spinner from "../../components/ui/Spinner";
+  
   import Badge, { DueDateBadge } from "../../components/ui/Badge";
   import {
     MdAdd,
@@ -23,10 +24,12 @@
     MdPerson,
     MdVisibility,
     MdSearch ,
-    MdClose
+    MdClose,
+    MdTimeline 
   } from "react-icons/md";
 import { ENDPOINTS } from "../../api/endpoints";
 import LocalSearchableSelect from "../../components/ui/LocalSearchableSelect";
+import api from "../../api/axiosInstance";
 
   const initialForm = {
     task: "",
@@ -47,10 +50,12 @@ import LocalSearchableSelect from "../../components/ui/LocalSearchableSelect";
       page,
       limit,
       setPage,
+       total, 
       totalPages,
       getAllTasks,
       createTask,
       updateTask,
+      getTaskStatusLogs,
       deleteTask,
     } = useTask();
     const { users, getAllUsers } = useUser();
@@ -78,6 +83,9 @@ import LocalSearchableSelect from "../../components/ui/LocalSearchableSelect";
     const [dueFilter, setDueFilter] = useState(""); // "" | "overdue" | "due_soon"
     // console.log("🚀 ~ Tasks ~ dueFilter:", dueFilter)
 
+
+    const [statusLogs, setStatusLogs] = useState([]);
+    const [logsLoading, setLogsLoading] = useState(false)
 
     const [dateFrom, setDateFrom] = useState("");
 const [dateTo, setDateTo] = useState("");
@@ -117,6 +125,17 @@ const search = filter.toLowerCase().trim();
       return () => clearTimeout(debounce);
     }, [search]);
     
+
+    useEffect(() => {
+    if (!viewTarget?.id) { setStatusLogs([]); return; }
+    setLogsLoading(true);
+    getTaskStatusLogs(viewTarget.id)
+        .then(res => setStatusLogs(res.logs || []))
+        .catch(() => setStatusLogs([]))
+        .finally(() => setLogsLoading(false));
+}, [viewTarget?.id]);
+
+
 const filtered = tasks || [];
 
 // const filtered = search
@@ -263,7 +282,12 @@ const filtered = tasks || [];
     };
 
 
-    
+    const statusConfig = {
+    open:    { color: "bg-slate-400",   label: "Open" },
+    ongoing: { color: "bg-green-500",   label: "In Progress" },
+    hold:    { color: "bg-yellow-400",  label: "On Hold" },
+    closed:  { color: "bg-blue-500",    label: "Completed" },
+};
     // if (loading && !tasks.length)
     //   return (
     //     <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
@@ -283,7 +307,7 @@ const filtered = tasks || [];
               Task <span className="text-[#132ea7]">Board</span>
             </h2>
             <p className="text-slate-500 font-bold text-base">
-              Total Tasks: {tasks.length}
+              Total Tasks: { total}
             </p>
           </div> 
 
@@ -532,7 +556,7 @@ const filtered = tasks || [];
            <DueDateBadge
   dueDate={task.due_date}
   status={task.status}
-  completedAt={task.completed_at}
+  completedAt={task.completedAt}
 />
                       </td>
  
@@ -994,6 +1018,67 @@ const filtered = tasks || [];
                   </div>
                 </div>
               )}
+
+{/* Task Activity Timeline */}
+<div className="space-y-3 ">
+    <div className="flex items-center gap-2">
+        <MdTimeline size={16} className="text-slate-400" />
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            Task Activity
+        </p>
+    </div>
+
+    {logsLoading ? (
+        <div className="text-center py-4">
+            <p className="text-xs font-bold text-slate-400 animate-pulse uppercase tracking-widest">Loading...</p>
+        </div>
+    ) : statusLogs.length === 0 ? (
+        <p className="text-xs font-bold text-slate-400 text-center py-3">No activity yet</p>
+    ) : (
+        <div className="relative">
+            {/* vertical line */}
+            <div className="absolute left-[7px] top-2 bottom-2 w-[2px] bg-slate-100" />
+
+            <div className="space-y-4  overflow-auto max-h-[350px] scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent  border-slate-100 shadow-2xl shadow-slate-200/40  ">
+                {statusLogs.map((log, i) => {
+                    const config = statusConfig[log.to_status] || { color: "bg-slate-400", label: log.to_status };
+                    return (
+                        <div key={log.id} className="flex gap-4 relative">
+                            {/* dot */}
+                            <div className={`w-4 h-4 rounded-full ${config.color} shrink-0 mt-0.5 z-10 ring-2 ring-white`} />
+
+                            <div className="flex-1 bg-slate-50 rounded-xl p-3 border border-slate-100">
+                                <div className="flex items-center justify-between flex-wrap gap-1">
+                                    <p className="text-xs font-black text-slate-700">
+                                        {log.from_status
+                                            ? `${statusConfig[log.from_status]?.label || log.from_status} → ${config.label}`
+                                            : `Created as ${config.label}`
+                                        }
+                                    </p>
+                                    <p className="text-[10px] font-bold text-slate-400">
+                                        {new Date(log.changed_at).toLocaleString("en-GB", {
+                                            day: "2-digit", month: "short",
+                                            hour: "2-digit", minute: "2-digit",
+                                        })}
+                                    </p>
+                                </div>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">
+                                    By {log.changedBy?.name || "—"}
+                                </p>
+                                {log.reason && (
+                                    <div className="mt-2 pt-2 border-t border-slate-200">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Reason</p>
+                                        <p className="text-xs font-bold text-slate-600 mt-0.5">{log.reason}</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    )}
+</div>
 
               <div className="flex justify-end pt-2">
                 <Button variant="ghost" onClick={() => setViewTarget(null)} className="font-black uppercase tracking-widest text-xs">Close</Button>

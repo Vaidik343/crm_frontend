@@ -10,32 +10,30 @@ const DATA_TYPES = [
   { value: "work-logs", label: "Work Logs", icon: MdHistory },
 ];
 
-const ExportModal = ({ show, onClose, employee }) => {
+const ExportModal = ({ show, onClose, employee, projectId = "", fixedDateRange = null }) => {
   const today = new Date().toISOString().split("T")[0];
   const [from, setFrom] = useState("");
   const [downloadingType, setDownloadingType] = useState(null);
+
+  // If fixedDateRange passed (from Report page), use it and hide picker
+  const usingFixedRange = !!fixedDateRange;
+  const effectiveFrom = usingFixedRange ? fixedDateRange.from : from;
+  const effectiveTo   = usingFixedRange ? fixedDateRange.to   : today;
 
   const download = async (type, fromDate, toDate) => {
     if (!employee) return;
     try {
       setDownloadingType(type);
-
-      // "all" uses different endpoint
       const endpoint = type === "all"
         ? `/export/${employee.id}/export/all`
         : `/export/employee/${employee.id}`;
 
-      const params = fromDate
-        ? type === "all"
-          ? `from=${fromDate}&to=${toDate}`
-          : `type=${type}&from=${fromDate}&to=${toDate}`
-        : type === "all"
-          ? ""
-          : `type=${type}`;
+      const params = new URLSearchParams();
+      if (type !== "all") params.set("type", type);
+      if (fromDate) { params.set("from", fromDate); params.set("to", toDate); }
+      if (projectId) params.set("project_id", projectId);  // ← add project filter
 
-      const res = await api.get(`${endpoint}${params ? `?${params}` : ""}`, {
-        responseType: "blob",
-      });
+      const res = await api.get(`${endpoint}?${params}`, { responseType: "blob" });
 
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement("a");
@@ -68,22 +66,38 @@ const ExportModal = ({ show, onClose, employee }) => {
           Download {employee?.name}'s Reports.
         </p>
 
-        {/* Date range picker */}
-        <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-          <label className="text-xs font-black text-slate-500 uppercase tracking-widest">From</label>
-          <input
-            type="date" value={from} max={today}
-            onChange={(e) => setFrom(e.target.value)}
-            className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#132ea7]/20"
-          />
-          <span className="text-xs font-bold text-slate-400">to {today}</span>
-          {from && (
-            <button onClick={() => setFrom("")}
-              className="text-[10px] font-black text-slate-400 hover:text-red-500 uppercase tracking-widest ml-auto">
-              Clear
-            </button>
-          )}
-        </div>
+        {/* Date range picker — hidden when fixedDateRange passed */}
+        {!usingFixedRange && (
+          <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+            <label className="text-xs font-black text-slate-500 uppercase tracking-widest">From</label>
+            <input
+              type="date" value={from} max={today}
+              onChange={(e) => setFrom(e.target.value)}
+              className="bg-white border border-slate-200 rounded-xl px-3 py-2 text-sm font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#132ea7]/20"
+            />
+            <span className="text-xs font-bold text-slate-400">to {today}</span>
+            {from && (
+              <button onClick={() => setFrom("")}
+                className="text-[10px] font-black text-slate-400 hover:text-red-500 uppercase tracking-widest ml-auto">
+                Clear
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Shows the active date range when using fixed range from Report page */}
+        {usingFixedRange && (
+          <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+            <p className="text-xs font-black text-slate-500 uppercase tracking-widest">
+              Date Range: <span className="text-[#132ea7]">{fixedDateRange.from} to {fixedDateRange.to}</span>
+            </p>
+            {projectId && (
+              <p className="text-xs font-black text-slate-500 uppercase tracking-widest mt-1">
+                Project filter active
+              </p>
+            )}
+          </div>
+        )}
 
         {/* Individual type cards */}
         <div className="space-y-3">
@@ -95,22 +109,33 @@ const ExportModal = ({ show, onClose, employee }) => {
                 </div>
                 <span className="font-black text-slate-700 text-sm uppercase tracking-widest">{label}</span>
               </div>
-              <div className="flex gap-2">
-                <button onClick={() => download(value, "", "")} disabled={downloadingType === value}
-                  className="flex items-center gap-1.5 px-3 py-2 bg-slate-50 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all disabled:opacity-50">
-                  <MdCalendarToday size={12} /> Today
-                </button>
-                <button onClick={() => download(value, from, today)} disabled={!from || downloadingType === value}
+
+              {usingFixedRange ? (
+                // Report page — single download button using the active date range
+                <button onClick={() => download(value, effectiveFrom, effectiveTo)} disabled={downloadingType === value}
                   className="flex items-center gap-1.5 px-3 py-2 bg-[#132ea7] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#0f2490] transition-all disabled:opacity-40">
                   <MdDownload size={12} />
-                  {downloadingType === value ? "..." : "Range"}
+                  {downloadingType === value ? "..." : "Download"}
                 </button>
-              </div>
+              ) : (
+                // Employees page — Today / Range buttons same as before
+                <div className="flex gap-2">
+                  <button onClick={() => download(value, "", "")} disabled={downloadingType === value}
+                    className="flex items-center gap-1.5 px-3 py-2 bg-slate-50 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all disabled:opacity-50">
+                    <MdCalendarToday size={12} /> Today
+                  </button>
+                  <button onClick={() => download(value, from, today)} disabled={!from || downloadingType === value}
+                    className="flex items-center gap-1.5 px-3 py-2 bg-[#132ea7] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#0f2490] transition-all disabled:opacity-40">
+                    <MdDownload size={12} />
+                    {downloadingType === value ? "..." : "Range"}
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>
 
-        {/* Download All — separate card with different styling */}
+        {/* Download All */}
         <div className="p-4 bg-[#132ea7] rounded-2xl shadow-lg shadow-[#132ea7]/20">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -122,17 +147,26 @@ const ExportModal = ({ show, onClose, employee }) => {
                 <p className="text-[10px] font-bold text-white/50 mt-0.5">Calls + Tasks + Work Logs in one file</p>
               </div>
             </div>
-            <div className="flex gap-2">
-              <button onClick={() => download("all", "", "")} disabled={downloadingType === "all"}
-                className="flex items-center gap-1.5 px-3 py-2 bg-white/10 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/20 transition-all disabled:opacity-50">
-                <MdCalendarToday size={12} /> Today
-              </button>
-              <button onClick={() => download("all", from, today)} disabled={!from || downloadingType === "all"}
+
+            {usingFixedRange ? (
+              <button onClick={() => download("all", effectiveFrom, effectiveTo)} disabled={downloadingType === "all"}
                 className="flex items-center gap-1.5 px-3 py-2 bg-white text-[#132ea7] rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all disabled:opacity-40">
                 <MdDownload size={12} />
-                {downloadingType === "all" ? "..." : "Range"}
+                {downloadingType === "all" ? "..." : "Download"}
               </button>
-            </div>
+            ) : (
+              <div className="flex gap-2">
+                <button onClick={() => download("all", "", "")} disabled={downloadingType === "all"}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-white/10 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/20 transition-all disabled:opacity-50">
+                  <MdCalendarToday size={12} /> Today
+                </button>
+                <button onClick={() => download("all", from, today)} disabled={!from || downloadingType === "all"}
+                  className="flex items-center gap-1.5 px-3 py-2 bg-white text-[#132ea7] rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all disabled:opacity-40">
+                  <MdDownload size={12} />
+                  {downloadingType === "all" ? "..." : "Range"}
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -143,4 +177,6 @@ const ExportModal = ({ show, onClose, employee }) => {
     </Modal>
   );
 };
+
+
 export default ExportModal;

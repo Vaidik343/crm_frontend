@@ -99,16 +99,21 @@ const Calls = () => {
     page,
     limit,
     setPage,
+     total,
     totalPages,
     getAllCalls,
     createCall,
     updateCall,
     deleteCall,
   } = useCall();
+
+  
   const { projects, getAllProjects } = useProject();
   const { getAllTasks, page: taskPage } = useTask();
   const { clients, getAllClients } = useClient();
-
+  console.log("🚀 ~ Calls ~ clients:", clients)
+  
+console.log("Clients:", clients.length);
   const { users, getAllUsers } = useUser();
   const { user: authUser } = useAuth();
   const searchRef = useRef("");
@@ -260,6 +265,7 @@ const Calls = () => {
         client_id: stillMatches ? prev.client_id : "",
       }));
       if (!stillMatches) setSelectedClient(null);
+
     } else {
       setForm((prev) => ({ ...prev, [name]: newValue }));
     }
@@ -297,6 +303,7 @@ const Calls = () => {
     setEditTarget(null);
     setForm(initialForm);
     setFieldErrors({});
+
     setShowModal(true);
   };
 
@@ -320,6 +327,7 @@ const Calls = () => {
       attendees: call.attendees || [],
     });
     setFieldErrors({});
+
     setShowModal(true);
   };
 
@@ -328,6 +336,7 @@ const Calls = () => {
     setEditTarget(null);
     setForm(initialForm);
     setFieldErrors({});
+        getAllClients?.()
     setShowNewRemark(false);
   };
 
@@ -436,7 +445,7 @@ const Calls = () => {
             CALL <span className="text-[#132ea7]">Logs</span>
           </h2>
           <p className="text-slate-500 font-bold text-base">
-            Total calls: {calls.length}
+            Total calls: { total}
           </p>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">

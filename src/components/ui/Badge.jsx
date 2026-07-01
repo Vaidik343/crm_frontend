@@ -27,6 +27,7 @@ const colorMap = {
 
 const Badge = ({ value, overrideColor }) => {
   const style = colorMap[overrideColor] || colorMap[value?.toLowerCase()] || colorMap.secondary;
+  // console.log("🚀 ~ Badge ~ style:", style)
 
   return (
     <span className={`inline-flex items-center px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-widest ${style}`}>
@@ -39,26 +40,28 @@ export const DueDateBadge = ({ dueDate, status, completedAt }) => {
   if (status === "closed") {
     if (!dueDate) {
       return (
-        <span className="inline-flex items-center px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-600 border border-emerald-100 line-through decoration-2">
+        <span className="inline-flex items-center px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-widest bg-emerald-50 text-emerald-600 border border-emerald-100  decoration-2">
           Completed
         </span>
       );
     }
 
     const due = new Date(dueDate);
+    console.log("🚀 ~ DueDateBadge ~ due:", due)
     due.setHours(23, 59, 59, 999);
 
     // Only compare if we actually have a completedAt stamp
     // Falls back to "Completed" (no late flag) if somehow missing
     const wasLate = completedAt ? new Date(completedAt) > due : false;
+    console.log("🚀 ~ DueDateBadge ~ wasLate:", wasLate)
 
     return (
-      <span className={`inline-flex items-center px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-widest line-through decoration-2 ${
+      <span className={`inline-flex items-center px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-widest  decoration-2 ${
         wasLate
           ? "bg-red-50 text-red-600 border border-red-100"
           : "bg-emerald-50 text-emerald-600 border border-emerald-100"
       }`}>
-        {wasLate ? "Completed (Late)" : "Completed"}
+        {wasLate ? "Completed" : "Completed"}
       </span>
     );
   }

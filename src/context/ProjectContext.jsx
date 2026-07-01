@@ -21,6 +21,7 @@ const getAllProjects = useCallback(async (pageNumber = 1, pageLimit = 10, search
     if (includeInactive) params.set("include_inactive", "true");
 
     const { data } = await api.get(`${ENDPOINTS.PROJECTS.ALL}?${params.toString()}`);
+    console.log("🚀 ~ ProjectProvider ~ data:", data)
 
     setProjects(data.data || []);
     setPage(data.page || 1);

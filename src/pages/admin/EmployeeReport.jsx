@@ -11,10 +11,18 @@ import EmployeeWorkLogsTable from '../../components/EmployeeWorkLogsTable';
 
 import {
   MdArrowBack, MdPerson, MdPhone, MdTask,
-  MdBook, MdCalendarToday, MdFolder, MdAssignment
+  MdBook, MdCalendarToday, MdFolder, MdAssignment,MdDownload 
 } from "react-icons/md";
 import SearchableSelect from '../../components/ui/SearchableSelect';
 import { ENDPOINTS } from '../../api/endpoints';
+import { useProject } from './../../context/ProjectContext';
+import Button from '../../components/ui/Button';
+import ExportModal from '../../components/ui/ExportModal';
+import { useCall } from '../../context/CallContext';
+import { useTask } from '../../context/TaskContext';
+import { useWorkLog } from './../../context/WorkLogContext';
+import Modal from '../../components/ui/Modal';
+
 
 
 
@@ -23,6 +31,9 @@ const EmployeeReport = () => {
     
     const { id } = useParams();
     const {users, loading,   getUserById, getEmployeeCallsReport, getEmployeeTasksReport, getEmployeeWorkLogsReport} = useUser();
+const { getAllProjects } = useProject();
+
+
 
   const navigate = useNavigate();
 
@@ -52,11 +63,64 @@ const [page, setPage] = useState(1);
 const [rows, setRows] = useState([]);
 
 
+const [projectId, setProjectId] = useState("");
+
+const [projects, setProjects] = useState([]);
+
+const [selectedProject, setSelectedProject] = useState(null);
+console.log("🚀 ~ EmployeeReport ~ selectedProject:", selectedProject)
+
+
+const [showExportModal, setShowExportModal] = useState(false);
+
+
+
+const [employeeStats, setEmployeeStats] = useState({
+  calls: 0,
+  tasks: 0,
+  logs: 0,
+  projects: 0,
+});
+console.log("🚀 ~ EmployeeReport ~ employeeStats:", employeeStats)
+
+useEffect(() => {
+  if (!employee?.id) return;
+
+
+ 
+  // Fetch counts for this specific employee using existing report endpoints
+  // pass limit=1 so response is fast, we only need the total field
+  Promise.all([
+    getEmployeeCallsReport(employee.id, 1, "", "", 1, ""),
+    getEmployeeTasksReport(employee.id, 1, "", "", 1, ""),
+    getEmployeeWorkLogsReport(employee.id, 1, "", "", 1, ""),
+    // getAllProjects({ user_id: employee.id, limit: 100 }),
+  ]).then(([calls, tasks, logs, ]) => {
+    setEmployeeStats({
+      calls: calls.total || 0,
+      tasks: tasks.total || 0,
+      logs: logs.total || 0,
+      // projects: projects.total || 0,
+    });
+    // setProjects(projects.data || []);
+  }).catch(console.error);
+
+}, [employee]);
+
+
+useEffect(() => {
+    if (!employee?.id) return;
+    getAllProjects({ user_id: employee.id, limit: 100 }).then(res => {
+        console.log("projects response:", res);
+    });
+}, [employee?.id]);
+
 useEffect(() => {
   getUserById(id)
     .then(res => setEmployee(res.user || res))
     .catch(console.error);
 }, [id]);
+
 
 const loadReport = async (pageNo = 1) => {
     if (!employee?.id) return;
@@ -71,19 +135,23 @@ const loadReport = async (pageNo = 1) => {
                 from,
                 to,
                 10,
-                search
+                search,
+                   projectId
             );
             break;
 
         case "tasks":
+          
             response = await getEmployeeTasksReport(
                 employee.id,
                 pageNo,
                 from,
                 to,
                 10,
-                search
+                search,
+                   projectId
             );
+              console.log("🚀 ~ loadReport ~ response:", response)
             break;
 
         case "worklogs":
@@ -93,7 +161,8 @@ const loadReport = async (pageNo = 1) => {
                 from,
                 to,
                 10,
-                search
+                search,
+                 projectId
             );
             break;
     }
@@ -109,8 +178,25 @@ useEffect(() => {
     },300);
 
     return () => clearTimeout(timer);
-}, [page, activeTab, from, to, search, employee]);
+}, [page, activeTab, from, to, search, employee, projectId]);
       
+
+  const closeModal = () => {
+    setShowModal(false);
+    setEditTarget(null);
+    setForm(initialForm);
+    setFieldErrors({});
+        getAllClients?.()
+    setShowNewRemark(false);
+  };
+
+  
+  const closeViewModal = () => {
+  setViewTarget(null);
+  setViewHistory([]);
+};
+
+
 const Pagination = ({compact = false}) => (
     <div  className={`flex items-center justify-between px-6 py-6 ${!compact ? "border-t border-slate-100" : ""}`}>
         <button 
@@ -166,7 +252,7 @@ const Pagination = ({compact = false}) => (
            <h2 className="text-3xl font-black text-slate-800 tracking-tight  uppercase">
         Employee <span className="text-[#132ea7]">Reports</span>
       </h2>
-<SearchInput 
+<SearchInput
     value={search}
   onChange={setSearch}
     placeholder="Search  Projects and Employee "
@@ -200,31 +286,70 @@ onChange={(e) => setFrom(e.target.value)}
       </div>
       
         </div>
+
   {employee && (
-  <div className="bg-white border rounded-2xl p-6 shadow-sm mb-6">
-    <div className="flex  items-center gap-4">
-      <div className="w-14 h-14 rounded-full bg-[#132ea7] text-white flex items-center justify-center font-bold text-xl">
-        {employee.name?.charAt(0)}
+  <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
+    <div className="flex flex-col md:flex-row md:items-center gap-6">
+
+      {/* Avatar + Info */}
+      <div className="flex items-center gap-4">
+        <div className="w-14 h-14 rounded-full bg-[#132ea7] text-white flex items-center justify-center font-black text-xl shrink-0">
+          {employee.name?.charAt(0)}
+        </div>
+        <div>
+          <p className="text-xl font-black text-slate-800">{employee.name}</p>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+            {employee.employee_id} • {employee.email}
+          </p>
+        </div>
       </div>
 
-      <div>
-        <h3 className="text-xl font-bold">
-          {employee.name}
-        </h3>
-
-        <p className="text-slate-500">
-          Employee ID: {employee.employee_id}
-        </p>
-
-        <p className="text-slate-500">
-          Email: {employee.email}
-        </p>
-
-        
+      {/* Stats */}
+      <div className="flex flex-wrap gap-3 md:ml-auto">
+        {[
+          // { label: "Projects", value: employeeStats.projects },
+          { label: "Calls", value: employeeStats.calls },
+          { label: "Tasks", value: employeeStats.tasks },
+          { label: "Logs", value: employeeStats.logs },
+        ].map(({ label, value }) => (
+          <div key={label} className="bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-center min-w-[80px]">
+            <p className="text-2xl font-black text-[#132ea7]">{value}</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{label}</p>
+          </div>
+        ))}
       </div>
+
     </div>
   </div>
 )}
+
+
+<div className='flex flex-wrap gap-2  '>
+<SearchableSelect
+    endpoint={ENDPOINTS.PROJECTS.ALL}
+    extraParams={{
+        user_id: employee?.id,
+    }}
+    value={projectId}
+    selectedLabel={selectedProject?.name || ""}
+    getLabel={(p) => `${p.name}${p.code ? ` (${p.code})` : ""}`}
+    placeholder="All Projects"
+    emptyOptionLabel="All Projects"
+    onChange={(project) => {
+        setSelectedProject(project);
+        setProjectId(project?.id || "");
+         setPage(1);
+    }}
+/>
+
+<button onClick={() => setShowExportModal(true)}
+className="flex items-center gap-2 px-4 py-2 bg-[#132ea7] text-white rounded text-xs font-black uppercase tracking-widest hover:bg-[#0f2490] transition-all disabled:opacity-50"
+
+>
+  <MdDownload size={18} /> Export
+</button>
+
+</div>
 <div className="flex gap-2  mb-6">
 
     {["calls","tasks","worklogs"].map(tab => (
@@ -251,6 +376,7 @@ onChange={(e) => setFrom(e.target.value)}
 
 </div>
 
+
   {/* table */}
 
   <div className='hidden md:block'>
@@ -273,8 +399,20 @@ onChange={(e) => setFrom(e.target.value)}
 
   </div>
   {totalPages > 1 && <Pagination />}
+
+
+
+
+  <ExportModal
+  show={showExportModal}
+  onClose={() => setShowExportModal(false)}
+  employee={employee}
+  projectId={projectId}
+  fixedDateRange={{ from, to }}
+/>
     </div>
   )
 }
+    
 
 export default EmployeeReport

@@ -53,6 +53,7 @@
       page,
       limit,  
       setPage,
+       total,
       totalPages,
       getAllTasks,
       createTask,
@@ -324,7 +325,7 @@ const noSelf = assignableUsers.filter((u) => u.id !== authUser?.id)
         Task <span className="text-[#132ea7]">Board</span>
       </h2>
       <p className="text-slate-500 font-bold text-base">
-        Total Tasks: {tasks.length}
+        Total Tasks: { total}
       </p>
     </div>
 
@@ -570,15 +571,15 @@ const noSelf = assignableUsers.filter((u) => u.id !== authUser?.id)
                             <MdVisibility size={20} />
                           </button>
 
-                          {(task.assigned_by === authUser?.id )&& (
-                                  <button
+                    
+
+                               <button
                             onClick={() => openEdit(task)}
                             title="Edit"
                             className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all"
                           >
                             <MdEdit size={20} />
                           </button>
-                          )}
                     
                           {/* <button
                             onClick={() => setConfirmDelete(task)}
@@ -694,7 +695,7 @@ const noSelf = assignableUsers.filter((u) => u.id !== authUser?.id)
                             <DueDateBadge
     dueDate={task.due_date}
     status={task.status}
-    completedAt={task.completed_at}
+    completedAt={task.completedAt}
   />
                   </div>
 

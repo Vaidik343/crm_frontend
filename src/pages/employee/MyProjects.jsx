@@ -18,7 +18,7 @@ const STATUS_COLORS = {
 };
 
 const MyProjects = () => {
-  const { projects, loading, page, totalPages, getAllProjects } = useProject();
+  const { projects, loading, page, total,  totalPages, getAllProjects,  } = useProject();
   // console.log("🚀 ~ MyProjects ~ projects:", projects)
   const [expandedRow, setExpandedRow] = useState(null);
   const navigate = useNavigate();
@@ -45,7 +45,7 @@ const [viewTarget, setViewTarget] = useState(null);
           My <span className="text-[#132ea7]">Projects</span>
         </h2>
         <p className="text-slate-500 font-bold text-base">
-          Total Projects: {projects.length}
+          Total Projects: { total}
         </p>
       </div>
 

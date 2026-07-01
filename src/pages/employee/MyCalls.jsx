@@ -102,6 +102,7 @@ import SearchInput from "../../components/ui/SearchInput";
       page,
       limit,
       setPage,
+       total, 
       totalPages,
       getAllCalls,
       createCall,
@@ -430,7 +431,7 @@ if (!isValid) {
         CALL <span className="text-[#132ea7]">Logs</span>
       </h2>
       <p className="text-slate-500 font-bold text-base">
-        Total calls: {calls.length}
+        Total calls: { total}
       </p>
     </div>
 
@@ -696,7 +697,8 @@ if (!isValid) {
                         >
                           <MdVisibility size={20} />
                         </button>
-                        {call.user_id === authUser?.id && (
+    
+
       <button
         className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 transition-all"
         onClick={() => openEdit(call)}
@@ -704,7 +706,6 @@ if (!isValid) {
       >
         <MdEdit size={20} />
       </button>
-    )}
     {/* {call.user_id === authUser?.id && (
       <button
         className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
@@ -830,16 +831,16 @@ if (!isValid) {
                   <button onClick={() => setViewTarget(call)} className="flex-1 h-10 rounded-xl bg-slate-50 text-slate-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all">
                     <MdVisibility size={16} /> View
                   </button>
-                  {call.user_id === authUser?.id && (
-    <button onClick={() => openEdit(call)} className="flex-1 h-10 rounded-xl bg-[#132ea7]/10 text-[#132ea7] font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/20 transition-all">
+
+
+   <button onClick={() => openEdit(call)} className="flex-1 h-10 rounded-xl bg-[#132ea7]/10 text-[#132ea7] font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/20 transition-all">
       <MdEdit size={16} /> Edit
     </button>
-  )}
-  {call.user_id === authUser?.id && (
+  {/* {call.user_id === authUser?.id && (
     <button onClick={() => setConfirmDelete(call)} className="flex-1 h-10 rounded-xl bg-red-50 text-red-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-red-100 transition-all">
       <MdDelete size={16} /> Delete
     </button>
-  )}
+  )} */}
                 </div>
               </div>
             ))

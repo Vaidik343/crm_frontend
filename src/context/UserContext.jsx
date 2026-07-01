@@ -71,14 +71,14 @@ export const UserProvider = ({ children }) => {
 
 
 
-const getEmployeeCallsReport = useCallback(async (employeeId, pageNumber = 1, from = "", to = "", pageLimit = 10, search = "") => {
+const getEmployeeCallsReport = useCallback(async (employeeId, pageNumber = 1, from = "", to = "", pageLimit = 10, search = "", projectId = "") => {
   try {
     setLoading(true);
     const params = new URLSearchParams({ page: pageNumber, limit: pageLimit });
     if (from)   params.set("from", from);
     if (to)     params.set("to", to);
     if (search) params.set("search", search);
-
+if (projectId) params.set("project_id", projectId);
     const { data } = await api.get(`${ENDPOINTS.REPORTS.CALLS(employeeId)}?${params.toString()}`);
     
     console.log("🚀 ~ UserProvider ~ getEmployeeCallsReport:", data)
@@ -91,13 +91,14 @@ const getEmployeeCallsReport = useCallback(async (employeeId, pageNumber = 1, fr
   }
 }, []);
 
-const getEmployeeTasksReport = useCallback(async (employeeId, pageNumber = 1, from = "", to = "", pageLimit = 10, search = "") => {
+const getEmployeeTasksReport = useCallback(async (employeeId, pageNumber = 1, from = "", to = "", pageLimit = 10, search = "",  projectId = "") => {
   try {
     setLoading(true);
     const params = new URLSearchParams({ page: pageNumber, limit: pageLimit });
     if (from)   params.set("from", from);
     if (to)     params.set("to", to);
     if (search) params.set("search", search);
+    if (projectId) params.set("project_id", projectId);
 
     const { data } = await api.get(`${ENDPOINTS.REPORTS.TASKS(employeeId)}?${params.toString()}`);
     console.log("🚀 ~ UserProvider ~ getEmployeeTasksReport:", data)
@@ -109,13 +110,14 @@ const getEmployeeTasksReport = useCallback(async (employeeId, pageNumber = 1, fr
   }
 }, []);
 
-const getEmployeeWorkLogsReport = useCallback(async (employeeId, pageNumber = 1, from = "", to = "", pageLimit = 10, search = "") => {
+const getEmployeeWorkLogsReport = useCallback(async (employeeId, pageNumber = 1, from = "", to = "", pageLimit = 10, search = "", projectId = "") => {
   try {
     setLoading(true);
     const params = new URLSearchParams({ page: pageNumber, limit: pageLimit });
     if (from)   params.set("from", from);
     if (to)     params.set("to", to);
     if (search) params.set("search", search);
+    if (projectId) params.set("project_id", projectId);
 
     const { data } = await api.get(`${ENDPOINTS.REPORTS.WORKLOGS(employeeId)}?${params.toString()}`);
     console.log("🚀 ~ UserProvider ~ getEmployeeWorkLogsReport:", data)

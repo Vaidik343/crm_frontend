@@ -13,6 +13,8 @@ import Select from "../../components/ui/Select";
 import ExportModalMine from "../../components/ui/ExportModalMine";
 import LocalSearchableSelect from "../../components/ui/LocalSearchableSelect";
 import SearchInput from "../../components/ui/SearchInput";
+import SearchableSelect from "../../components/ui/SearchableSelect";
+import { ENDPOINTS } from "../../api/endpoints";
 
 
 
@@ -25,7 +27,7 @@ const initialForm = {
 };
 
 const WorkLog = () => {
-  const { workLogs = [], loading,page,
+  const { workLogs = [], loading,page, total, 
       totalPages,
       setPage, getAllWorkLogs, createWorkLog, updateWorkLog } = useWorkLog();
 const {projects, getAllProjects} = useProject();
@@ -61,7 +63,9 @@ const [showExportModal, setShowExportModal] = useState(false);
 const [search, setSearch] = useState("");
 
 
- 
+ const [selectedProject, setSelectedProject] = useState(null);
+
+
   //project options
   const projectOptions = projects.map((p) => ({ value: p.id, label: p.name }));
   // console.log("🚀 ~ WorkLog ~ projectOptions:", projectOptions)
@@ -84,7 +88,8 @@ useEffect(() => {
 
   const filtered = workLogs || [];
 
-  const totalEntries = workLogs.length;
+  const totalEntries =  total;
+  console.log("🚀 ~ WorkLog ~ totalEntries:", totalEntries)
   
   const currentMonthEntries = workLogs.filter((log) => {
     const logDate = new Date(log.date);
@@ -117,6 +122,7 @@ useEffect(() => {
   const openCreate = () => {
     setEditTarget(null);
     setForm(initialForm);
+      setSelectedProject(null); 
     setFieldErrors({});
     setShowModal(true);
   };
@@ -124,6 +130,7 @@ useEffect(() => {
   const openEdit = (log) => {
     setEditTarget(log);
     setForm({ description: log.description, date: log.date, project_id:log.project_id, remarks:log.remarks });
+     setSelectedProject(log.Project || null); 
     setFieldErrors({});
     setShowModal(true);
   };
@@ -132,6 +139,7 @@ useEffect(() => {
     setShowModal(false);
     setEditTarget(null);
     setForm(initialForm);
+     setSelectedProject(null); 
     setFieldErrors({});
   };
 
@@ -314,7 +322,11 @@ useEffect(() => {
           </table>
         </div>
 
-        {/* Pagination */}
+
+{/* Pagination */}
+{ totalPages > 1 && (
+
+          
         <div className="flex items-center justify-between px-6 py-6 border-t border-slate-100">
           <button
             disabled={page === 1}
@@ -351,6 +363,8 @@ useEffect(() => {
             Next
           </button>
         </div>
+)}
+
       </div>
       <Modal
         show={showModal}
@@ -369,16 +383,27 @@ useEffect(() => {
             />
 
               <div className="md:col-span-2">
-              <Select
-                label="Project"
-                name="project_id"
-                value={form.project_id}
-                onChange={handleChange}
-                options={projectOptions}
-                error={fieldErrors.project_id}
-                placeholder="Select associated project..."
-                required
-              />
+
+  <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1 mb-1.5">
+    Project
+  </label>
+  <SearchableSelect
+    endpoint={ENDPOINTS.PROJECTS.ALL}
+    value={form.project_id}
+    selectedLabel={selectedProject ? `${selectedProject.name}${selectedProject.code ? ` (${selectedProject.code})` : ""}` : ""}
+    onChange={(project) => {
+      setSelectedProject(project);
+      setForm((prev) => ({ ...prev, project_id: project?.id || "" }));
+    }}
+    getLabel={(p) => `${p.name}${p.code ? ` (${p.code})` : ""}`}
+    placeholder="Search project by name or code..."
+    emptyOptionLabel="No Project"
+    required
+    error={fieldErrors.project_id}
+  />
+  {fieldErrors.project_id && (
+    <p className="text-red-500 text-[10px] font-bold uppercase ml-1 mt-1">{fieldErrors.project_id}</p>
+  )}
 
                {/* <LocalSearchableSelect
                
