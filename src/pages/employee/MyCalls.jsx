@@ -19,6 +19,8 @@
   import ExportModalMine from "../../components/ui/ExportModalMine";
 import MultiSearchableSelect from "../../components/ui/MultiSearchableSelect";
 
+import { formatDate, formatDateTime } from "../../utils/formatDate";
+
   import {
     MdPhone,
     MdAdd,
@@ -70,6 +72,7 @@ import SearchInput from "../../components/ui/SearchInput";
   const initialForm = {
     caller_name: "",
     caller_number: "",
+     caller_email: "",
       client_id: "",  
     project_id: "",
     call_type: "",
@@ -230,11 +233,13 @@ const handleChange = (e) => {
   const newValue = type === "checkbox" ? checked : value;
   if (name === "call_type") {
     setForm((prev) => ({ ...prev, call_type: newValue, call_subtype: "" }));
-  } else if (name === "receive_type") {
+  }
+   else if (name === "receive_type") {
     setForm((prev) => ({
       ...prev,
       receive_type: newValue,
       attendees: newValue === "meeting" ? prev.attendees : [],
+       is_task: newValue === "email" ? true : prev.is_task,
     }));
   }
   else if (name === "transfer_to") {
@@ -292,6 +297,7 @@ if (!isValid) {
       setForm({
         caller_name: call.caller_name || "",
         caller_number: call.caller_number || "",
+         caller_email: call.caller_email || "", 
             client_id:       call.client_id       || "",
         project_id: call.project_id || "",
         call_type: call.call_type || "",
@@ -316,6 +322,7 @@ if (!isValid) {
       setEditTarget(null);
       setForm(initialForm);
       setSelectedProject(null);
+      getAllClients?.()
       setFieldErrors({});
     };
 
@@ -546,9 +553,7 @@ if (!isValid) {
                 Last Submission
               </p>
               <p className="text-lg font-black">
-                {calls[0]
-                  ? new Date(calls[0].createdAt).toLocaleDateString()
-                  : "No Records"}
+             {calls[0] ? formatDate(calls[0].createdAt) : "No Records"}
               </p>
             </div>
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl" />
@@ -609,13 +614,10 @@ if (!isValid) {
                         </div>
                         <div>
                           <div className="font-black text-slate-800 text-base">
-                            {new Date(call.createdAt).toLocaleDateString()}
+                            {formatDate(call.createdAt)}
                           </div>
                           <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                            {new Date(call.createdAt).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
+                          {formatDateTime(call.createdAt).split(" ")[1]}
                           </div>
                         </div>
                       </div>
@@ -772,8 +774,8 @@ if (!isValid) {
                     <MdCalendarToday size={18} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-black text-slate-800 leading-tight truncate">{new Date(call.createdAt).toLocaleDateString()}</p>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{new Date(call.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
+                    <p className="font-black text-slate-800 leading-tight truncate">{formatDate(call.createdAt)}</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{formatDateTime(call.createdAt).split(" ")[1]}</p>
                   </div>
                   <span className="shrink-0 px-2 py-1 bg-[#132ea7]/10 text-[#132ea7] rounded-lg text-[10px] font-black uppercase tracking-widest font-mono">
                     {call.display_id || "—"}
@@ -906,6 +908,7 @@ if (!isValid) {
         client_id: id,
         caller_name: client?.names?.[0] || prev.caller_name,
         caller_number: client?.phone || prev.caller_number,
+           caller_email: client?.email || prev.caller_email,
       }));
     }}
     emptyOptionLabel="No Client"
@@ -969,6 +972,15 @@ if (!isValid) {
                 placeholder="e.g. +91 98765 43210"
                 required
               />
+
+              <Input
+    label="Caller Email"
+    name="caller_email"
+    type="email"
+    value={form.caller_email}
+    onChange={handleChange}
+    placeholder="e.g. rahul@example.com"
+/>
 
               {!editTarget && (
 <div className="md:col-span-2 space-y-1.5">
@@ -1115,10 +1127,7 @@ if (!isValid) {
                 {r.added_by_name}
               </p>
               <p className="text-[10px] font-bold text-slate-300">
-                {new Date(r.created_at).toLocaleString("default", {
-                  month: "short", day: "numeric",
-                  hour: "2-digit", minute: "2-digit"
-                })}
+              {formatDateTime(r.created_at)}
               </p>
             </div>
           </div>
@@ -1249,12 +1258,11 @@ if (!isValid) {
       selectedParentCall
         ? `${selectedParentCall.display_id ? `[${selectedParentCall.display_id}] ` : ""}
           ${selectedParentCall.caller_name} — ${selectedParentCall.call_subtype}
-          (${new Date(selectedParentCall.createdAt).toLocaleDateString()})`
+          (${formatDate(selectedParentCall.createdAt)})`
         : ""
     }
     onChange={(call) => {
       setSelectedParentCall(call);
-
       setForm((prev) => ({
         ...prev,
         parent_call_id: call?.id || "",
@@ -1266,7 +1274,7 @@ if (!isValid) {
       return `${c.display_id ? `[${c.display_id}] ` : ""}${c.caller_name}
         — ${c.call_subtype}
         ${projectName ? ` · ${projectName}` : ""}
-        (${new Date(c.createdAt).toLocaleDateString()})`;
+        (${formatDate(c.createdAt)})`;
     }}
     placeholder={
       form.project_id
@@ -1464,6 +1472,11 @@ if (!isValid) {
                     </p>
                   )}
                   
+{viewTarget.caller_email && (
+    <p className="text-xs font-bold text-slate-400 mt-0.5">
+        {viewTarget.caller_email}
+    </p>
+)}
                 </div>
                 <div className="flex items-center gap-3 flex-wrap">
                                 <label className="text-xs font-black text-slate-400 uppercase">Logged By</label>
@@ -1478,12 +1491,12 @@ if (!isValid) {
                   { label: "Project", value: viewTarget.project?.name || "—" },
                   {
                     label: "Date",
-                    value: new Date(viewTarget.createdAt).toLocaleDateString(),
+                   value: formatDate(viewTarget.createdAt),
                   },
                   { label: "Has Task", value: viewTarget.is_task ? "Yes" : "No" },
                   {
                     label: "Updated",
-                    value: new Date(viewTarget.updatedAt).toLocaleDateString(),
+                    value: formatDate(viewTarget.updatedAt),
                   },
                 ].map((item) => (
                   <div key={item.label} className="bg-slate-50 rounded-2xl p-4">
@@ -1593,12 +1606,8 @@ if (!isValid) {
                               {r.added_by_name}
                             </p>
                             <p className="text-[10px] font-bold text-slate-300">
-                              {new Date(r.created_at).toLocaleString("default", {
-                                month: "short",
-                                day: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
+                           {formatDateTime(r.created_at)}
+                           
                             </p>
                           </div>
                         </div>

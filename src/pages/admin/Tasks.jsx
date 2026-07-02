@@ -85,7 +85,9 @@ import api from "../../api/axiosInstance";
 
 
     const [statusLogs, setStatusLogs] = useState([]);
+    console.log("🚀 ~ Tasks ~ statusLogs:", statusLogs)
     const [logsLoading, setLogsLoading] = useState(false)
+    console.log("🚀 ~ Tasks ~ logsLoading:", logsLoading)
 
     const [dateFrom, setDateFrom] = useState("");
 const [dateTo, setDateTo] = useState("");
@@ -334,17 +336,21 @@ const filtered = tasks || [];
     
   ))}
 
-{["Open", "Ongoing", "Hold"].map((s) => (
+{[
+  { value: "open", label: "Open" },
+  { value: "ongoing", label: "Ongoing" },
+  { value: "hold", label: "Hold" },
+].map((s) => (
   <button
-    key={s}
-    onClick={() => { setPage(1); setStatusFilter(statusFilter === s ? "" : s); }}
+    key={s.value}
+    onClick={() => { setPage(1); setStatusFilter(statusFilter === s.value ? "" : s.value); }}
     className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${
-      statusFilter === s
+      statusFilter === s.value
         ? "bg-[#132ea7] text-white shadow-lg shadow-[#132ea7]/20"
         : "bg-slate-100 text-slate-500 hover:bg-slate-200"
     }`}
   >
-    {s}
+    {s.label}
   </button>
 ))}
 </div>
@@ -832,7 +838,7 @@ const filtered = tasks || [];
               <div className="space-y-1.5">
                 <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">Status</label>
                 <div className="flex flex-wrap gap-2">
-                  {(editTarget ? ["open", "ongoing", "closed"] : ["open", "ongoing"]).map((s) => (
+                  {(editTarget ? ["open", "ongoing", "hold","closed"] : ["open","hold", "ongoing"]).map((s) => (
                     <button key={s} type="button"
                       onClick={() => setForm((prev) => ({ ...prev, status: s }))}
                       className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all

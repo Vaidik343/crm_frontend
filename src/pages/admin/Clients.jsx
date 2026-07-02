@@ -93,7 +93,7 @@ const filtered = search
     try {
       setSubmitting(true);
       const payload = {
-        name:    form.name.trim(),
+        names:   [form.name.trim()],
         phone:   form.phone.trim()   || null,
         email:   form.email.trim()   || null,
         company: form.company.trim() || null,

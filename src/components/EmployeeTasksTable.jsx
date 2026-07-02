@@ -48,7 +48,7 @@ const EmployeeTasksTable = ({ rows = [], loading }) => {
 // };
 
   return (
-    <div className="hidden md:block bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
+    <div className=" bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
       {/* Desktop */}
       <div className="overflow-x-auto custom-scrollbar">
         <table className="w-full text-left border-collapse">

@@ -51,10 +51,10 @@ const EmployeeCallsTable = ({ rows = [], loading }) => {
     setViewHistory([]);
   };
   return (
-    <div className="hidden md:block bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
+    <div className=" bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
       
       {/* Desktop */}
-       <div className="overflow-x-auto custom-scrollbar">
+       <div className="hidden md:block overflow-x-auto custom-scrollbar">
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-slate-50/50">

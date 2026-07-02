@@ -77,7 +77,7 @@ export const TaskProvider = ({ children }) => {
       const { data } = await api.get(
         `${ENDPOINTS.TASKS.ALL}?${params.toString()}`
       );
-      console.log("🚀 ~ TaskProvider ~ data:", data)
+      // console.log("🚀 ~ TaskProvider ~ data:", data)
       setTasks(data.data || []);
       setPage(data.page || 1);
       setLimit(data.limit || 10);

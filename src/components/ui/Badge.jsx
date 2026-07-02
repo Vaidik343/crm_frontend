@@ -47,13 +47,13 @@ export const DueDateBadge = ({ dueDate, status, completedAt }) => {
     }
 
     const due = new Date(dueDate);
-    console.log("🚀 ~ DueDateBadge ~ due:", due)
+    // console.log("🚀 ~ DueDateBadge ~ due:", due)
     due.setHours(23, 59, 59, 999);
 
     // Only compare if we actually have a completedAt stamp
     // Falls back to "Completed" (no late flag) if somehow missing
     const wasLate = completedAt ? new Date(completedAt) > due : false;
-    console.log("🚀 ~ DueDateBadge ~ wasLate:", wasLate)
+    // console.log("🚀 ~ DueDateBadge ~ wasLate:", wasLate)
 
     return (
       <span className={`inline-flex items-center px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-widest  decoration-2 ${

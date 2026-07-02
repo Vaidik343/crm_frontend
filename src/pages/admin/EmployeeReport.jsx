@@ -22,6 +22,7 @@ import { useCall } from '../../context/CallContext';
 import { useTask } from '../../context/TaskContext';
 import { useWorkLog } from './../../context/WorkLogContext';
 import Modal from '../../components/ui/Modal';
+import api from '../../api/axiosInstance';
 
 
 
@@ -95,14 +96,15 @@ useEffect(() => {
     getEmployeeTasksReport(employee.id, 1, "", "", 1, ""),
     getEmployeeWorkLogsReport(employee.id, 1, "", "", 1, ""),
     // getAllProjects({ user_id: employee.id, limit: 100 }),
-  ]).then(([calls, tasks, logs, ]) => {
+    api.get(`${ENDPOINTS.PROJECTS.ALL}?user_id=${employee.id}&limit=100`).then(r => r.data),
+  ]).then(([calls, tasks, logs,projects ]) => {
     setEmployeeStats({
       calls: calls.total || 0,
       tasks: tasks.total || 0,
       logs: logs.total || 0,
-      // projects: projects.total || 0,
+      projects: projects.total || 0,
     });
-    // setProjects(projects.data || []);
+    setProjects(projects.data || []);
   }).catch(console.error);
 
 }, [employee]);
@@ -307,7 +309,7 @@ onChange={(e) => setFrom(e.target.value)}
       {/* Stats */}
       <div className="flex flex-wrap gap-3 md:ml-auto">
         {[
-          // { label: "Projects", value: employeeStats.projects },
+          { label: "Projects", value: employeeStats.projects },
           { label: "Calls", value: employeeStats.calls },
           { label: "Tasks", value: employeeStats.tasks },
           { label: "Logs", value: employeeStats.logs },
@@ -378,26 +380,11 @@ className="flex items-center gap-2 px-4 py-2 bg-[#132ea7] text-white rounded tex
 
 
   {/* table */}
-
-  <div className='hidden md:block'>
-    <div className='bg-white rounded overflow-hidden border border-slate-100 shadow-slate-200/40'>
-    <div className='overflow-x-auto custom-scrollbar'>
-       
-    </div>
-        {activeTab === "calls" && (
-    <EmployeeCallsTable rows={rows} />
-)}
-
-{activeTab === "tasks" && (
-    <EmployeeTasksTable rows={rows}  />
-)}
-
-{activeTab === "worklogs" && (
-    <EmployeeWorkLogsTable rows={rows}  />
-)}
-    </div>
-
-  </div>
+<div>
+    {activeTab === "calls" && <EmployeeCallsTable rows={rows} />}
+    {activeTab === "tasks" && <EmployeeTasksTable rows={rows} />}
+    {activeTab === "worklogs" && <EmployeeWorkLogsTable rows={rows} />}
+</div>
   {totalPages > 1 && <Pagination />}
 
 

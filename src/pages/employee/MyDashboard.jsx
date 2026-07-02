@@ -9,6 +9,10 @@ import {
   MdCalendarToday, MdPerson,MdAssignment 
 } from "react-icons/md";
 
+
+import { formatDate } from "../../utils/formatDate";
+
+
 // ── Stat Card ─────────────────────────────────────────────────────────────────
 const StatCard = ({ label, value, icon, accent, textAccent, dark,   onClick }) => (
   <div   onClick={onClick} className={`rounded-[2rem] p-8 flex items-center gap-6 ${dark
@@ -65,7 +69,7 @@ const TaskRow = ({ task }) => {
                 <span className={`text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 ${isOverdue ? "text-red-500" : "text-slate-400"
                   }`}>
                   <MdCalendarToday size={12} />
-                  {isOverdue ? "Overdue" : `Due ${new Date(task.due_date).toLocaleDateString("default", { month: "short", day: "numeric" })}`}
+                  {isOverdue ? "Overdue" : `Due ${formatDate(task.due_date)}`}
                 </span>
               </>
             )}
@@ -131,7 +135,7 @@ const MyDashboard = () => {
           <p className="text-slate-400 font-medium mt-1">Your work at a glance</p>
         </div>
         <p className="text-xs font-black text-slate-400 uppercase tracking-widest">
-          {new Date().toLocaleDateString("default", { weekday: "long", month: "long", day: "numeric" })}
+          {new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
         </p>
       </div>
 
@@ -410,7 +414,7 @@ const MyDashboard = () => {
                     <div className="flex flex-col items-end gap-1.5">
                       <Badge value={call.call_type} />
                       <span className="text-[9px] font-bold text-slate-400">
-                        {new Date(call.createdAt).toLocaleDateString("default", { month: "short", day: "numeric" })}
+                        {formatDate(call.createdAt)}
                       </span>
                     </div>
                   </div>

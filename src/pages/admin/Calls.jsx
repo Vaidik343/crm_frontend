@@ -67,6 +67,7 @@ const PREFIX_INFO = {
 const initialForm = {
   caller_name: "",
   caller_number: "",
+    caller_email: "", 
   client_id: "",
   project_id: "",
   call_type: "",
@@ -312,6 +313,7 @@ console.log("Clients:", clients.length);
     setForm({
       caller_name: call.caller_name || "",
       caller_number: call.caller_number || "",
+       caller_email: call.caller_email || "", 
       client_id: call.client_id || "",
       project_id: call.project_id || null,
       call_type: call.call_type || "",
@@ -982,6 +984,7 @@ console.log("Clients:", clients.length);
                   client_id: id,
                   caller_name: client?.names?.[0] || prev.caller_name,
                   caller_number: client?.phone || prev.caller_number,
+                        caller_email: client?.email || prev.caller_email,
                 }));
               }}
               emptyOptionLabel="No Client"
@@ -1056,6 +1059,15 @@ console.log("Clients:", clients.length);
               placeholder="e.g. +91 98765 43210"
               required
             />
+
+            <Input
+    label="Caller Email"
+    name="caller_email"
+    type="email"
+    value={form.caller_email}
+    onChange={handleChange}
+    placeholder="e.g. rahul@example.com"
+/>
 
               {!editTarget && (
 <div className="md:col-span-2 space-y-1.5">
@@ -1525,6 +1537,12 @@ console.log("Clients:", clients.length);
                     {viewTarget.caller_number}
                   </p>
                 )}
+
+{viewTarget.caller_email && (
+    <p className="text-xs font-bold text-slate-400 mt-0.5">
+        {viewTarget.caller_email}
+    </p>
+)}
               </div>
               <div className="flex items-center gap-3 flex-wrap">
                 <label className="text-xs font-black text-slate-400 uppercase">

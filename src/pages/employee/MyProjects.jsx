@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import Modal from "../../components/ui/Modal";
 import Button from "../../components/ui/Button";
 
+import { formatDate, formatDateTime } from "../../utils/formatDate";
 
 const STATUS_COLORS = {
   planning:  "bg-slate-100 text-slate-600",
@@ -436,7 +437,7 @@ const [viewTarget, setViewTarget] = useState(null);
                               <div className="flex justify-between mt-1.5">
                                 <p className="text-[10px] font-black text-slate-400 uppercase">{r.added_by_name}</p>
                                 <p className="text-[10px] font-bold text-slate-300">
-                                  {new Date(r.created_at).toLocaleString("default", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                                  {formatDateTime(r.created_at)}
                                 </p>
                               </div>
                             </div>
