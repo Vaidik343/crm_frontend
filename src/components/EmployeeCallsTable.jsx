@@ -21,9 +21,24 @@ import {
   MdClose,
   MdArrowBack   
 } from "react-icons/md";
+import { useCall } from '../context/CallContext';
 
 const EmployeeCallsTable = ({ rows = [], loading }) => {
 
+    const {
+      calls,
+
+      page,
+      limit,
+      setPage,
+       total,
+      totalPages,
+      getAllCalls,
+      createCall,
+      updateCall,
+      deleteCall,
+    } = useCall();
+  
   
      const [viewTarget, setViewTarget] = useState(null);
     

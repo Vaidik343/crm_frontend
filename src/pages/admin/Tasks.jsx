@@ -650,7 +650,7 @@ const filtered = tasks || [];
                       <p className="text-[10px] font-black text-slate-400 font-mono mt-0.5">{task.display_id}</p>
                     </div>
                   </div>
-                  <Badge value={task.status} />
+                  
                 </div>
 
                 {task.description && (
@@ -659,6 +659,15 @@ const filtered = tasks || [];
 
                 {/* Meta */}
                 <div className="space-y-2 text-sm">
+                   <div className="flex justify-between items-center">
+                    <span className="text-slate-400 font-bold uppercase text-[10px]">Status</span>
+                    <div className="flex items-center gap-1.5">
+                      {/* <div className="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center text-[#132ea7] font-black text-[9px]"></div> */}
+                      <Badge value={task.status} />
+                    </div>
+                  </div>
+
+                  
                   <div className="flex justify-between items-center">
                     <span className="text-slate-400 font-bold uppercase text-[10px]">Assigned By</span>
                     <div className="flex items-center gap-1.5">
@@ -666,6 +675,11 @@ const filtered = tasks || [];
                       <span className="font-bold text-slate-700 text-xs">{task.assigner?.name || "—"}</span>
                     </div>
                   </div>
+
+                 
+
+
+                  
                   <div className="flex justify-between items-center">
                     <span className="text-slate-400 font-bold uppercase text-[10px]">Assigned To</span>
                     <div className="flex items-center gap-1.5">
@@ -680,6 +694,7 @@ const filtered = tasks || [];
                       <span className="font-bold text-slate-700 text-xs">{task.project?.name || "—"}</span>
                     </div>
                   </div>
+                  
                   <div className="flex justify-between items-center">
                     <span className="text-slate-400 font-bold uppercase text-[10px]">Due</span>
                  {/* <DueDateBadge dueDate={task.due_date} status={task.status} updatedAt={task.updatedAt} /> */}
@@ -690,18 +705,31 @@ const filtered = tasks || [];
   completedAt={task.completed_at}
 />
                   </div>
+
+                       {task.call?.display_id && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400 font-bold uppercase text-[10px]">
+                      From Call
+                    </span>
+                 
+                    <span className="font-black text-orange-500 font-mono text-xs">
+                      ← {task.call.display_id}
+                    </span>
+                  
+                  </div>
+                )}
                 </div>
 
                 {/* Actions */}
                 <div className="flex gap-2 pt-3 border-t border-slate-100">
                   <button onClick={() => setViewTarget(task)} className="flex-1 h-10 rounded-xl bg-slate-50 text-slate-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all">
-                    <MdVisibility size={16} /> View
+                    <MdVisibility size={16} /> 
                   </button>
                   <button onClick={() => openEdit(task)} className="flex-1 h-10 rounded-xl bg-[#132ea7]/10 text-[#132ea7] font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/20 transition-all">
-                    <MdEdit size={16} /> Edit
+                    <MdEdit size={16} /> 
                   </button>
                   <button onClick={() => setConfirmDelete(task)} className="flex-1 h-10 rounded-xl bg-red-50 text-red-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-red-100 transition-all">
-                    <MdDelete size={16} /> Delete
+                    <MdDelete size={16} /> 
                   </button>
                 </div>
               </div>
@@ -967,6 +995,11 @@ const filtered = tasks || [];
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 font-mono">
                     {viewTarget.display_id || "No display ID"}
                   </p>
+                    {viewTarget.call?.display_id && (
+                  <p className="text-[10px] font-black text-orange-500 font-mono mt-0.5">
+                    ← from call: {viewTarget.call.display_id}
+                  </p>
+                )}
                 </div>
               </div>
 

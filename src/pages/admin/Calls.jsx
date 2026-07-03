@@ -23,7 +23,7 @@ import {
   MdAssignment,
   MdVisibility,
   MdTransferWithinAStation,
-  MdPhone,
+  MdPhone, 
   MdFolder,
   MdCalendarToday,
   MdInfoOutline,
@@ -237,6 +237,7 @@ console.log("Clients:", clients.length);
         ...prev,
         receive_type: newValue,
         attendees: newValue === "meeting" ? prev.attendees : [],
+        is_task: newValue === "email" ? true : prev.is_task,
       }));
     }
     else if (name === "transfer_to") {
@@ -336,6 +337,8 @@ console.log("Clients:", clients.length);
   const closeModal = () => {
     setShowModal(false);
     setEditTarget(null);
+     setSelectedProject(null);
+        setSelectedClient(null); 
     setForm(initialForm);
     setFieldErrors({});
         getAllClients?.()
@@ -816,14 +819,14 @@ console.log("Clients:", clients.length);
                   {call.caller_name?.charAt(0) || <MdPhone size={18} />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-black text-slate-800 leading-tight truncate">
+                  {/* <p className="font-black text-slate-800 leading-tight truncate">
                     {call.caller_name}
-                  </p>
-                  {call.caller_number && (
+                  </p> */}
+                  {/* {call.caller_number && (
                     <p className="text-xs font-bold text-slate-400">
                       {call.caller_number}
                     </p>
-                  )}
+                  )} */}
                 </div>
                 <span className="shrink-0 px-2 py-1 bg-[#132ea7]/10 text-[#132ea7] rounded-lg text-[10px] font-black uppercase tracking-widest font-mono">
                   {call.display_id || "—"}
@@ -914,19 +917,19 @@ console.log("Clients:", clients.length);
                   onClick={() => setViewTarget(call)}
                   className="flex-1 h-10 rounded-xl bg-slate-50 text-slate-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all"
                 >
-                  <MdVisibility size={16} /> View
+                  <MdVisibility size={16} /> 
                 </button>
                 <button
                   onClick={() => openEdit(call)}
                   className="flex-1 h-10 rounded-xl bg-[#132ea7]/10 text-[#132ea7] font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/20 transition-all"
                 >
-                  <MdEdit size={16} /> Edit
+                  <MdEdit size={16} /> 
                 </button>
                 <button
                   onClick={() => setConfirmDelete(call)}
                   className="flex-1 h-10 rounded-xl bg-red-50 text-red-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-red-100 transition-all"
                 >
-                  <MdDelete size={16} /> Delete
+                  <MdDelete size={16} /> 
                 </button>
               </div>
             </div>
@@ -1030,7 +1033,9 @@ console.log("Clients:", clients.length);
               <button
                 type="button"
                 onClick={() => {
-                  setForm((prev) => ({ ...prev, client_id: "" }));
+                  setForm((prev) => ({ ...prev, client_id: "" ,  caller_name: "",
+        caller_number: "",
+        caller_email: ""}));
                   setSelectedClient(null);
                 }}
                 className="mt-1 text-[10px] font-black text-slate-400 hover:text-red-500 uppercase tracking-widest"
@@ -1067,9 +1072,12 @@ console.log("Clients:", clients.length);
     value={form.caller_email}
     onChange={handleChange}
     placeholder="e.g. rahul@example.com"
+         disabled={!!(form.client_id && selectedClient?.email)}
 />
 
-              {!editTarget && (
+{/* // project */}
+
+              {(!editTarget || (!editTarget.project_id && form.is_task)) && (
 <div className="md:col-span-2 space-y-1.5">
     <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
       Project
@@ -1259,11 +1267,13 @@ console.log("Clients:", clients.length);
             </div>
 
             {/* ── New fields — only on create ────────────────────── */}
-            {!editTarget && (
+            {(!editTarget || !editTarget.is_task) && !form.transfer_to && 
+            (
               <>
                 {/* Transfer To */}
-                {/* Transfer To */}
-                <div className="md:col-span-2 space-y-1.5">
+               
+               {!editTarget && (
+                  <div className="md:col-span-2 space-y-1.5">
                   <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
                     Transfer Call To{" "}
                     <span className="text-slate-300 font-bold normal-case">
@@ -1299,8 +1309,10 @@ console.log("Clients:", clients.length);
                     getSearchText={(u) => `${u.name} ${u.employee_id}`}
                   />
                 </div>
+               )}
+                
                 {/* Follow-up toggle — only when no transfer */}
-                {!form.transfer_to && (
+                {!form.transfer_to || !editTarget && (
                   <div className="md:col-span-2">
                     <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
                       <div>
@@ -1412,7 +1424,9 @@ console.log("Clients:", clients.length);
                 )}
 
                 {/* Assign task to */}
-                {form.is_task && !form.transfer_to && (
+                {form.is_task &&
+ !form.transfer_to &&
+ (!editTarget || !editTarget.is_task) && (
                   <div className="md:col-span-2 space-y-1.5">
                     <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
                       Assign Task To{" "}

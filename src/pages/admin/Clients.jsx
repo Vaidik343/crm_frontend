@@ -69,7 +69,7 @@ const filtered = search
   const openEdit = (client) => {
     setEditTarget(client);
     setForm({
-      name:    client.name?.[0] || "",
+      name:    client.names?.[0] || "",
       phone:   client.phone   || "",
       email:   client.email   || "",
       company: client.company || "",
@@ -203,7 +203,7 @@ const filtered = search
                   <th className="px-6 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Phone</th>
                   <th className="px-6 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Email</th>
                   <th className="px-6 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Company</th>
-                  {/* <th className="px-6 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Added By</th> */}
+                  <th className="px-6 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Added By</th>
                   <th className="px-10 py-6 text-sm font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</th>
                 </tr>
               </thead>
@@ -281,7 +281,7 @@ const filtered = search
                     </td>
 
                     {/* Added By */}
-                    {/* <td className="px-6 py-6">
+                    <td className="px-6 py-6">
                       <div className="flex items-center gap-2">
                         <div className="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-black text-[10px] uppercase">
                           {client.creator?.name?.charAt(0) || <MdPerson size={12} />}
@@ -290,7 +290,7 @@ const filtered = search
                           {client.creator?.name || "—"}
                         </span>
                       </div>
-                    </td> */}
+                    </td>
 
                     {/* Actions */}
                     <td className="px-10 py-6 text-right">

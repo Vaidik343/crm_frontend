@@ -89,9 +89,11 @@ const MyTasks = () => {
   const today = new Date().toISOString().split("T")[0];
   const sevenDaysAgo = (() => {
     const d = new Date();
+    console.log("🚀 ~ MyTasks ~ d:", d)
     d.setDate(d.getDate() - 7);
     return d.toISOString().split("T")[0];
   })();
+  console.log("🚀 ~ MyTasks ~ sevenDaysAgo:", sevenDaysAgo)
 
   const [dateFrom, setDateFrom] = useState(sevenDaysAgo);
   const [dateTo, setDateTo] = useState(today);
@@ -383,6 +385,7 @@ const MyTasks = () => {
             />
             <button
               onClick={() => {
+                   setPage(1);
                 setDateFrom(sevenDaysAgo);
                 setDateTo(today);
               }}
@@ -596,7 +599,10 @@ const MyTasks = () => {
 
           {/* pagination */}
 
-          <Pagination />
+{totalPages > 1 && (
+  <Pagination />
+)}
+        
         </div>
       </div>
 

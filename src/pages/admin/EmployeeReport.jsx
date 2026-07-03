@@ -257,7 +257,7 @@ const Pagination = ({compact = false}) => (
 <SearchInput
     value={search}
   onChange={setSearch}
-    placeholder="Search  Projects and Employee "
+    placeholder=""
   />
 
       {/* Date range */}
