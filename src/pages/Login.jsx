@@ -50,7 +50,7 @@ const [showPassword, setShowPassword] = useState(false);
     try {
       await login(form.employee_id.trim(), form.password);
     } catch (err) {
-       console.log("🚀 ~ handleSubmit ~ err:", err)
+      //  console.log("🚀 ~ handleSubmit ~ err:", err)
       const msg = err?.response?.data?.message || "Login failed. Please try again.";
       setError(msg);
     }

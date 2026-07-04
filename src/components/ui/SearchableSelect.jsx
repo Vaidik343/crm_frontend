@@ -26,7 +26,7 @@ error
     setLoading(true);
     try {
       const params = new URLSearchParams({ page: pageNum, limit, ...extraParams });
-      console.log("🚀 ~ fetchPage ~ params:", params)
+      // console.log("🚀 ~ fetchPage ~ params:", params)
       if (search) params.set("search", search);
       const { data } = await api.get(`${endpoint}?${params.toString()}`);
       setOptions((prev) => (append ? [...prev, ...(data.data || [])] : data.data || []));

@@ -62,6 +62,7 @@ const PREFIX_INFO = {
   CTA: "Call + Task (Assigned to Other)",
   CTR: "Call Transfer",
   CFB: "Call follow-back",
+    CW: "Call + Work Log",  
 };
 
 const initialForm = {
@@ -76,7 +77,9 @@ const initialForm = {
   call_summary: "",
   remarks: "",
   is_task: false,
+   is_worklog: false,
   transfer_to: "",
+  
   task_assigned_to: "",
   is_follow_up: false,
   parent_call_id: "",
@@ -89,6 +92,7 @@ const getExpectedPrefix = (form) => {
   if (form.transfer_to) return "CTR";
   if (form.is_task && form.task_assigned_to) return "CTA";
   if (form.is_task) return "CT";
+   if (form.is_worklog) return "CW";      
   if (form.is_follow_up && form.parent_call_id) return "CFB";
   return "C";
 };
@@ -112,9 +116,9 @@ const Calls = () => {
   const { projects, getAllProjects } = useProject();
   const { getAllTasks, page: taskPage } = useTask();
   const { clients, getAllClients } = useClient();
-  console.log("🚀 ~ Calls ~ clients:", clients)
+  // console.log("🚀 ~ Calls ~ clients:", clients)
   
-console.log("Clients:", clients.length);
+// console.log("Clients:", clients.length);
   const { users, getAllUsers } = useUser();
   const { user: authUser } = useAuth();
   const searchRef = useRef("");
@@ -245,13 +249,30 @@ console.log("Clients:", clients.length);
         ...prev,
         transfer_to: newValue,
         is_task: false,
+         is_worklog: false, 
         task_assigned_to: "",
         is_follow_up: false,
         parent_call_id: "",
       }));
-    } else if (name === "is_task" && !checked) {
-      setForm((prev) => ({ ...prev, is_task: false, task_assigned_to: "" }));
-    } else if (name === "is_follow_up" && !checked) {
+    } 
+    
+   else if (name === "is_task") {
+  if (checked) {
+    setForm((prev) => ({ ...prev, is_task: true, is_worklog: false }));
+  } else {
+    setForm((prev) => ({ ...prev, is_task: false, task_assigned_to: "" }));
+  }
+}
+else if (name === "is_worklog") {
+  if (checked) {
+    setForm((prev) => ({ ...prev, is_worklog: true, is_task: false, task_assigned_to: "" }));
+  } else {
+    setForm((prev) => ({ ...prev, is_worklog: false }));
+  }
+}
+    
+    
+    else if (name === "is_follow_up" && !checked) {
       setForm((prev) => ({ ...prev, is_follow_up: false, parent_call_id: "" }));
     } else if (name === "caller_name" && selectedClient) {
       // If the typed name no longer matches any name on the selected client record,
@@ -294,6 +315,11 @@ console.log("Clients:", clients.length);
     if (!form.receive_type) errors.receive_type = "Receive type is required";
     if (!editTarget && form.is_task && !form.project_id)
       errors.project_id = "Project is required when creating a task";
+
+    if (!editTarget && form.is_worklog && !form.project_id)
+  errors.project_id = "Project is required when creating a work log";
+
+
     // if (!editTarget && form.transfer_to && !form.project_id) errors.project_id = "Project is required when transferring a call";
     if (form.is_follow_up && !form.parent_call_id)
       errors.parent_call_id = "Select the original call";
@@ -323,6 +349,7 @@ console.log("Clients:", clients.length);
       call_summary: call.call_summary || "",
       remarks: "",
       is_task: call.is_task || false,
+       is_worklog: call.is_worklog || false, 
       transfer_to: "",
       task_assigned_to: "",
       follow_up: "",
@@ -349,7 +376,7 @@ console.log("Clients:", clients.length);
     e.preventDefault();
     //  console.log("UPDATE PAYLOAD", form);
     const errors = validate();
-    console.log("🚀 ~ handleSubmit ~ errors:", errors)
+    // console.log("🚀 ~ handleSubmit ~ errors:", errors)
     if (Object.keys(errors).length) {
       setFieldErrors(errors);
       return;
@@ -373,29 +400,28 @@ console.log("Clients:", clients.length);
           remarks: form.remarks || null,
           attendees: form.attendees || [],
           is_task: form.is_task || false,
+           is_worklog: form.transfer_to ? false : (form.is_worklog || false),
           transfer_to: form.transfer_to || null,
           task_assigned_to: form.task_assigned_to || null,
           parent_call_id: form.is_follow_up
             ? form.parent_call_id || null
             : null,
         };
-        console.log("🚀 ~ handleSubmit ~ payload:", payload)
+        // console.log("🚀 ~ handleSubmit ~ payload:", payload)
         const cc = await createCall(payload);
-        console.log("🚀 ~ handleSubmit ~ cc:", cc)
-
-        if (cc?.task) {
-          await getAllTasks(taskPage); // ← refresh task list
-          setAlert({
-            type: "success",
-            message: "Call logged and task auto-created successfully",
-          });
-        } else {
-          setAlert({ type: "success", message: "Call logged successfully" });
-        }
+        // console.log("🚀 ~ handleSubmit ~ cc:", cc)
+if (cc?.task) {
+  await getAllTasks(taskPage);
+  setAlert({ type: "success", message: "Call logged and task auto-created successfully" });
+} else if (cc?.workLog) {
+  setAlert({ type: "success", message: "Call logged and work log auto-created successfully" });
+} else {
+  setAlert({ type: "success", message: "Call logged successfully" });
+}
       }
       closeModal();
     } catch (err) {
-      console.log("🚀 ~ handleSubmit ~ err:", err)
+      // console.log("🚀 ~ handleSubmit ~ err:", err)
       setAlert({
         type: "danger",
         message: err?.response?.data?.message || "Something went wrong",
@@ -696,6 +722,12 @@ console.log("Clients:", clients.length);
                               <MdAssignment size={12} /> Task
                             </span>
                           )}
+{call.is_worklog && (
+  <span className="px-2 py-0.5 bg-green-50 text-green-600 rounded-md text-[10px] font-black uppercase flex items-center gap-1">
+    <MdAssignment size={12} /> WorkLog
+  </span>
+)}
+  
                           {call.transfer_to && (
                             <span className="px-2 py-0.5 bg-orange-50 text-orange-600 rounded-md text-[10px] font-black uppercase flex items-center gap-1">
                               <MdTransferWithinAStation size={12} /> Transfer
@@ -874,6 +906,13 @@ console.log("Clients:", clients.length);
                         <MdAssignment size={10} /> Task
                       </span>
                     )}
+
+                    {call.is_worklog && (
+  <span className="px-2 py-0.5 bg-green-50 text-green-600 rounded-md text-[10px] font-black uppercase flex items-center gap-1">
+    <MdAssignment size={12} /> WorkLog
+  </span>
+)}
+
                     {call.transfer_to && (
                       <span className="px-2 py-0.5 bg-orange-50 text-orange-600 rounded-md text-[10px] font-black uppercase flex items-center gap-1">
                         <MdTransferWithinAStation size={10} /> Transfer
@@ -1470,6 +1509,39 @@ console.log("Clients:", clients.length);
                     </p>
                   </div>
                 )}
+
+                {/* is_worklog toggle — no transfer, no task */}
+{!form.transfer_to && !form.is_task && (
+  <div className="md:col-span-2">
+    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+      <div>
+        <p className="text-sm font-black text-slate-700 uppercase tracking-widest">
+          Auto-Create Work Log
+        </p>
+        <p className="text-xs font-bold text-slate-400 mt-0.5">
+          {form.is_worklog
+            ? "A work log will be auto-created from this call"
+            : "Log call only — use for small/quick tasks"}
+        </p>
+        {form.is_worklog && !form.project_id && (
+          <p className="text-xs font-bold text-amber-500 mt-1">
+            ⚠ Select a project to enable work log creation
+          </p>
+        )}
+      </div>
+      <label className="relative inline-flex items-center cursor-pointer">
+        <input
+          type="checkbox"
+          name="is_worklog"
+          checked={form.is_worklog}
+          onChange={handleChange}
+          className="sr-only peer"
+        />
+        <div className="w-12 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-6 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#132ea7]" />
+      </label>
+    </div>
+  </div>
+)}
               </>
             )}
           </div>
@@ -1590,10 +1662,12 @@ console.log("Clients:", clients.length);
                   value: viewTarget.transfer_to ? "Yes" : "No",
                 },
                 { label: "Has Task", value: viewTarget.is_task ? "Yes" : "No" },
+
                 {
                   label: "Has Task Assigned",
                   value: viewTarget.task_assigned_to ? "Yes" : "No",
                 },
+                { label: "Has Work Log", value: viewTarget.is_worklog ? "Yes" : "No" },
               ].map((item) => (
                 <div key={item.label} className="bg-slate-50 rounded-2xl p-4">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">

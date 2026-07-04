@@ -84,16 +84,16 @@ const MyTasks = () => {
   const [selectedProject, setSelectedProject] = useState(null);
   const [selectedCall, setSelectedCall] = useState(null);
   const [dueFilter, setDueFilter] = useState(""); // "" | "overdue" | "due_soon"
-  console.log("🚀 ~ Tasks ~ dueFilter:", dueFilter);
+  // console.log("🚀 ~ Tasks ~ dueFilter:", dueFilter);
 
   const today = new Date().toISOString().split("T")[0];
   const sevenDaysAgo = (() => {
     const d = new Date();
-    console.log("🚀 ~ MyTasks ~ d:", d)
+    // console.log("🚀 ~ MyTasks ~ d:", d)
     d.setDate(d.getDate() - 7);
     return d.toISOString().split("T")[0];
   })();
-  console.log("🚀 ~ MyTasks ~ sevenDaysAgo:", sevenDaysAgo)
+  // console.log("🚀 ~ MyTasks ~ sevenDaysAgo:", sevenDaysAgo)
 
   const [dateFrom, setDateFrom] = useState(sevenDaysAgo);
   const [dateTo, setDateTo] = useState(today);
@@ -328,7 +328,7 @@ const MyTasks = () => {
           </p>
         </div>
 
-        <div className="flex flex-col lg:flex-row flex-wrap rounded items-stretch w-full lg:items-center gap-3">
+        <div className="flex flex-col sm:flex-row flex-wrap rounded items-stretch w-full sm:items-center gap-3">
           {/* Filter buttons */}
           <div className="flex items-center gap-3">
             {[
@@ -353,16 +353,12 @@ const MyTasks = () => {
             ))}
           </div>
 
-          <div className="w-[19dvw] flex">
-            <SearchInput
-              value={search}
-              onChange={setSearch}
-              placeholder="Search Tasks, Projects..."
-            />
-          </div>
+          {/* <div className="w-[20%] flex"> */}
+         
+          {/* </div> */}
 
           {/* Date range */}
-          <div className="flex items-center max-w-[48dvw]  gap-2 bg-white  border flex-wrap border-slate-100 rounded-2xl px-4 py-2 shadow-sm">
+          <div className="flex items-center xs:w-[50%] gap-2 bg-white  border flex-wrap border-slate-100 rounded-2xl px-4 py-2 shadow-sm">
             <label className="text-xs font-black text-slate-400 uppercase">
               From
             </label>
@@ -395,6 +391,11 @@ const MyTasks = () => {
             </button>
           </div>
 
+   <SearchInput
+              value={search}
+              onChange={setSearch}
+              placeholder="Search Tasks, Projects..."
+            />
           {/* Action buttons */}
           <div className="flex gap-3">
             <Button

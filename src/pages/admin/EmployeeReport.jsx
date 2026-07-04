@@ -69,7 +69,7 @@ const [projectId, setProjectId] = useState("");
 const [projects, setProjects] = useState([]);
 
 const [selectedProject, setSelectedProject] = useState(null);
-console.log("🚀 ~ EmployeeReport ~ selectedProject:", selectedProject)
+// console.log("🚀 ~ EmployeeReport ~ selectedProject:", selectedProject)
 
 
 const [showExportModal, setShowExportModal] = useState(false);
@@ -82,7 +82,7 @@ const [employeeStats, setEmployeeStats] = useState({
   logs: 0,
   projects: 0,
 });
-console.log("🚀 ~ EmployeeReport ~ employeeStats:", employeeStats)
+// console.log("🚀 ~ EmployeeReport ~ employeeStats:", employeeStats)
 
 useEffect(() => {
   if (!employee?.id) return;
@@ -113,7 +113,7 @@ useEffect(() => {
 useEffect(() => {
     if (!employee?.id) return;
     getAllProjects({ user_id: employee.id, limit: 100 }).then(res => {
-        console.log("projects response:", res);
+        // console.log("projects response:", res);
     });
 }, [employee?.id]);
 
@@ -153,7 +153,7 @@ const loadReport = async (pageNo = 1) => {
                 search,
                    projectId
             );
-              console.log("🚀 ~ loadReport ~ response:", response)
+              // console.log("🚀 ~ loadReport ~ response:", response)
             break;
 
         case "worklogs":

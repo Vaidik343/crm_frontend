@@ -65,7 +65,7 @@ const Dashboard = () => {
         setLoading(true);
         const params = fromDate ? { from: fromDate } : {};
         const { data: res } = await api.get(ENDPOINTS.DASHBOARD.ALL, { params });
-        console.log("🚀 ~ fetchDashboard ~ data:", data)
+        // console.log("🚀 ~ fetchDashboard ~ data:", data)
         setData(res);
       } catch (err) {
         setError(err?.response?.data?.message || "Failed to load dashboard");
@@ -87,8 +87,8 @@ const Dashboard = () => {
       <p className="text-slate-400 font-medium animate-pulse">Loading intelligence...</p>
     </div>
   );
-console.log(data.task_status_breakdown);
-console.log(data.task_status_breakdown_all_time);
+// console.log(data.task_status_breakdown);
+// console.log(data.task_status_breakdown_all_time);
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       {/* Header */}

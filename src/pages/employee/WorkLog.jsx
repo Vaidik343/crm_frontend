@@ -52,6 +52,7 @@ const WorkLog = () => {
     createWorkLog,
     updateWorkLog,
   } = useWorkLog();
+    // console.log("🚀 ~ WorkLog ~ workLogs:", workLogs)
   const { projects, getAllProjects } = useProject();
   // console.log("🚀 ~ WorkLog ~ projects:", projects)
 
@@ -90,25 +91,25 @@ const WorkLog = () => {
   //project options
   const projectOptions = projects.map((p) => ({ value: p.id, label: p.name }));
   // console.log("🚀 ~ WorkLog ~ projectOptions:", projectOptions)
-  useEffect(() => {
-    const debounce = setTimeout(() => {
-      getAllWorkLogs(search ? 1 : page, dateFrom, dateTo, search);
-    }, 300);
-    return () => clearTimeout(debounce);
-  }, [page, dateFrom, dateTo, search]);
+  // Effect 1 — page and date changes
+useEffect(() => {
+  getAllWorkLogs(page, dateFrom, dateTo, search);
+  getAllProjects?.();
+}, [page, dateFrom, dateTo]);
 
-  useEffect(() => {
-    if (search && page !== 1) setPage(1);
-  }, [search]);
-
-  useEffect(() => {
-    getAllProjects?.();
-  }, []);
+// Effect 2 — search only, debounced
+useEffect(() => {
+  const debounce = setTimeout(() => {
+    setPage(1);
+    getAllWorkLogs(1, dateFrom, dateTo, search);
+  }, 300);
+  return () => clearTimeout(debounce);
+}, [search]);
 
   const filtered = workLogs || [];
 
   const totalEntries = total;
-  console.log("🚀 ~ WorkLog ~ totalEntries:", totalEntries);
+  // console.log("🚀 ~ WorkLog ~ totalEntries:", totalEntries);
 
   const currentMonthEntries = workLogs.filter((log) => {
     const logDate = new Date(log.date);
@@ -344,6 +345,9 @@ const WorkLog = () => {
                 <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
                   Operational Date
                 </th>
+                <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
+  Display ID
+</th>
                 <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
                   Work Briefing
                 </th>
@@ -381,6 +385,11 @@ const WorkLog = () => {
                       </span>
                     </div>
                   </td>
+                  <td className="px-6 py-5">
+  <span className="px-3 py-1 bg-[#132ea7]/10 text-[#132ea7] rounded-lg text-[11px] font-black uppercase tracking-widest font-mono">
+    {log.display_id || "—"}
+  </span>
+</td>
                   <td className="px-8 py-6">
                     <p className="text-sm font-bold  truncate max-w-[500px]">
                       {log.description}
@@ -679,6 +688,9 @@ const WorkLog = () => {
                   <p className="text-sm font-bold text-[#132ea7] uppercase tracking-widest mt-0.5">
                     {viewTarget.Project?.name || "No Project Assigned"}
                   </p>
+                  <p className="text-[10px] font-black text-slate-400 font-mono mt-0.5">
+  {viewTarget.display_id || "—"}
+</p>
            {viewTarget.task && (
     <p className="text-xs font-bold text-primary truncate font-mono mt-1"             
     // onClick = {() => navigate('/employee/tasks')}

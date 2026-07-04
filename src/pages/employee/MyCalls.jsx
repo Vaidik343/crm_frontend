@@ -67,6 +67,7 @@ const PREFIX_INFO = {
   CTA: "Call + Task (Assigned to Other)",
   CTR: "Call Transfer",
   CFB: "Call follow-back",
+  CW: "Call + Work Log",
 };
 
 const initialForm = {
@@ -81,6 +82,7 @@ const initialForm = {
   call_summary: "",
   remarks: "",
   is_task: false,
+  is_worklog: false,
   is_follow_up: false,
   transfer_to: "",
   task_assigned_to: "",
@@ -93,6 +95,7 @@ const getExpectedPrefix = (form) => {
   if (form.transfer_to) return "CTR";
   if (form.is_task && form.task_assigned_to) return "CTA";
   if (form.is_task) return "CT";
+   if (form.is_worklog) return "CW";   
   if (form.is_follow_up && form.parent_call_id) return "CFB";
   return "C";
 };
@@ -138,11 +141,11 @@ const MyCalls = () => {
   const today = new Date().toISOString().split("T")[0];
   const sevenDaysAgo = (() => {
     const d = new Date();
-    console.log("🚀 ~ MyCalls ~ d:", d);
+    // console.log("🚀 ~ MyCalls ~ d:", d);
     d.setDate(d.getDate() - 7);
     return d.toISOString().split("T")[0];
   })();
-  console.log("🚀 ~ MyCalls ~ sevenDaysAgo:", sevenDaysAgo);
+  // console.log("🚀 ~ MyCalls ~ sevenDaysAgo:", sevenDaysAgo);
 
   const [dateFrom, setDateFrom] = useState(sevenDaysAgo);
   const [dateTo, setDateTo] = useState(today);
@@ -155,17 +158,24 @@ const MyCalls = () => {
   const [search, setSearch] = useState("");
 
   const [viewHistory, setViewHistory] = useState([]);
+// Effect 1 — page, date, filter changes (no search reset)
+useEffect(() => {
+  getAllCalls?.(page, dateFrom, dateTo, limit, search);
+  getAllProjects?.();
+  getAllUsers?.();
+  getAllClients?.();
+}, [page, dateFrom, dateTo]);
 
-  useEffect(() => {
-    const debounce = setTimeout(() => {
-      if (search && page !== 1) setPage(1);
-      getAllCalls?.(search ? 1 : page, dateFrom, dateTo, limit, search);
-      getAllProjects?.();
-      getAllUsers?.();
-      getAllClients?.();
-    }, 500);
-    return () => clearTimeout(debounce);
-  }, [page, dateFrom, dateTo, search]);
+// Effect 2 — search only, debounced, resets to page 1
+useEffect(() => {
+  const debounce = setTimeout(() => {
+    setPage(1);
+    getAllCalls?.(1, dateFrom, dateTo, limit, search);
+  }, 500);
+  return () => clearTimeout(debounce);
+}, [search]);
+
+
 
   // Members of the selected project — falls back to all users if no project selected
   const assignableUsers = useMemo(() => {
@@ -194,7 +204,7 @@ const MyCalls = () => {
 
   // Own calls for parent_call_id dropdown (follow-up);
   const otherUsers = users.filter((u) => u.id !== authUser?.id);
-  console.log("🚀 ~ MyCalls ~ otherUsers:", otherUsers);
+  // console.log("🚀 ~ MyCalls ~ otherUsers:", otherUsers);
 
   //Own calls for parent_call_id dropdown (follow up)
   const ownCalls = calls.filter((c) => !c.parent_call_id && !c.transfer_to);
@@ -242,9 +252,23 @@ const MyCalls = () => {
         is_follow_up: false,
         parent_call_id: "",
       }));
-    } else if (name === "is_task" && !checked) {
-      setForm((prev) => ({ ...prev, is_task: false, task_assigned_to: "" }));
-    } else if (name === "is_follow_up" && !checked) {
+    } 
+else if (name === "is_task") {
+  if (checked) {
+    setForm((prev) => ({ ...prev, is_task: true, is_worklog: false }));
+  } else {
+    setForm((prev) => ({ ...prev, is_task: false, task_assigned_to: "" }));
+  }
+}
+else if (name === "is_worklog") {
+  if (checked) {
+    setForm((prev) => ({ ...prev, is_worklog: true, is_task: false, task_assigned_to: "" }));
+  } else {
+    setForm((prev) => ({ ...prev, is_worklog: false }));
+  }
+}
+    
+    else if (name === "is_follow_up" && !checked) {
       setForm((prev) => ({ ...prev, is_follow_up: false, parent_call_id: "" }));
     } else if (name === "caller_name" && selectedClient) {
       // If the typed name no longer matches any name on the selected client record,
@@ -286,6 +310,8 @@ const MyCalls = () => {
       errors.project_id = "Project is required when creating a task";
     if (form.follow_up_date && !form.parent_call_id)
       errors.parent_call_id = "Select the original call for follow-Back";
+    if (!editTarget && form.is_worklog && !form.project_id)
+  errors.project_id = "Project is required when creating a work log";
     if (form.transfer_to === authUser?.id)
       errors.transfer_to = "Cannot transfer to yourself";
     return errors;
@@ -312,6 +338,7 @@ const MyCalls = () => {
       call_summary: call.call_summary || "",
       remarks: "",
       is_task: call.is_task || false,
+        is_worklog: call.is_worklog || false,
       is_follow_up: false,
       transfer_to: "",
       task_assigned_to: "",
@@ -354,31 +381,28 @@ const MyCalls = () => {
           remarks: form.remarks || null,
           attendees: form.attendees || [],
           is_task: form.is_task || false,
+          is_worklog: form.is_worklog || false,
           transfer_to: form.transfer_to || null,
           task_assigned_to: form.task_assigned_to || null,
           follow_up_date: form.follow_up_date || null,
           parent_call_id: form.parent_call_id || null,
         };
-        console.log("🚀 ~ handleSubmit ~ payload:", payload);
+        // console.log("🚀 ~ handleSubmit ~ payload:", payload);
         const cc = await createCall(payload);
-        console.log("🚀 ~ handleSubmit ~ cc:", cc);
+        // console.log("🚀 ~ handleSubmit ~ cc:", cc);
 
         if (cc?.task) {
-          setAlert({
-            type: "success",
-            message: cc?.task
-              ? "Call logged and task auto-created"
-              : form.transfer_to
-                ? "Call logged and transferred"
-                : "Call logged",
-          });
-        } else {
-          setAlert({ type: "success", message: "Call logged successfully" });
-        }
+  await getAllTasks(taskPage);
+  setAlert({ type: "success", message: "Call logged and task auto-created successfully" });
+} else if (cc?.workLog) {
+  setAlert({ type: "success", message: "Call logged and work log auto-created successfully" });
+} else {
+  setAlert({ type: "success", message: "Call logged successfully" });
+}
       }
       closeModal();
     } catch (err) {
-      console.log("🚀 ~ handleSubmit ~ err:", err);
+      // console.log("🚀 ~ handleSubmit ~ err:", err);
       setAlert({
         type: "danger",
         message: err?.response?.data?.message || "Something went wrong",
@@ -405,6 +429,7 @@ const MyCalls = () => {
     }
   };
 
+  
   const handleClientSelect = (e) => {
     const clientId = e.target.value;
     const client = clients.find((c) => c.id === clientId);
@@ -421,6 +446,52 @@ const MyCalls = () => {
     setViewHistory([]);
   };
 
+
+   // ── Shared pagination UI ─────────────────────────────────────────────────
+  const Pagination = ({ compact = false }) => (
+    <div
+      className={`flex items-center justify-between px-6 py-6 ${!compact ? "border-t border-slate-100" : ""}`}
+    >
+      <button
+        disabled={page === 1}
+        onClick={() => setPage(page - 1)}
+        className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50"
+      >
+        {compact ? "Prev" : "Previous"}
+      </button>
+
+      {compact ? (
+        <span className="text-sm font-bold text-slate-500">
+          {page} / {totalPages}
+        </span>
+      ) : (
+        <div className="flex items-center gap-2">
+          {[...Array(totalPages)].map((_, i) => (
+            <button
+              key={i + 1}
+              onClick={() => setPage(i + 1)}
+              className={`w-10 h-10 rounded-xl font-bold transition-all ${
+                page === i + 1
+                  ? "bg-[#132ea7] text-white"
+                  : "bg-slate-100 text-slate-700"
+              }`}
+            >
+              {i + 1}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <button
+        disabled={page === totalPages}
+        onClick={() => setPage(page + 1)}
+        className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50"
+      >
+        Next
+      </button>
+    </div>
+  );
+
   if (loading && !calls.length)
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
@@ -430,7 +501,7 @@ const MyCalls = () => {
         </p>
       </div>
     );
-  console.log(form.receive_type, form.is_task);
+  // console.log(form.receive_type, form.is_task);
   return (
     <div className="space-y-10 px-5  animate-in fade-in duration-700">
       {/* Header */}
@@ -459,8 +530,14 @@ const MyCalls = () => {
             ))}
           </select>
 
+  <SearchInput
+            value={search}
+            onChange={setSearch}
+            placeholder="Search Tasks, Projects, Employee name and Display Id"
+          />
+
           {/* Date range */}
-          <div className="flex items-center max-w-[48dvw] gap-2 bg-white border flex-wrap border-slate-100 rounded-2xl px-4 py-2 shadow-sm">
+          <div className="flex items-center   xs:w-[90%] gap-2 bg-white border flex-wrap border-slate-100 rounded-2xl px-4 py-2 shadow-sm">
             <label className="text-xs font-black text-slate-400 uppercase">
               From
             </label>
@@ -492,11 +569,7 @@ const MyCalls = () => {
               Reset
             </button>
           </div>
-          <SearchInput
-            value={search}
-            onChange={setSearch}
-            placeholder="Search Tasks, Projects, Employee name and Display Id"
-          />
+        
 
           {/* Action buttons */}
           <div className="flex gap-3">
@@ -668,6 +741,12 @@ const MyCalls = () => {
                             <MdAssignment size={10} /> Task
                           </span>
                         )}
+
+                        {call.is_worklog && (
+  <span className="px-2 py-0.5 bg-green-50 text-green-600 rounded-md text-[10px] font-black uppercase flex items-center gap-1">
+    <MdAssignment size={12} /> WorkLog
+  </span>
+)}
                         {call.transfer_to && (
                           <span className="px-1.5 py-0.5 bg-orange-50 text-orange-600 rounded text-[9px] font-black uppercase flex items-center gap-1">
                             <MdTransferWithinAStation size={10} /> Transfer
@@ -733,9 +812,7 @@ const MyCalls = () => {
         </div>
 
         {/* Pagination */}
-
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between px-6 py-6 border-t border-slate-100">
+         {/* <div className="flex items-center justify-between px-6 py-6 border-t border-slate-100">
             <button
               disabled={page === 1}
               onClick={() => setPage(page - 1)}
@@ -761,7 +838,10 @@ const MyCalls = () => {
             >
               Next
             </button>
-          </div>
+          </div> */}
+
+        {totalPages > 1 && (
+         <Pagination />
         )}
       </div>
 
@@ -836,6 +916,12 @@ const MyCalls = () => {
                         <MdAssignment size={10} /> Task
                       </span>
                     )}
+
+                    {call.is_worklog && (
+  <span className="px-2 py-0.5 bg-green-50 text-green-600 rounded-md text-[10px] font-black uppercase flex items-center gap-1">
+    <MdAssignment size={12} /> WorkLog
+  </span>
+)}
                     {call.transfer_to && (
                       <span className="px-1.5 py-0.5 bg-orange-50 text-orange-600 rounded text-[9px] font-black uppercase flex items-center gap-1">
                         <MdTransferWithinAStation size={10} /> Transfer
@@ -884,7 +970,8 @@ const MyCalls = () => {
           ))
         )}
         {/* Mobile Pagination */}
-        {totalPages > 1 && (
+          {totalPages > 1 && <Pagination compact />}
+        {/* {totalPages > 1 && (
           <div className="flex items-center justify-between px-2 py-4">
             <button
               disabled={page === 1}
@@ -904,7 +991,7 @@ const MyCalls = () => {
               Next
             </button>
           </div>
-        )}
+        )} */}
       </div>
 
       {/* Create / Edit Modal */}
@@ -1497,6 +1584,39 @@ const MyCalls = () => {
                     </p>
                   </div>
                 )}
+
+                {/* is_worklog toggle — no transfer, no task */}
+{!form.transfer_to && !form.is_task && (
+  <div className="md:col-span-2">
+    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+      <div>
+        <p className="text-sm font-black text-slate-700 uppercase tracking-widest">
+          Auto-Create Work Log
+        </p>
+        <p className="text-xs font-bold text-slate-400 mt-0.5">
+          {form.is_worklog
+            ? "A work log will be auto-created from this call"
+            : "Log call only — use for small/quick tasks"}
+        </p>
+        {form.is_worklog && !form.project_id && (
+          <p className="text-xs font-bold text-amber-500 mt-1">
+            ⚠ Select a project to enable work log creation
+          </p>
+        )}
+      </div>
+      <label className="relative inline-flex items-center cursor-pointer">
+        <input
+          type="checkbox"
+          name="is_worklog"
+          checked={form.is_worklog}
+          onChange={handleChange}
+          className="sr-only peer"
+        />
+        <div className="w-12 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-6 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#132ea7]" />
+      </label>
+    </div>
+  </div>
+)}
               </>
             )}
           </div>
@@ -1609,6 +1729,7 @@ const MyCalls = () => {
                   label: "Updated",
                   value: formatDate(viewTarget.updatedAt),
                 },
+                { label: "Has Work Log", value: viewTarget.is_worklog ? "Yes" : "No" },
               ].map((item) => (
                 <div key={item.label} className="bg-slate-50 rounded-2xl p-4">
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">

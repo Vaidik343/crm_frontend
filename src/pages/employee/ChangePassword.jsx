@@ -36,7 +36,7 @@ setSuccess("Operational access code updated successfully.");
 setTimeout(() => logout(), 2000);
     } catch (err) {
       
-    console.log("🚀 ~ handleSubmit ~ err:", err)
+    // console.log("🚀 ~ handleSubmit ~ err:", err)
       setError(err?.response?.data?.message || "Protocol update failed.");
     } finally {
       setLoading(false);

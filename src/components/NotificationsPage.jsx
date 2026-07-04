@@ -52,7 +52,7 @@ const NotificationsPage = () => {
   const fetchData = useCallback(() => {
     setLoading(true);
     const params = { page, limit };
-    console.log("🚀 ~ NotificationsPage ~ params:", params)
+    // console.log("🚀 ~ NotificationsPage ~ params:", params)
     if (activeTab === "unread") params.is_read = "false";
     if (activeTab === "read")   params.is_read = "true";
     if (typeFilter) params.type = typeFilter;

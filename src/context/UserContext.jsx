@@ -81,10 +81,10 @@ const getEmployeeCallsReport = useCallback(async (employeeId, pageNumber = 1, fr
 if (projectId) params.set("project_id", projectId);
     const { data } = await api.get(`${ENDPOINTS.REPORTS.CALLS(employeeId)}?${params.toString()}`);
     
-    console.log("🚀 ~ UserProvider ~ getEmployeeCallsReport:", data)
+    // console.log("🚀 ~ UserProvider ~ getEmployeeCallsReport:", data)
     return data;
   } catch (error) {
-      console.log("🚀 ~ UserProvider ~ error:", error)
+      // console.log("🚀 ~ UserProvider ~ error:", error)
     throw error;
   } finally {
     setLoading(false);
@@ -101,7 +101,7 @@ const getEmployeeTasksReport = useCallback(async (employeeId, pageNumber = 1, fr
     if (projectId) params.set("project_id", projectId);
 
     const { data } = await api.get(`${ENDPOINTS.REPORTS.TASKS(employeeId)}?${params.toString()}`);
-    console.log("🚀 ~ UserProvider ~ getEmployeeTasksReport:", data)
+    // console.log("🚀 ~ UserProvider ~ getEmployeeTasksReport:", data)
     return data;
   } catch (error) {
     throw error;
@@ -120,7 +120,7 @@ const getEmployeeWorkLogsReport = useCallback(async (employeeId, pageNumber = 1,
     if (projectId) params.set("project_id", projectId);
 
     const { data } = await api.get(`${ENDPOINTS.REPORTS.WORKLOGS(employeeId)}?${params.toString()}`);
-    console.log("🚀 ~ UserProvider ~ getEmployeeWorkLogsReport:", data)
+    // console.log("🚀 ~ UserProvider ~ getEmployeeWorkLogsReport:", data)
     return data;
   } catch (error) {
     throw error;

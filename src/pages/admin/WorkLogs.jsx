@@ -13,7 +13,7 @@ const AdminWorkLogs = () => {
   const { workLogs = [], loading, page, limit,
       totalPages,
       setPage, getAllWorkLogs } = useWorkLog();
-
+  
   const [viewTarget, setViewTarget] = useState(null);
   const [error, setError] = useState("");
   const [filter, setFilter] = useState("");
@@ -137,6 +137,9 @@ placeholder="Search  Projects and Employee "
             <thead>
               <tr className="bg-slate-50/50">
                 <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Employee Identity</th>
+                <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
+  Display ID
+</th>
                 <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Operational Date</th>
                 <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Work Briefing</th>
                 <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Projects</th>
@@ -170,6 +173,13 @@ placeholder="Search  Projects and Employee "
                        <span className="text-sm font-black text-slate-700 uppercase tracking-wider">{new Date(log.date).toLocaleDateString("default", { month: "short", day: "numeric", year: "numeric" })}</span>
                     </div>
                   </td>
+
+                  <td className="px-6 py-5">
+  <span className="px-3 py-1 bg-[#132ea7]/10 text-[#132ea7] rounded-lg text-[11px] font-black uppercase tracking-widest font-mono">
+    {log.display_id || "—"}
+  </span>
+</td>
+
                   <td className="px-8 py-6">
                     <p className="text-sm font-bold  truncate max-w-[400px]">
                       {log.description}

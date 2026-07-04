@@ -38,7 +38,7 @@ export const SocketProvider = ({ children }) => {
     // console.log("🚀 ~ SocketProvider ~ newSocket:", newSocket)
 
     newSocket.on("connect", () => {
-      console.log("✅ [Socket] Connected:", newSocket.id);
+      // console.log("✅ [Socket] Connected:", newSocket.id);
       
       // 1. Join personal room (for direct notifications)
       newSocket.emit("join", user.id);
