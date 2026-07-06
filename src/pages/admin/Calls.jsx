@@ -198,17 +198,19 @@ const Calls = () => {
 
   const searchData = search.toLowerCase().trim();
 
-  const filteredCalls = (calls || []).filter((c) => {
-    const matchesType = filter === "all" || c.call_type === filter;
+const filteredCalls = (calls || []).filter((c) => {
+  const matchesType = filter === "all" || c.call_type === filter;
 
-    const matchesSearch =
-      !searchData ||
-      c.caller_name?.toLowerCase().includes(searchData) ||
-      c.display_id?.toLowerCase().includes(searchData) ||
-      c.project?.name?.toLowerCase().includes(searchData);
+  const matchesSearch =
+    !searchData ||
+    c.caller_name?.toLowerCase().includes(searchData) ||
+    c.display_id?.toLowerCase().includes(searchData) ||
+    c.project?.name?.toLowerCase().includes(searchData) ||
+    c.caller?.name?.toLowerCase().includes(searchData) ||
+    c.caller?.employee_id?.toLowerCase().includes(searchData);
 
-    return matchesType && matchesSearch;
-  });
+  return matchesType && matchesSearch;
+});
 
   // ── Handlers ──────────────────────────────────────────────────────────────
   //   const handleChange = (e) => {

@@ -92,9 +92,9 @@ useEffect(() => {
   // Fetch counts for this specific employee using existing report endpoints
   // pass limit=1 so response is fast, we only need the total field
   Promise.all([
-    getEmployeeCallsReport(employee.id, 1, "", "", 1, ""),
-    getEmployeeTasksReport(employee.id, 1, "", "", 1, ""),
-    getEmployeeWorkLogsReport(employee.id, 1, "", "", 1, ""),
+   getEmployeeCallsReport(employee.id, 1, from, to, 1, "", projectId),
+    getEmployeeTasksReport(employee.id, 1, from, to, 1, "", projectId),
+    getEmployeeWorkLogsReport(employee.id, 1, from, to, 1, "", projectId),
     // getAllProjects({ user_id: employee.id, limit: 100 }),
     api.get(`${ENDPOINTS.PROJECTS.ALL}?user_id=${employee.id}&limit=100`).then(r => r.data),
   ]).then(([calls, tasks, logs,projects ]) => {
@@ -107,7 +107,7 @@ useEffect(() => {
     setProjects(projects.data || []);
   }).catch(console.error);
 
-}, [employee]);
+}, [employee, from, to, projectId]);
 
 
 useEffect(() => {

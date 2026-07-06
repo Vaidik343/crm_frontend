@@ -201,17 +201,16 @@ const MyDashboard = () => {
       </div> */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-3 text-left">
         {[
-                  { label: "Projects",   value: summary?.total_projects, icon: <MdGroup size={22} className="text-[#132ea7]" />,       color: "bg-[#132ea7]/10" },
-                  { label: "My Tasks",     value: ts.total,               icon: <MdAssignment size={22} className="text-violet-500" />, color: "bg-violet-50",    sub: `${ts.ongoing ?? 0} ongoing` },
-
-                  { label: "Calls",     value: cs.total,               icon: <MdPhone size={22} className="text-emerald-500" />,     color: "bg-emerald-50",   sub: `${cs.inquiry ?? 0} inquiries` },
-
-
-                  { label: "Today's Log", value: summary?.today_logs,              icon: <MdCheckCircle size={22} className="text-blue-500" />,  color: "bg-blue-50", },
-
-                  { label: "Completed", value: ts.closed,              icon: <MdCheckCircle size={22} className="text-blue-500" />,  color: "bg-blue-50",      sub: `${ts.total ? Math.round((ts.closed/ts.total)*100) : 0}% done` },
+                  { label: "Projects",    value: summary?.total_projects, icon: <MdGroup size={22} className="text-[#132ea7]" />,       color: "bg-[#132ea7]/10", to: "/employee/projects" },
+{ label: "My Tasks",    value: ts.total,                icon: <MdAssignment size={22} className="text-violet-500" />, color: "bg-violet-50",    sub: `${ts.ongoing ?? 0} ongoing`,   to: "/employee/tasks" },
+{ label: "Calls",       value: cs.total,                icon: <MdPhone size={22} className="text-emerald-500" />,     color: "bg-emerald-50",   sub: `${cs.inquiry ?? 0} inquiries`, to: "/employee/calls" },
+{ label: "Today's Log", value: summary?.today_logs,     icon: <MdCheckCircle size={22} className="text-blue-500" />,  color: "bg-blue-50",                                           to: "/employee/work-logs" },
+{ label: "Completed",   value: ts.closed,               icon: <MdCheckCircle size={22} className="text-blue-500" />,  color: "bg-blue-50",      sub: `${ts.total ? Math.round((ts.closed/ts.total)*100) : 0}% done`, to: "/employee/tasks" },
                 ].map((s) => (
-                  <div key={s.label} className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-xl shadow-slate-200/30 flex items-center gap-4">
+                  
+                  <div key={s.label}
+                      onClick={() => navigate(s.to)}
+                  className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-xl shadow-slate-200/30 flex items-center gap-4 cursor-pointer hover:shadow-2xl hover:border-[#132ea7]/20 transition-all">
                     <div className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${s.color}`}>
                       {s.icon}
                     </div>
