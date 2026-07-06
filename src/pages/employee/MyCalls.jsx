@@ -161,7 +161,7 @@ const MyCalls = () => {
 // Effect 1 — page, date, filter changes (no search reset)
 useEffect(() => {
   getAllCalls?.(page, dateFrom, dateTo, limit, search);
-  getAllProjects?.();
+   getAllProjects?.(1, 100);
   getAllUsers?.();
   getAllClients?.();
 }, [page, dateFrom, dateTo]);
@@ -1339,9 +1339,6 @@ else if (name === "is_worklog") {
     )} */}
             </div>
 
-            {/* New fields — create only */}
-            {(!editTarget || !editTarget.is_task) && !form.transfer_to && (
-              <>
                 {/* Transfer To */}
 
                 {!editTarget && (
@@ -1398,6 +1395,11 @@ else if (name === "is_worklog") {
                     />
                   </div>
                 )}
+
+            {/* New fields — create only */}
+            {(!editTarget || !editTarget.is_task) && !form.transfer_to && (
+              <>
+            
 
                 {/* Follow-up toggle — only when no transfer */}
                 {!form.transfer_to ||
@@ -1586,7 +1588,7 @@ else if (name === "is_worklog") {
                 )}
 
                 {/* is_worklog toggle — no transfer, no task */}
-{!form.transfer_to && !form.is_task && (
+{!form.transfer_to && !form.is_task && !editTarget &&(
   <div className="md:col-span-2">
     <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
       <div>

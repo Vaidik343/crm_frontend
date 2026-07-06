@@ -164,7 +164,7 @@ const Projects = () => {
       });
       setAddingToProject(null);
       setSelectedUsers({});
-      await getAllProjects(page);
+      await getAllProjects(page, limit, "", true);
     } catch (err) {
       // console.log("🚀 ~ handleAddProjectMembers ~ err:", err)
       setAlert({
@@ -461,6 +461,7 @@ const Projects = () => {
       const upm = await updateProject(project.id, {
         is_active: !project.is_active,
       });
+       await getAllProjects(page, limit, filter, true);
       // console.log("🚀 ~ handleToggleActive ~ upm:", upm)
       setAlert({
         type: "success",

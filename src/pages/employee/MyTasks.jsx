@@ -318,103 +318,94 @@ const MyTasks = () => {
     <div className="space-y-8 px-4 animate-in fade-in duration-700">
       {/* Header */}
 
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-2 uppercase">
-            Task <span className="text-[#132ea7]">Board</span>
-          </h2>
-          <p className="text-slate-500 font-bold text-base">
-            Total Tasks: {total}
-          </p>
-        </div>
+   <div className="space-y-4">
+  {/* Title row */}
+  <div className="flex items-center justify-between">
+    <div>
+      <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-1 uppercase">
+        Task <span className="text-[#132ea7]">Board</span>
+      </h2>
+      <p className="text-slate-500 font-bold text-base">Total Tasks: {total}</p>
+    </div>
+    {/* Action buttons always top-right */}
+    <div className="flex gap-3 shrink-0">
+      <Button
+        variant="ghost"
+        className="shadow-sm px-6 rounded-xl font-black uppercase tracking-widest text-sm whitespace-nowrap h-[52px] bg-white border border-slate-100"
+        onClick={() => setShowExportModal(true)}
+      >
+        <MdDownload size={20} className="mr-1" /> Download
+      </Button>
+      <Button
+        variant="primary"
+        className="shadow-lg shadow-[#132ea7]/20 px-8 rounded-xl h-[52px] font-black uppercase tracking-widest text-sm whitespace-nowrap"
+        onClick={openCreate}
+      >
+        <MdAdd size={22} className="mr-1" /> New Task
+      </Button>
+    </div>
+  </div>
 
-        <div className="flex flex-col sm:flex-row flex-wrap rounded items-stretch w-full sm:items-center gap-3">
-          {/* Filter buttons */}
-          <div className="flex items-center gap-3">
-            {[
-              { value: "", label: "All" },
-              { value: "due_soon", label: "Due Soon" },
-              { value: "overdue", label: "Overdue" },
-            ].map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => {
-                  setPage(1);
-                  setDueFilter(opt.value);
-                }}
-                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${
-                  dueFilter === opt.value
-                    ? "bg-[#132ea7] text-white shadow-lg shadow-[#132ea7]/20"
-                    : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
+  {/* Controls grid — 1 col on mobile, 3 cols on lg */}
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
 
-          {/* <div className="w-[20%] flex"> */}
-         
-          {/* </div> */}
+    {/* Filter buttons */}
+    <div className="flex items-center gap-2 flex-wrap">
+      {[
+        { value: "", label: "All" },
+        { value: "due_soon", label: "Due Soon" },
+        { value: "overdue", label: "Overdue" },
+      ].map((opt) => (
+        <button
+          key={opt.value}
+          onClick={() => { setPage(1); setDueFilter(opt.value); }}
+          className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+            dueFilter === opt.value
+              ? "bg-[#132ea7] text-white shadow-lg shadow-[#132ea7]/20"
+              : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+          }`}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
 
-          {/* Date range */}
-          <div className="flex items-center xs:w-[50%] gap-2 bg-white  border flex-wrap border-slate-100 rounded-2xl px-4 py-2 shadow-sm">
-            <label className="text-xs font-black text-slate-400 uppercase">
-              From
-            </label>
-            <input
-              type="date"
-              value={dateFrom}
-              max={today}
-              onChange={(e) => setDateFrom(e.target.value)}
-              className="bg-slate-50 border border-slate-100 rounded-xl px-2 py-1.5 text-sm font-bold"
-            />
-            <label className="text-xs font-black text-slate-400 uppercase">
-              To
-            </label>
-            <input
-              type="date"
-              value={dateTo}
-              max={today}
-              onChange={(e) => setDateTo(e.target.value)}
-              className="bg-slate-50 border border-slate-100 rounded-xl px-2 py-1.5 text-sm font-bold"
-            />
-            <button
-              onClick={() => {
-                   setPage(1);
-                setDateFrom(sevenDaysAgo);
-                setDateTo(today);
-              }}
-              className="text-[10px] font-black text-[#132ea7] uppercase tracking-widest hover:underline whitespace-nowrap"
-            >
-              Reset
-            </button>
-          </div>
+    {/* Search */}
+    <SearchInput
+      value={search}
+      onChange={setSearch}
+      placeholder="Search Tasks, Projects..."
 
-   <SearchInput
-              value={search}
-              onChange={setSearch}
-              placeholder="Search Tasks, Projects..."
-            />
-          {/* Action buttons */}
-          <div className="flex gap-3">
-            <Button
-              variant="ghost"
-              className="shadow-sm px-6 rounded-xl font-black uppercase tracking-widest text-sm whitespace-nowrap h-[52px] bg-white border border-slate-100"
-              onClick={() => setShowExportModal(true)}
-            >
-              <MdDownload size={20} className="mr-1" /> Download
-            </Button>
-            <Button
-              variant="primary"
-              className="shadow-lg shadow-[#132ea7]/20 px-8 rounded-xl h-[52px] font-black uppercase tracking-widest text-sm whitespace-nowrap"
-              onClick={openCreate}
-            >
-              <MdAdd size={22} className="mr-1" /> New Task
-            </Button>
-          </div>
-        </div>
-      </div>
+    />
+
+    {/* Date range */}
+    <div className="flex items-center gap-2  bg-white border border-slate-100 rounded-2xl  px-4 h-[52px] shadow-sm flex-wrap">
+      <label className="text-xs font-black text-slate-400 uppercase">From</label>
+      <input
+        type="date"
+        value={dateFrom}
+        max={today}
+        onChange={(e) => setDateFrom(e.target.value)}
+        className="bg-slate-50 border border-slate-100 rounded-xl px-2 py-1.5 text-sm font-bold"
+      />
+      <label className="text-xs font-black text-slate-400 uppercase">To</label>
+      <input
+        type="date"
+        value={dateTo}
+        max={today}
+        onChange={(e) => setDateTo(e.target.value)}
+        className="bg-slate-50 border border-slate-100 rounded-xl px-2 py-1.5 text-sm font-bold"
+      />
+      <button
+        onClick={() => { setPage(1); setDateFrom(sevenDaysAgo); setDateTo(today); }}
+        className="text-[10px] font-black text-[#132ea7] uppercase tracking-widest hover:underline whitespace-nowrap"
+      >
+        Reset
+      </button>
+    </div>
+
+  </div>
+</div>
 
       <Alert
         type={alert.type}

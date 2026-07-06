@@ -120,7 +120,7 @@ const Dashboard = () => {
             )}
           </div>
 
-          <div className="flex items-center gap-4 bg-white p-3 px-5 rounded-[1.5rem] border border-slate-100 shadow-xl shadow-slate-200/50">
+          {/* <div className="flex items-center gap-4 bg-white p-3 px-5 rounded-[1.5rem] border border-slate-100 shadow-xl shadow-slate-200/50">
             <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-500">
                <MdCheckCircle size={24} />
             </div>
@@ -128,7 +128,7 @@ const Dashboard = () => {
               <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] leading-none mb-1">System Status</p>
               <p className="text-base font-black text-emerald-600 uppercase tracking-widest">Active & Secure</p>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
 

@@ -24,6 +24,7 @@ import { CgLogOut } from "react-icons/cg";
 import { BsFillCaretLeftSquareFill } from "react-icons/bs"
 import { BsFillCaretRightSquareFill } from "react-icons/bs";
 import NotificationBell from "../NotificationBell";
+import { usePWAInstall } from "../../hooks/usePWAInstall";
 
 const navItems = [
     { to: "/admin/dashboard", label: "Dashboard", icon: <MdDashboard size={20} /> },
@@ -56,9 +57,25 @@ const handleLogout = () => setShowLogoutModal(true);
 const confirmLogout = () => { setShowLogoutModal(false); logout(); };
 const cancelLogout = () => setShowLogoutModal(false);
 
+const { isInstallable, install } = usePWAInstall();
+console.log("🚀 ~ AdminLayout ~ isInstallable:", isInstallable)
+
 
     return (
+
+        
         <div className="flex h-screen overflow-hidden bg-slate-50">
+
+            
+
+{isInstallable && (
+  <button
+    onClick={install}
+    className="flex items-center gap-2 px-4 py-2 bg-[#132ea7] text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-[#0f2490] transition-all"
+  >
+    <MdDownload size={16} /> Install App
+  </button>
+)}
             {/* sidebar */}
             <div
                 className={`flex flex-col text-white shrink-0 transition-all duration-300 ease-in-out shadow-xl z-20`}

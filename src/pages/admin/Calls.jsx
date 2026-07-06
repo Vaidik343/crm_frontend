@@ -155,23 +155,40 @@ const Calls = () => {
     const debounce = setTimeout(() => {
       if (search && page !== 1) setPage(1);
       getAllCalls?.(search ? 1 : page, dateFrom, dateTo, limit, search);
-      getAllProjects?.();
+ getAllProjects?.(1, 100);
       getAllUsers?.();
       getAllClients?.();
     }, 500);
     return () => clearTimeout(debounce);
   }, [page, dateFrom, dateTo, search]);
 
-
   // Members of the selected project — falls back to all users if no project selected
   const assignableUsers = useMemo(() => {
-    if (!form.project_id) return users;
+    if (!form.project_id) 
+    {
+      //  console.log("🔍 no project selected, returning all users:", users.length);
+       return users;
+    }
+      
     const project = projects.find((p) => p.id === form.project_id);
-    if (!project?.members?.length) return [];
-    const memberUserIds = project.members.map((m) => m.user_id || m.user?.id);
-    return users.filter((u) => memberUserIds.includes(u.id));
-  }, [form.project_id, projects, users]);
+    if (!project?.members?.length) 
 
+      {
+        // console.log("🔍 no members found on project object");
+         return [];
+      }
+    
+    const memberUserIds = project.members.map((m) => m.user_id || m.user?.id);
+    // console.log("🚀 ~ Calls ~ memberUserIds:", memberUserIds)
+  const result = users.filter((u) => memberUserIds.includes(u.id));
+  // console.log("🔍 filtered users:", result.length, result.map(u => u.name));
+
+  
+// console.log("🔍 assignableUsers recompute — project_id:", form.project_id, "result count:", result?.length ?? users.length);
+   return result;
+  }, [form.project_id, projects, users]);
+  // console.log("🚀 ~ Calls ~ assignableUsers:", assignableUsers)
+// console.log("🔍 form.project_id:", form.project_id);
   const projectOptions = projects.map((p) => ({ value: p.id, label: p.name }));
 
   const callTypeOptions = Object.keys(CALL_TYPES).map((t) => ({
@@ -185,6 +202,7 @@ const Calls = () => {
 
   // Own calls for parent_call_id dropdown (follow-up);
   const otherUsers = users.filter((u) => u.id !== authUser?.id);
+  // console.log("🚀 ~ Calls ~ otherUsers:", otherUsers)
 
   //Own calls for parent_call_id dropdown (follow up)
   const ownCalls = calls.filter((c) => !c.parent_call_id && !c.transfer_to);
@@ -1306,14 +1324,8 @@ if (cc?.task) {
     />
   )} */}
             </div>
-
-            {/* ── New fields — only on create ────────────────────── */}
-            {(!editTarget || !editTarget.is_task) && !form.transfer_to && 
-            (
-              <>
-                {/* Transfer To */}
-               
-               {!editTarget && (
+{/* Transfer To */}
+ {!editTarget && (
                   <div className="md:col-span-2 space-y-1.5">
                   <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
                     Transfer Call To{" "}
@@ -1325,14 +1337,18 @@ if (cc?.task) {
                     options={assignableUsers}
                     value={form.transfer_to}
                     onChange={(id) =>
+                      
                       setForm((prev) => ({
+                        
                         ...prev,
                         transfer_to: id,
                         is_task: false,
                         task_assigned_to: "",
                         is_follow_up: false,
                         parent_call_id: "",
+                        
                       }))
+                      
                     }
                     emptyOptionLabel="No Transfer"
                     placeholder="Search employee by name or ID..."
@@ -1351,6 +1367,13 @@ if (cc?.task) {
                   />
                 </div>
                )}
+            {/* ── New fields — only on create ────────────────────── */}
+            {(!editTarget || !editTarget.is_task) && !form.transfer_to && 
+            (
+              <>
+                
+               
+              
                 
                 {/* Follow-up toggle — only when no transfer */}
                 {!form.transfer_to || !editTarget && (
@@ -1513,7 +1536,7 @@ if (cc?.task) {
                 )}
 
                 {/* is_worklog toggle — no transfer, no task */}
-{!form.transfer_to && !form.is_task && (
+{!form.transfer_to && !form.is_task && !editTarget && (
   <div className="md:col-span-2">
     <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
       <div>
