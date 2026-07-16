@@ -331,7 +331,7 @@ const MyTasks = () => {
     <div className="flex gap-3 shrink-0">
       <Button
         variant="ghost"
-        className="shadow-sm px-6 rounded-xl font-black uppercase tracking-widest text-sm whitespace-nowrap h-[52px] bg-white border border-slate-100"
+        className="shadow-sm px-6 rounded-xl font-black uppercase tracking-widest text-sm whitespace-nowrap min-h-[52px] bg-white border border-slate-100"
         onClick={() => setShowExportModal(true)}
       >
         <MdDownload size={20} className="mr-1" /> Download
@@ -347,7 +347,7 @@ const MyTasks = () => {
   </div>
 
   {/* Controls grid — 1 col on mobile, 3 cols on lg */}
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
 
     {/* Filter buttons */}
     <div className="flex items-center gap-2 flex-wrap">
@@ -356,7 +356,7 @@ const MyTasks = () => {
         { value: "due_soon", label: "Due Soon" },
         { value: "overdue", label: "Overdue" },
       ].map((opt) => (
-        <button
+        <button 
           key={opt.value}
           onClick={() => { setPage(1); setDueFilter(opt.value); }}
           className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${
@@ -379,30 +379,31 @@ const MyTasks = () => {
     />
 
     {/* Date range */}
-    <div className="flex items-center gap-2  bg-white border border-slate-100 rounded-2xl  px-4 h-[52px] shadow-sm flex-wrap">
-      <label className="text-xs font-black text-slate-400 uppercase">From</label>
-      <input
-        type="date"
-        value={dateFrom}
-        max={today}
-        onChange={(e) => setDateFrom(e.target.value)}
-        className="bg-slate-50 border border-slate-100 rounded-xl px-2 py-1.5 text-sm font-bold"
-      />
-      <label className="text-xs font-black text-slate-400 uppercase">To</label>
-      <input
-        type="date"
-        value={dateTo}
-        max={today}
-        onChange={(e) => setDateTo(e.target.value)}
-        className="bg-slate-50 border border-slate-100 rounded-xl px-2 py-1.5 text-sm font-bold"
-      />
-      <button
-        onClick={() => { setPage(1); setDateFrom(sevenDaysAgo); setDateTo(today); }}
-        className="text-[10px] font-black text-[#132ea7] uppercase tracking-widest hover:underline whitespace-nowrap"
-      >
-        Reset
-      </button>
-    </div>
+
+<div className="flex flex-wrap items-center gap-2 bg-white border border-slate-100 rounded-2xl px-4 py-3 shadow-sm min-h-[52px]">
+  <label className="text-xs font-black text-slate-400 uppercase">From</label>
+  <input
+    type="date"
+    value={dateFrom}
+    max={today}
+    onChange={(e) => setDateFrom(e.target.value)}
+    className="bg-slate-50 border border-slate-100 rounded-xl px-2 py-1.5 text-sm font-bold"
+  />
+  <label className="text-xs font-black text-slate-400 uppercase">To</label>
+  <input
+    type="date"
+    value={dateTo}
+    max={today}
+    onChange={(e) => setDateTo(e.target.value)}
+    className="bg-slate-50 border border-slate-100 rounded-xl px-2 py-1.5 text-sm font-bold"
+  />
+  <button
+    onClick={() => { setPage(1); setDateFrom(sevenDaysAgo); setDateTo(today); }}
+    className="text-[10px] font-black text-[#132ea7] uppercase tracking-widest hover:underline whitespace-nowrap"
+  >
+    Reset
+  </button>
+</div>
 
   </div>
 </div>

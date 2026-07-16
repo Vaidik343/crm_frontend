@@ -17,6 +17,7 @@ import { TeamProvider } from './context/TeamContext.jsx'
 import { TeamMemberContext, TeamMemberProvider } from './context/TeamMemberContext.jsx'
 import { SocketProvider } from './context/SocketContext.jsx';
 import { ClientProvider } from './context/ClientContext.jsx'
+import { LeaveProvider } from './context/LeaveContext.jsx'
 
 
 createRoot(document.getElementById('root')).render(
@@ -31,6 +32,7 @@ createRoot(document.getElementById('root')).render(
             <CallProvider>
               <ClientProvider>
               <WorkLogProvider>
+                <LeaveProvider>
                 <TeamProvider>
                   <TeamMemberProvider>
                 <PermissionProvider>
@@ -40,6 +42,7 @@ createRoot(document.getElementById('root')).render(
                 </PermissionProvider>
                 </TeamMemberProvider>
                 </TeamProvider>
+                </LeaveProvider>
               </WorkLogProvider>
               </ClientProvider>
             </CallProvider>

@@ -66,7 +66,7 @@ const handleCallTransferred = (call) => {
     } catch (error) {
       // console.log("🚀 ~ CallProvider ~ error:", error)
       throw error;
-    }
+    } 
   }, []);
 
   const getAllCalls = useCallback(async (pageNumber = 1, from, to, pageLimit = 10, search = "") => {

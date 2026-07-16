@@ -19,6 +19,8 @@ import Tasks           from "./pages/admin/Tasks";
 import AdminCalls      from "./pages/admin/Calls";
 import Permissions     from "./pages/admin/Permissions";
 import AdminWorkLogs from "./pages/admin/WorkLogs";
+import Leaves from "./pages/admin/Leave"
+import PublicHolidays  from "./pages/admin/PublicHolidays"
 import Clients from "./pages/admin/Clients"
 
 import MyTasks         from "./pages/employee/MyTasks";
@@ -29,6 +31,7 @@ import ChangePassword  from "./pages/employee/ChangePassword";
 import Calls from './pages/admin/Calls';
 import MyDashboard from './pages/employee/MyDashboard';
 import ProjectDashboard from "./pages/employee/ProjectDashboard";
+import MyLeaves from "./pages/employee/MyLeave"
 // import Teams from './pages/Team';
 // import TeamDashboard from './pages/TeamDashboard';
 // import MyTeams from './pages/employee/MyTeam';
@@ -88,6 +91,9 @@ const App = () => {
   <Route path='tasks' element={<Tasks />} />
   <Route path='permissions' element={<Permissions />} />
   <Route path='work-logs' element={<AdminWorkLogs />} />
+  <Route path='leaves' element={<Leaves />} />
+  <Route path="holidays"  element={<PublicHolidays />} />
+
   <Route path ='clients' element={<Clients />} />
   <Route path='notifications' element={<NotificationsPage />} />
 
@@ -111,6 +117,7 @@ const App = () => {
   <Route path="calls" element={<MyCalls />} />
   <Route path="tasks" element={<MyTasks />} />
   <Route path="work-logs" element={<WorkLog />} />
+  <Route path="leaves" element={<MyLeaves />} />
   <Route path="password" element={<ChangePassword />} />
 
   {/* Dashboard */}

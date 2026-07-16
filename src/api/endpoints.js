@@ -95,6 +95,36 @@ export const ENDPOINTS = {
         UPDATE: (id) => `/work-logs/${id}`,
         DELETE: (id) => `/work-logs/${id}`,
     },
+    LEAVES: {
+      //EMP
+      CREATE: '/leaves/request',
+      MY: '/leaves/my',
+      CANCEL: (id) => `/leaves/cancel/${id}`,
+
+      //Admin
+      ALL: '/leaves/all',
+      APPROVE: (id) => `/leaves/approve/${id}`,
+      REJECT: (id) => `/leaves/reject/${id}`,
+      SATURDAY_MARK: '/leaves/saturday/mark',
+      
+      //both
+      GET_MARKED_SATURDAY : (user_id) => `/leaves/saturday/${user_id}`,
+      SATURDAY_EXCHANGE: (user_id) => `/leaves/saturday/${user_id}`,
+
+
+      LEAVES_LOGS: (id) => `/leaves/${id}/logs` ,
+
+    
+    //   Balance
+    BALANCE_MY:        '/leaves/balance/my',
+    BALANCE:           (user_id) => `/leaves/balance/${user_id}`,
+    BALANCE_HISTORY:   (user_id) => `/leaves/balance/${user_id}/history`,
+    HOLIDAYS:          '/leaves/holidays',
+    HOLIDAY_DELETE:    (id) =>      `/leaves/holidays/${id}`,
+      
+    },
+
+    
     REPORTS: {
         CALLS: (id) => `/report/${id}/calls`,
         TASKS: (id) => `/report/${id}/tasks`,

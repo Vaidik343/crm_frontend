@@ -21,13 +21,15 @@ import {
   MdMail,
   MdAssignmentInd,
   MdPhone,
-  MdDownload
+  MdDownload,
+  MdCalendarToday 
 } from "react-icons/md";
 import api from "../../api/axiosInstance";
 import { ENDPOINTS } from './../../api/endpoints';
 import { useNavigate } from "react-router-dom";
 
-
+import { useLeave } from "../../context/LeaveContext";
+import { formatDate } from "../../utils/formatDate";
 
 
 const initialForm = {
@@ -58,10 +60,38 @@ const Employees = () => {
   const [copied, setCopied] = useState(false);
 const [exportTarget, setExportTarget] = useState(null);
 
+const {  getWorkedSaturdays, markWorkedSaturday} = useLeave();
+
+const [saturdayTarget, setSaturdayTarget] = useState(null);
+const [saturdays, setSaturdays] = useState([]);
+const [saturdaysLoading, setSaturdaysLoading] = useState(false);
+const [saturdayDate,     setSaturdayDate]     = useState("");
+const [saturdayError, setSaturdayError] = useState("");
+const [markingSaturday, setMarkingSaturday] = useState(false);
+const [saturdayAlert, setSaturdayAlert] = useState({type:"", message:""});
+
+
   useEffect(() => {
     getAllUsers();
     getAllRoles();
   }, []);
+
+  const fetchSaturdays = async () => {
+    setSaturdaysLoading(true);
+    try {
+      const res = await getWorkedSaturdays(saturdayTarget.id);
+      console.log("🚀 ~ fetchSaturdays ~ res:", res)
+      setSaturdays(res.saturdays || []);
+    } catch (error) {
+      setSaturdays([]);
+    } finally {
+        setSaturdaysLoading(false);
+    }
+  }
+ 
+  useEffect(() => {
+    fetchSaturdays();
+  }, [saturdayTarget?.id]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -188,6 +218,45 @@ if (!isValid) {
   };
 
 
+ 
+  const handleMarkSaturday = async () => {
+  setSaturdayError("");
+
+  if (!saturdayDate) {
+    setSaturdayError("Please select a date.");
+    return;
+  }
+
+  const day = new Date(saturdayDate).getDay();
+  if (day !== 6) {
+    setSaturdayError("Selected date must be a Saturday.");
+    return;
+  }
+
+  try {
+    setMarkingSaturday(true);
+   const ms =  await markWorkedSaturday({
+      user_id:       saturdayTarget.id,
+      saturday_date: saturdayDate,
+    });
+    console.log("🚀 ~ handleMarkSaturday ~ ms:", ms)
+    setSaturdayAlert({ type: "success", message: "Saturday marked as worked." });
+    setSaturdayDate("");
+    // refresh list
+    const res = await getWorkedSaturdays(saturdayTarget.id);
+    console.log("🚀 ~ handleMarkSaturday ~ res:", res)
+    setSaturdays(res.saturdays || []);
+  } catch (err) {
+    setSaturdayAlert({
+      type:    "danger",
+      message: err?.response?.data?.message || "Failed to mark Saturday.",
+      
+    });
+     console.log("🚀 ~ handleMarkSaturday ~ err:", err)
+  } finally {
+    setMarkingSaturday(false);
+  }
+};
 
   if (loading && !users.length)
     return (
@@ -347,6 +416,21 @@ if (!isValid) {
 >
   <MdDownload size={18} />
 </button>
+
+<button
+  onClick={() => {
+    setSaturdayTarget(user);
+    setSaturdayDate("");
+    setSaturdayError("");
+    setSaturdayAlert({ type: "", message: "" });
+  }}
+  title="Worked Saturdays"
+  className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all"
+>
+  <MdCalendarToday size={20} />
+</button>
+
+
                     </div>
                   </td>
                 </tr>
@@ -427,6 +511,17 @@ if (!isValid) {
   className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all"
 >
   <MdDownload size={18} />
+</button>
+<button
+  onClick={() => {
+    setSaturdayTarget(user);
+    setSaturdayDate("");
+    setSaturdayError("");
+    setSaturdayAlert({ type: "", message: "" });
+  }}
+  className="flex-1 h-10 rounded-xl bg-[#132ea7]/10 text-[#132ea7] font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/20 transition-all"
+>
+  <MdCalendarToday size={16} />
 </button>
                 <button
                   onClick={() => openEdit(user)}
@@ -647,6 +742,135 @@ if (!isValid) {
   onClose={() => setExportTarget(null)}
   employee={exportTarget}
 />
+
+{/* ── Worked Saturdays Modal ── */}
+<Modal
+  show={!!saturdayTarget}
+  onClose={() => setSaturdayTarget(null)}
+  title="Worked Saturdays"
+  size="md"
+>
+  {saturdayTarget && (
+    <div className="space-y-5">
+
+      {/* Employee info */}
+      <div className="flex items-center gap-4 bg-slate-50 rounded-2xl p-4">
+        <div className="w-10 h-10 rounded-full bg-[#132ea7] text-white flex items-center justify-center font-black text-base shrink-0">
+          {saturdayTarget.name?.charAt(0)}
+        </div>
+        <div>
+          <p className="font-black text-slate-800">{saturdayTarget.name}</p>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            {saturdayTarget.employee_id} — Group {saturdayTarget.saturday_group || "Not Set"}
+          </p>
+        </div>
+      </div>
+
+      <Alert
+        type={saturdayAlert.type}
+        message={saturdayAlert.message}
+        onClose={() => setSaturdayAlert({ type: "", message: "" })}
+      />
+
+      {/* Mark new saturday */}
+      <div className="space-y-3">
+        <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
+          Mark New Worked Saturday
+        </label>
+        <div className="flex gap-3 items-start">
+          <div className="flex-1 space-y-1">
+            <input
+              type="date"
+              value={saturdayDate}
+              onChange={(e) => {
+                setSaturdayDate(e.target.value);
+                setSaturdayError("");
+              }}
+              className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/10 focus:border-[#132ea7] transition-all"
+            />
+            {saturdayError && (
+              <p className="text-red-500 text-[10px] font-bold uppercase ml-1">
+                {saturdayError}
+              </p>
+            )}
+          </div>
+          <Button
+            variant="primary"
+            className="h-[46px] px-6 font-black uppercase tracking-widest text-xs shrink-0 rounded-2xl shadow-lg shadow-[#132ea7]/20"
+            onClick={handleMarkSaturday}
+            loading={markingSaturday}
+          >
+            Mark
+          </Button>
+        </div>
+        <p className="text-[10px] font-bold text-slate-400 ml-1 uppercase tracking-widest">
+          Only Saturdays are accepted
+        </p>
+      </div>
+
+      {/* Existing saturdays list */}
+      <div className="space-y-2">
+        <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
+          Worked Saturdays History
+        </label>
+
+        {saturdaysLoading ? (
+          <div className="flex items-center justify-center py-6">
+            <Spinner size="sm" />
+          </div>
+        ) : saturdays.length === 0 ? (
+          <div className="bg-slate-50 rounded-2xl p-6 text-center">
+            <p className="text-sm font-bold text-slate-400">
+              No worked Saturdays marked yet.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-2 max-h-[280px] overflow-y-auto custom-scrollbar">
+            {saturdays.map((s) => (
+              <div
+                key={s.id}
+                className="flex items-center justify-between bg-slate-50 rounded-2xl px-4 py-3 border border-slate-100"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-[#132ea7]/10 text-[#132ea7] flex items-center justify-center">
+                    <MdCalendarToday size={16} />
+                  </div>
+                  <div>
+                    <p className="font-black text-slate-700 text-sm">
+                      {formatDate(s.saturday_date)}
+                    </p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      Marked by {s.markedByAdmin?.name || "Admin"}
+                    </p>
+                  </div>
+                </div>
+                {s.is_exchanged ? (
+                  <span className="px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-widest bg-amber-100 text-amber-600">
+                    Exchanged
+                  </span>
+                ) : (
+                  <span className="px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-widest bg-green-100 text-green-600">
+                    Available
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="flex justify-end pt-2 border-t border-slate-50">
+        <Button
+          variant="ghost"
+          onClick={() => setSaturdayTarget(null)}
+          className="font-black uppercase tracking-widest text-xs"
+        >
+          Close
+        </Button>
+      </div>
+    </div>
+  )}
+</Modal>
     </div>
   );
 };
