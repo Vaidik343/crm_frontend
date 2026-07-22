@@ -249,6 +249,11 @@ const filteredCalls = (calls || []).filter((c) => {
   //     if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: "" }));
   //   };
 
+  useEffect(() => {
+  console.log("is_follow_up:", form.is_follow_up);
+}, [form.is_follow_up]);
+
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     const newValue = type === "checkbox" ? checked : value;
@@ -314,6 +319,11 @@ else if (name === "is_worklog") {
     }
 
     if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: "" }));
+
+    console.log({
+  follow: form.is_follow_up,
+  transfer: form.transfer_to,
+});
   };
 
   const validate = () => {
@@ -1368,207 +1378,185 @@ if (cc?.task) {
                 </div>
                )}
             {/* ── New fields — only on create ────────────────────── */}
-            {(!editTarget || !editTarget.is_task) && !form.transfer_to && 
-            (
-              <>
-                
-               
-              
-                
-                {/* Follow-up toggle — only when no transfer */}
-                {!form.transfer_to || !editTarget && (
-                  <div className="md:col-span-2">
-                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                      <div>
-                        <p className="text-sm font-black text-slate-700 uppercase tracking-widest">
-                          Follow-Back Call
-                        </p>
-                        <p className="text-xs font-bold text-slate-400 mt-0.5">
-                          {form.is_follow_up
-                            ? "Calling client back after resolving their request"
-                            : "Mark if this is a callback after completing a previous request"}
-                        </p>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          name="is_follow_up"
-                          checked={form.is_follow_up}
-                          onChange={handleChange}
-                          className="sr-only peer"
-                        />
-                        <div className="w-12 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-6 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#132ea7]" />
-                      </label>
-                    </div>
-                  </div>
-                )}
+            {/* ── Follow-up section — CREATE only ── */}
+{!editTarget && !form.transfer_to && form.call_subtype === "follow-back" && (
+  <>
+    {/* Follow-Back toggle */}
+    <div className="md:col-span-2">
+      <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+        <div>
+          <p className="text-sm font-black text-slate-700 uppercase tracking-widest">
+            Follow-Back Call
+          </p>
+          <p className="text-xs font-bold text-slate-400 mt-0.5">
+            {form.is_follow_up
+              ? "Calling client back after resolving their request"
+              : "Mark if this is a callback after completing a previous request"}
+          </p>
+        </div>
+        <label className="relative inline-flex items-center cursor-pointer">
+          <input
+            type="checkbox"
+            name="is_follow_up"
+            checked={form.is_follow_up}
+            onChange={handleChange}
+            className="sr-only peer"
+          />
+          <div className="w-12 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-6 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#132ea7]" />
+        </label>
+      </div>
+    </div>
 
-                {/* Original call selector — shown when is_follow_up */}
-                {form.is_follow_up && !form.transfer_to && (
-                  <div className="md:col-span-2 space-y-1.5">
-                    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
-                      Original Call <span className="text-red-500">*</span>
-                    </label>
-                    <SearchableSelect
-                      endpoint={ENDPOINTS.CALLS.ALL}
-                      extraParams={
-                        form.project_id ? { project_id: form.project_id } : {}
-                      }
-                      value={form.parent_call_id}
-                      selectedLabel={
-                        selectedParentCall
-                          ? `${selectedParentCall.display_id ? `[${selectedParentCall.display_id}] ` : ""}
-         ${selectedParentCall.caller_name} — ${selectedParentCall.call_subtype}
-         (${new Date(selectedParentCall.createdAt).toLocaleDateString()})`
-                          : ""
-                      }
-                      onChange={(call) => {
-                        setSelectedParentCall(call);
-
-                        setForm((prev) => ({
-                          ...prev,
-                          parent_call_id: call?.id || "",
-                        }));
-                      }}
-                      getLabel={(c) => {
-                        const projectName = c.project?.name || c.Project?.name;
-
-                        return `${c.display_id ? `[${c.display_id}] ` : ""}${c.caller_name}
-      — ${c.call_subtype}
-      ${projectName ? ` · ${projectName}` : ""}
-      (${new Date(c.createdAt).toLocaleDateString()})`;
-                      }}
-                      placeholder={
-                        form.project_id
-                          ? "Search calls for this project..."
-                          : "Select a project first"
-                      }
-                      emptyOptionLabel="No selection"
-                    />
-
-                    {fieldErrors.parent_call_id && (
-                      <p className="text-red-500 text-[10px] font-bold uppercase ml-1">
-                        {fieldErrors.parent_call_id}
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {/* is_task toggle — no transfer */}
-                {!form.transfer_to && (
-                  <div className="md:col-span-2">
-                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                      <div>
-                        <p className="text-sm font-black text-slate-700 uppercase tracking-widest">
-                          Auto-Create Task
-                        </p>
-                        <p className="text-xs font-bold text-slate-400 mt-0.5">
-                          {form.is_task
-                            ? "A task will be auto-created from this call"
-                            : "Log call only"}
-                        </p>
-                        {form.is_task && !form.project_id && (
-                          <p className="text-xs font-bold text-amber-500 mt-1">
-                            ⚠ Select a project to enable task creation
-                          </p>
-                        )}
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          name="is_task"
-                          checked={form.is_task}
-                          onChange={handleChange}
-                          className="sr-only peer"
-                        />
-                        <div className="w-12 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-6 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#132ea7]" />
-                      </label>
-                    </div>
-                  </div>
-                )}
-
-                {/* Assign task to */}
-                {form.is_task &&
- !form.transfer_to &&
- (!editTarget || !editTarget.is_task) && (
-                  <div className="md:col-span-2 space-y-1.5">
-                    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
-                      Assign Task To{" "}
-                      <span className="text-slate-300 font-bold normal-case">
-                        (blank = self)
-                      </span>
-                    </label>
-                    <LocalSearchableSelect
-                      options={assignableUsers}
-                      value={form.task_assigned_to}
-                      onChange={(id) =>
-                        setForm((prev) => ({ ...prev, task_assigned_to: id }))
-                      }
-                      emptyOptionLabel="Self Assign"
-                      placeholder="Search employee by name or ID..."
-                      getId={(u) => u.id}
-                      getLabel={(u) => {
-                        const project = projects.find(
-                          (p) => p.id === form.project_id,
-                        );
-                        const membership = project?.members?.find(
-                          (m) => (m.user_id || m.user?.id) === u.id,
-                        );
-                        const roleLabel = membership?.role?.name;
-                        return `${u.name} (${u.employee_id})${roleLabel ? ` — ${roleLabel}` : ""}`;
-                      }}
-                      getSearchText={(u) => `${u.name} ${u.employee_id}`}
-                    />
-                  </div>
-                )}
-
-                {/* Follow-up + task combined info */}
-                {form.is_follow_up && form.is_task && (
-                  <div className="md:col-span-2 bg-amber-50 border border-amber-100 rounded-2xl px-5 py-3">
-                    <p className="text-xs font-black text-amber-600 uppercase tracking-widest">
-                      Follow-Back call with new task — prefix:{" "}
-                      {form.task_assigned_to ? "CTA" : "CT"}
-                    </p>
-                    <p className="text-xs font-bold text-amber-500 mt-1">
-                      Link to original call is preserved
-                    </p>
-                  </div>
-                )}
-
-                {/* is_worklog toggle — no transfer, no task */}
-{!form.transfer_to && !form.is_task && !editTarget && (
-  <div className="md:col-span-2">
-    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
-      <div>
-        <p className="text-sm font-black text-slate-700 uppercase tracking-widest">
-          Auto-Create Work Log
-        </p>
-        <p className="text-xs font-bold text-slate-400 mt-0.5">
-          {form.is_worklog
-            ? "A work log will be auto-created from this call"
-            : "Log call only — use for small/quick tasks"}
-        </p>
-        {form.is_worklog && !form.project_id && (
-          <p className="text-xs font-bold text-amber-500 mt-1">
-            ⚠ Select a project to enable work log creation
+    {/* Original call selector — shown when is_follow_up */}
+    {form.is_follow_up && (
+      <div className="md:col-span-2 space-y-1.5">
+        <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
+          Original Call <span className="text-red-500">*</span>
+        </label>
+        <SearchableSelect
+          endpoint={ENDPOINTS.CALLS.ALL}
+          extraParams={form.project_id ? { project_id: form.project_id } : {}}
+          value={form.parent_call_id}
+          selectedLabel={
+            selectedParentCall
+              ? `${selectedParentCall.display_id ? `[${selectedParentCall.display_id}] ` : ""}${selectedParentCall.caller_name} — ${selectedParentCall.call_subtype} (${formatDate(selectedParentCall.createdAt)})`
+              : ""
+          }
+          onChange={(call) => {
+            setSelectedParentCall(call);
+            setForm((prev) => ({ ...prev, parent_call_id: call?.id || "" }));
+          }}
+          getLabel={(c) => {
+            const projectName = c.project?.name || c.Project?.name;
+            return `${c.display_id ? `[${c.display_id}] ` : ""}${c.caller_name} — ${c.call_subtype}${projectName ? ` · ${projectName}` : ""} (${formatDate(c.createdAt)})`;
+          }}
+          placeholder={form.project_id ? "Search calls for this project..." : "Select a project first"}
+          emptyOptionLabel="No selection"
+        />
+        {fieldErrors.parent_call_id && (
+          <p className="text-red-500 text-[10px] font-bold uppercase ml-1">
+            {fieldErrors.parent_call_id}
           </p>
         )}
       </div>
-      <label className="relative inline-flex items-center cursor-pointer">
-        <input
-          type="checkbox"
-          name="is_worklog"
-          checked={form.is_worklog}
-          onChange={handleChange}
-          className="sr-only peer"
-        />
-        <div className="w-12 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-6 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#132ea7]" />
-      </label>
-    </div>
-  </div>
+    )}
+  </>
 )}
-              </>
+
+{/* ── Task / WorkLog section — CREATE only (task toggle also shows in edit) ── */}
+{!form.transfer_to && (
+  <>
+    {/* Auto-Create Task toggle — show on create always, show on edit only if call doesn't already have a task */}
+    {(!editTarget || !editTarget.is_task) && (
+      <div className="md:col-span-2">
+        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+          <div>
+            <p className="text-sm font-black text-slate-700 uppercase tracking-widest">
+              Auto-Create Task
+            </p>
+            <p className="text-xs font-bold text-slate-400 mt-0.5">
+              {form.is_task
+                ? "A task will be auto-created from this call"
+                : "Log call only"}
+            </p>
+            {form.is_task && !form.project_id && (
+              <p className="text-xs font-bold text-amber-500 mt-1">
+                ⚠ Select a project to enable task creation
+              </p>
             )}
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              name="is_task"
+              checked={form.is_task}
+              onChange={handleChange}
+              className="sr-only peer"
+            />
+            <div className="w-12 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-6 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#132ea7]" />
+          </label>
+        </div>
+      </div>
+    )}
+
+    {/* Assign Task To — create only */}
+    {form.is_task && !editTarget && (
+      <div className="md:col-span-2 space-y-1.5">
+        <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
+          Assign Task To{" "}
+          <span className="text-slate-300 font-bold normal-case">
+            (blank = self)
+          </span>
+        </label>
+        <LocalSearchableSelect
+          options={assignableUsers}
+          value={form.task_assigned_to}
+          onChange={(id) =>
+            setForm((prev) => ({ ...prev, task_assigned_to: id }))
+          }
+          emptyOptionLabel="Self Assign"
+          placeholder="Search employee by name or ID..."
+          getId={(u) => u.id}
+          getLabel={(u) => {
+            const project = projects.find((p) => p.id === form.project_id);
+            const membership = project?.members?.find(
+              (m) => (m.user_id || m.user?.id) === u.id,
+            );
+            const roleLabel = membership?.role?.name;
+            return `${u.name} (${u.employee_id})${roleLabel ? ` — ${roleLabel}` : ""}`;
+          }}
+          getSearchText={(u) => `${u.name} ${u.employee_id}`}
+        />
+      </div>
+    )}
+
+    {/* Follow-Back + task combined info banner — create only */}
+    {!editTarget && form.is_follow_up && form.is_task && (
+      <div className="md:col-span-2 bg-amber-50 border border-amber-100 rounded-2xl px-5 py-3">
+        <p className="text-xs font-black text-amber-600 uppercase tracking-widest">
+          Follow-Back call with new task — prefix:{" "}
+          {form.task_assigned_to ? "CTA" : "CT"}
+        </p>
+        <p className="text-xs font-bold text-amber-500 mt-1">
+          Link to original call is preserved
+        </p>
+      </div>
+    )}
+
+    {/* Auto-Create Work Log toggle — create only, no task */}
+    {!editTarget && !form.is_task && (
+      <div className="md:col-span-2">
+        <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+          <div>
+            <p className="text-sm font-black text-slate-700 uppercase tracking-widest">
+              Auto-Create Work Log
+            </p>
+            <p className="text-xs font-bold text-slate-400 mt-0.5">
+              {form.is_worklog
+                ? "A work log will be auto-created from this call"
+                : "Log call only — use for small/quick tasks"}
+            </p>
+            {form.is_worklog && !form.project_id && (
+              <p className="text-xs font-bold text-amber-500 mt-1">
+                ⚠ Select a project to enable work log creation
+              </p>
+            )}
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              name="is_worklog"
+              checked={form.is_worklog}
+              onChange={handleChange}
+              className="sr-only peer"
+            />
+            <div className="w-12 h-6 bg-slate-200 rounded-full peer peer-checked:after:translate-x-6 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#132ea7]" />
+          </label>
+        </div>
+      </div>
+    )}
+  </>
+)}
           </div>
 
           {/* Prefix info banner */}
@@ -1788,17 +1776,23 @@ if (cc?.task) {
 )}
 
             {/* Summary */}
-            {viewTarget.call_summary && (
-              <div className="bg-[#132ea7] rounded-2xl p-6 text-white">
-                <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-2 flex items-center gap-2">
-                  <MdInfoOutline size={14} /> Summary
-                </p>
-                <p className="font-medium leading-relaxed opacity-90 italic">
-                  "{viewTarget.call_summary}"
-                </p>
-              </div>
-            )}
-
+{viewTarget.call_summary && (
+  <div className="bg-[#132ea7] rounded-2xl p-6 text-white">
+    <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-2 flex items-center gap-2">
+      <MdInfoOutline size={14} /> Summary
+    </p>
+    <ul className="space-y-1 list-disc list-inside opacity-90">
+      {viewTarget.call_summary
+        .split("\n")
+        .filter((line) => line.trim() !== "")
+        .map((line, i) => (
+          <li key={i} className="font-medium leading-relaxed italic">
+            {line}
+          </li>
+        ))}
+    </ul>
+  </div>
+)}
             {viewTarget.attendees && Array.isArray(viewTarget.attendees) && viewTarget.attendees.length > 0 && (
               <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-2xl border border-blue-100">
                 <MdAssignment size={20} className="text-blue-500 shrink-0 mt-0.5" />

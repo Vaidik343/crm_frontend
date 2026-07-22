@@ -1029,12 +1029,23 @@ const filtered = tasks || [];
               </div>
 
               {/* Description */}
-              {viewTarget.description && (
-                <div className="bg-[#132ea7] rounded-2xl p-6 text-white">
-                  <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-2">Description</p>
-                  <p className="font-medium leading-relaxed opacity-90">{viewTarget.description}</p>
-                </div>
-              )}
+          {viewTarget.description && (
+  <div className="bg-[#132ea7] rounded-2xl p-6 text-white">
+    <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-2">
+      Description
+    </p>
+    <ul className="space-y-1 list-disc list-inside opacity-90">
+      {viewTarget.description
+        .split("\n")
+        .filter((line) => line.trim() !== "")
+        .map((line, i) => (
+          <li key={i} className="font-medium leading-relaxed">
+            {line}
+          </li>
+        ))}
+    </ul>
+  </div>
+)}
 
             {/* Remarks log */}
               {viewTarget.remarks && Array.isArray(viewTarget.remarks) && viewTarget.remarks.length > 0 && (
