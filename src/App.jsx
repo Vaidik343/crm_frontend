@@ -28,6 +28,11 @@ import MyCalls         from "./pages/employee/MyCalls";
 import WorkLog         from "./pages/employee/WorkLog";
 import ChangePassword  from "./pages/employee/ChangePassword";
 
+
+import { InternProvider } from "./context/InternContext";
+
+import InternRouter from "./features/interns/router/InternRouter";
+
 import Calls from './pages/admin/Calls';
 import MyDashboard from './pages/employee/MyDashboard';
 import ProjectDashboard from "./pages/employee/ProjectDashboard";
@@ -42,8 +47,8 @@ import MyProjects from './pages/employee/MyProjects';
 import NotificationsPage from "./components/NotificationsPage"; 
 import NotFound from './components/NotFound';
 import EmployeeReport from './pages/admin/EmployeeReport';
-
-
+import AdminInterns from './features/interns/pages/public/admin/AdminInterns';
+import AdminInternDetail from './features/interns/pages/public/admin/AdminInternDetail';
 
 const App = () => {
 
@@ -93,6 +98,22 @@ const App = () => {
   <Route path='work-logs' element={<AdminWorkLogs />} />
   {/* <Route path='leaves' element={<Leaves />} /> */}
   <Route path="holidays"  element={<PublicHolidays />} />
+  <Route
+    path="interns"
+    element={
+      <InternProvider>
+        <AdminInterns />
+      </InternProvider>
+    }
+  />
+  <Route
+    path="interns/:id"
+    element={
+      <InternProvider>
+        <AdminInternDetail />
+      </InternProvider>
+    }
+  />
 
   <Route path ='clients' element={<Clients />} />
   <Route path='notifications' element={<NotificationsPage />} />
@@ -105,6 +126,15 @@ const App = () => {
 
   <Route index element={<Navigate to='dashboard' replace />} />
 </Route>
+
+<Route
+  path="/intern/*"
+  element={
+    <InternProvider>
+      <InternRouter />
+    </InternProvider>
+  }
+/>
      
 <Route
   path="/employee"

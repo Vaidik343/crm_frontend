@@ -95,39 +95,79 @@ export const ENDPOINTS = {
         UPDATE: (id) => `/work-logs/${id}`,
         DELETE: (id) => `/work-logs/${id}`,
     },
-    LEAVES: {
-      //EMP
-      CREATE: '/leaves/request',
-      MY: '/leaves/my',
-      CANCEL: (id) => `/leaves/cancel/${id}`,
-
-      //Admin
-      ALL: '/leaves/all',
-      APPROVE: (id) => `/leaves/approve/${id}`,
-      REJECT: (id) => `/leaves/reject/${id}`,
-      SATURDAY_MARK: '/leaves/saturday/mark',
-      
-      //both
-      GET_MARKED_SATURDAY : (user_id) => `/leaves/saturday/${user_id}`,
-      SATURDAY_EXCHANGE: (user_id) => `/leaves/saturday/${user_id}`,
-
-
-      LEAVES_LOGS: (id) => `/leaves/${id}/logs` ,
-
-    
-    //   Balance
-    BALANCE_MY:        '/leaves/balance/my',
-    BALANCE:           (user_id) => `/leaves/balance/${user_id}`,
-    BALANCE_HISTORY:   (user_id) => `/leaves/balance/${user_id}/history`,
-    HOLIDAYS:          '/leaves/holidays',
-    HOLIDAY_DELETE:    (id) =>      `/leaves/holidays/${id}`,
-      
-    },
-
-    
     REPORTS: {
         CALLS: (id) => `/report/${id}/calls`,
         TASKS: (id) => `/report/${id}/tasks`,
         WORKLOGS: (id) => `/report/${id}/workLogs`,
-    }
+    } ,
+
+    INTERNS: {
+
+        // PUBLIC ROUTES
+        REGISTER: '/intern/register',
+        CHECK_STATUS: (id) => `/intern/status/${id}`,
+        SETUP_PASSWORD: '/intern/setup-password',
+        LOGIN: '/intern/login',
+        ME: '/intern/me',
+         UPDATE_PROFILE:   '/intern/me', 
+
+        //ADMIN ROUTES
+        ALL:'/admin/interns',
+        GET_BY_ID: (id) => `/admin/interns/${id}`,
+        UPDATE: (id) => `/admin/interns/${id}/`,
+        APPROVE: (id) => `/admin/interns/${id}/approve`,
+        REJECT: (id) => `/admin/interns/${id}/reject`,
+        EXTEND: (id) => `/admin/interns/${id}/extend`,
+        DEACTIVATE: (id) => `/admin/interns/${id}/deactivate`,
+        REGENERATE_TOKEN: (id) => `/admin/interns/${id}/regenerate-token`,
+
+
+        
+   
+    },
+
+    INTER_PROJECT: {
+        CREATE: '/intern/project',
+        MY: '/intern/project',
+        UPDATE: '/intern/project',
+        // NEED deactive too
+
+        // ADMIN
+        PROJECT: (intern_id) => `/admin/interns/${intern_id}/project`,
+        MENTOR: (intern_id) => `/admin/interns/${intern_id}/project`,
+    },
+
+        INTER_TASKS: {
+        CREATE: '/intern/tasks',
+        MY: '/intern/tasks',
+        UPDATE: (id) => `/intern/tasks/${id}`,
+
+
+        //ADMIN
+        ADMIN_ASSIGN: '/admin/intern/tasks',
+        GET_TASK_BY_ID: (intern_id) => `/admin/interns/${intern_id}/tasks`,
+        UPDATE_TASKS : (id) => `/admin/intern/tasks/${id}`,
+
+    },
+
+        INTER_WORKLOGS: {
+        CREATE: '/intern/worklogs',
+        MY: '/intern/worklogs',
+        UPDATE: (id) => `/intern/worklogs/${id}`,
+        
+        // ADMIN
+        ADMIN_WORKLOGS: (intern_id) => `/admin/interns/${intern_id}/worklogs`,
+    },
+
+    //probation
+     PROBATION: {
+        ALL: '/probation',
+        GET_BY_ID: (id) => `/probation/${id}`,
+        START: (id) => `/probation/${id}/start`,
+        PASS: (id) => `/probation/${id}/pass`,
+        TERMINATE: (id) => `/probation/${id}/terminate`,
+        DATES: (id) => `/probation/${id}/dates`,
+
+     }
+
 }

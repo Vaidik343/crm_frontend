@@ -16,7 +16,8 @@ import {
     MdBook,
     MdGroup,
     MdNotifications,
-    MdLogout 
+    MdLogout ,
+    MdPerson 
 } from "react-icons/md";
 import { ImUserTie } from "react-icons/im";
 
@@ -37,6 +38,7 @@ const navItems = [
     { to: "/admin/work-logs", label: "Work Logs", icon: <MdBook size={20} /> },
     // { to: "/admin/leaves", label: "Leaves", icon: <MdBook size={20} /> },
     { to: "/admin/holidays", label: "Public Holiday", icon: <MdBook size={20} /> },
+    { to: "/admin/interns", label: "Interns", icon: <MdPerson size={18} /> },
     {to: "/admin/clients", label:"Clients", icon: <ImUserTie size={20}/>},
     //   { to: "/admin/notifications", label: "Notifications", icon: <MdNotifications size={20} /> },
     // { to: "/admin/teams", label: "Teams", icon: <MdGroup size={20} /> },
