@@ -82,7 +82,9 @@ export const InternProvider = ({children}) => {
 
  const checkStatus = useCallback(async (token) => {
     try {
-      const { data } = await internApi.get(`${ENDPOINTS.INTERNS.CHECK_STATUS}/${token}`);
+      const { data } = await internApi.get(
+    ENDPOINTS.INTERNS.CHECK_STATUS(token)
+);
       return data;
     } catch (error) {
       throw error;

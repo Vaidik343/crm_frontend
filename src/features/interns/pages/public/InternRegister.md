@@ -44,10 +44,6 @@ const initialStep1 = {
   mobile: "",
   enrollment_no: "",
   degree_type: "",
-
-   reference_type: "",
-  reference_name: "",
-  reference_contact: "",
 };
 
 const initialStep2 = {
@@ -434,58 +430,6 @@ const InternRegister = () => {
                     <input name="enrollment_no" value={step1.enrollment_no} onChange={handleStep1Change} placeholder="e.g. GTU123456" className={inputCls(errors1.enrollment_no)} />
                     <FieldError msg={errors1.enrollment_no} />
                   </div>
-                  <div>
-  <label className={labelCls}>
-    Reference Type
-  </label>
-
-  <select
-    name="reference_type"
-    value={step1.reference_type}
-    onChange={handleStep1Change}
-    className={inputCls(errors1.reference_type)}
-  >
-    <option value="">Select</option>
-    <option value="employee">Employee</option>
-    <option value="intern">Intern</option>
-    <option value="college">College</option>
-    <option value="friend">Friend</option>
-    <option value="social_media">Social Media</option>
-    <option value="website">Website</option>
-    <option value="other">Other</option>
-  </select>
-</div>
-
-<div>
-  <label className={labelCls}>
-    Reference Name
-  </label>
-
-  <input
-    type="text"
-    name="reference_name"
-    value={step1.reference_name}
-    onChange={handleStep1Change}
-    className={inputCls(errors1.reference_name)}
-    placeholder="Who referred you?"
-  />
-</div>
-
-<div>
-  <label className={labelCls}>
-    Reference Contact
-  </label>
-
-  <input
-    type="text"
-    name="reference_contact"
-    value={step1.reference_contact}
-    onChange={handleStep1Change}
-    className={inputCls(errors1.reference_contact)}
-    placeholder="Phone or Email"
-  />
-</div>
-
                   <div>
                     <Label>Degree Type <Required /></Label>
                     <select name="degree_type" value={step1.degree_type} onChange={handleStep1Change} className={inputCls(errors1.degree_type)}>

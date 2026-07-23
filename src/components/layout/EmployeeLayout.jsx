@@ -14,7 +14,7 @@ const navItems = [
     { to: "/employee/work-logs", label: "Work Log", icon: <MdBook size={18} /> },
     { to: "/employee/password", label: "Password", icon: <MdLock size={18} /> },
     { to: "/employee/projects", label: "Projects", icon: <MdFolder size={18} /> },
-    // { to: "/employee/leaves", label: "Leaves", icon: <MdFolder size={18} /> },
+    { to: "/employee/leaves", label: "Leaves", icon: <MdFolder size={18} /> },
     //   { to: "/employee/notifications", label: "Notifications", icon: <MdNotifications size={18} /> },
     //   {to: "/Team", label:"Team", }
 ];

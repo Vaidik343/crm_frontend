@@ -34,7 +34,7 @@ const InternRouter = () => {
 
       {/* ── Public routes (no layout) ───────────────────────────────────────── */}
       <Route path="register"          element={<InternRegister />} />
-      <Route path="status/:token"     element={<InternStatus />} />
+      <Route path="status/:intern_id"     element={<InternStatus />} />
       <Route path="setup-password/:token" element={<InternSetupPassword />} />
       <Route path="login"             element={<InternLogin />} />
 

@@ -15,6 +15,7 @@ const InternStatus = () => {
   const { checkStatus }      = useIntern();
 
   const [status, setStatus]               = useState(null); // 'pending' | 'approved' | 'rejected'
+  console.log("🚀 ~ InternStatus ~ status:", status)
   const [message, setMessage]             = useState("");
   const [rejectionReason, setRejectionReason] = useState("");
   const [tokenExpired, setTokenExpired]   = useState(false);
@@ -23,45 +24,59 @@ const InternStatus = () => {
 
   const intervalRef = useRef(null);
 
-  const poll = async () => {
-    try {
-      const data = await checkStatus(intern_id);
+  useEffect(() => {
+  console.log("Intern ID:", intern_id);
+}, [intern_id]);
 
-      setStatus(data.status);
-      setMessage(data.message);
-      setLastChecked(new Date());
 
-      if (data.status === "rejected") {
-        setRejectionReason(data.rejection_reason || "");
-        stopPolling();
+const poll = async () => {
+  console.log("🚀 poll started");
+
+  try {
+    console.log("Polling...");
+    const data = await checkStatus(intern_id);
+
+    console.log("✅ checkStatus response:", data);
+
+    console.log("Approved?", data.status);
+console.log("Token:", data.setup_token);
+
+    if (data.status === "approved") {
+       console.log("Navigating to setup page");
+      stopPolling();
+
+      if (data.setup_token) {
+      navigate(`/intern/setup-password/${data.setup_token}`, {
+  replace: true,
+});
         return;
       }
 
-      if (data.status === "approved") {
-        stopPolling();
-
-        if (data.token_expired) {
-          setTokenExpired(true);
-          return;
-        }
-
-        // redirect to setup-password with the one-time token
-        toast.success("Your application has been approved!");
-        navigate(`/intern/setup-password/${data.setup_token}`, { replace: true });
-        return;
-      }
-
-      // still pending — keep polling
-
-    } catch (error) {
-      const msg = error?.response?.data?.message || "Unable to check status. Retrying...";
-      // don't toast on every poll failure — just update message silently
-      setMessage(msg);
-    } finally {
-      setLoading(false);
+      setTokenExpired(true);
+      return;
     }
-  };
 
+    setStatus(data.status);
+    setMessage(data.message);
+    setLastChecked(new Date());
+
+    if (data.status === "rejected") {
+      setRejectionReason(data.rejection_reason || "");
+      stopPolling();
+    }
+
+  } catch (error) {
+    console.log("❌ checkStatus error:", error);
+    console.log("❌ response:", error.response);
+
+    setMessage(
+      error?.response?.data?.message ||
+      "Unable to check status."
+    );
+  } finally {
+    setLoading(false);
+  }
+};
   const stopPolling = () => {
     if (intervalRef.current) {
       clearInterval(intervalRef.current);

@@ -8,6 +8,9 @@ import { MdLock, MdVisibility, MdVisibilityOff, MdCheckCircle } from "react-icon
 
 const InternSetupPassword = () => {
   const { token: setup_token } = useParams();
+
+  console.log("Setup token:", setup_token);
+  
   const navigate               = useNavigate();
   const { setupPassword }      = useIntern();
 

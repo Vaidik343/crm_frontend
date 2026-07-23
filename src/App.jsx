@@ -96,7 +96,7 @@ const App = () => {
   <Route path='tasks' element={<Tasks />} />
   <Route path='permissions' element={<Permissions />} />
   <Route path='work-logs' element={<AdminWorkLogs />} />
-  {/* <Route path='leaves' element={<Leaves />} /> */}
+  <Route path='leaves' element={<Leaves />} />
   <Route path="holidays"  element={<PublicHolidays />} />
   <Route
     path="interns"
@@ -147,7 +147,7 @@ const App = () => {
   <Route path="calls" element={<MyCalls />} />
   <Route path="tasks" element={<MyTasks />} />
   <Route path="work-logs" element={<WorkLog />} />
-  {/* <Route path="leaves" element={<MyLeaves />} /> */}
+  <Route path="leaves" element={<MyLeaves />} />
   <Route path="password" element={<ChangePassword />} />
 
   {/* Dashboard */}

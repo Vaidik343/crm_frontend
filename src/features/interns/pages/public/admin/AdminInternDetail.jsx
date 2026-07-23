@@ -1070,9 +1070,18 @@ const AdminInternDetail = () => {
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 flex flex-col gap-5">
             <div className="flex items-center justify-between">
+
               <h2 className="text-sm font-black uppercase tracking-widest text-slate-700">Regenerate Setup Token</h2>
-              <button onClick={() => { setShowRegen(false); setRegenToken(""); setCopied(false); }}
-                className="text-slate-400 hover:text-slate-600 transition"><MdClose size={20} /></button>
+
+           {/* Approved — only show regenerate if password not yet set */}
+{intern.status === "approved" && !intern.password_hash && (
+  <button
+    onClick={() => { setRegenToken(""); setShowRegen(true); }}
+    className="px-4 py-2.5 rounded-xl bg-[#132ea7] text-white text-xs font-black uppercase tracking-widest hover:bg-[#0f2490] transition"
+  >
+    Resend Setup Link
+  </button>
+)}
             </div>
 
             {!regenToken ? (
