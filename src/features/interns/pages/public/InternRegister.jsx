@@ -62,6 +62,18 @@ const initialStep2 = {
   current_year: "",
 };
 
+
+const REFERENCE_PLACEHOLDERS = {
+  employee: "Employee name",
+  intern: "Intern name",
+  college: "College name",
+  friend: "Friend's name",
+  social_media: "Instagram / LinkedIn / Facebook",
+  website: "Website name",
+  other: "Reference name",
+};
+
+
 const formatLabel = (value) =>
   value
     ? value.charAt(0).toUpperCase() + value.slice(1).replace(/_/g, " ")
@@ -434,10 +446,8 @@ const InternRegister = () => {
                     <input name="enrollment_no" value={step1.enrollment_no} onChange={handleStep1Change} placeholder="e.g. GTU123456" className={inputCls(errors1.enrollment_no)} />
                     <FieldError msg={errors1.enrollment_no} />
                   </div>
-                  <div>
-  <label className={labelCls}>
-    Reference Type
-  </label>
+<div>
+  <Label>Reference Type</Label>
 
   <select
     name="reference_type"
@@ -445,7 +455,7 @@ const InternRegister = () => {
     onChange={handleStep1Change}
     className={inputCls(errors1.reference_type)}
   >
-    <option value="">Select</option>
+    <option value="">Select Reference</option>
     <option value="employee">Employee</option>
     <option value="intern">Intern</option>
     <option value="college">College</option>
@@ -454,38 +464,46 @@ const InternRegister = () => {
     <option value="website">Website</option>
     <option value="other">Other</option>
   </select>
+
+  <FieldError msg={errors1.reference_type} />
 </div>
 
-<div>
-  <label className={labelCls}>
-    Reference Name
-  </label>
+{step1.reference_type && (
+  <>
+    <div>
+      <Label>Reference Name</Label>
 
-  <input
-    type="text"
-    name="reference_name"
-    value={step1.reference_name}
-    onChange={handleStep1Change}
-    className={inputCls(errors1.reference_name)}
-    placeholder="Who referred you?"
-  />
-</div>
+      <input
+        type="text"
+        name="reference_name"
+        value={step1.reference_name}
+        onChange={handleStep1Change}
+        className={inputCls(errors1.reference_name)}
+        placeholder={
+          REFERENCE_PLACEHOLDERS[step1.reference_type] ||
+          "Reference Name"
+        }
+      />
 
-<div>
-  <label className={labelCls}>
-    Reference Contact
-  </label>
+      <FieldError msg={errors1.reference_name} />
+    </div>
 
-  <input
-    type="text"
-    name="reference_contact"
-    value={step1.reference_contact}
-    onChange={handleStep1Change}
-    className={inputCls(errors1.reference_contact)}
-    placeholder="Phone or Email"
-  />
-</div>
+    <div>
+      <Label>Reference Contact</Label>
 
+      <input
+        type="text"
+        name="reference_contact"
+        value={step1.reference_contact}
+        onChange={handleStep1Change}
+        className={inputCls(errors1.reference_contact)}
+        placeholder="Mobile Number or Email (Optional)"
+      />
+
+      <FieldError msg={errors1.reference_contact} />
+    </div>
+  </>
+)}
                   <div>
                     <Label>Degree Type <Required /></Label>
                     <select name="degree_type" value={step1.degree_type} onChange={handleStep1Change} className={inputCls(errors1.degree_type)}>

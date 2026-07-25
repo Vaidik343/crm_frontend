@@ -133,7 +133,7 @@ const AdminInternDetail = () => {
 
   // Approve
   const [showApprove, setShowApprove]   = useState(false);
-  const [approveForm, setApproveForm]   = useState({ start_date: "", end_date: "", mentor_ids: "" });
+  const [approveForm, setApproveForm]   = useState({ start_date: "", end_date: "", mentor_id: "" });
   const [approveErrors, setApproveErrors] = useState({});
   const [approving, setApproving]       = useState(false);
 
@@ -298,7 +298,7 @@ const [selectedProjectMentorIds, setSelectedProjectMentorIds] = useState([]);
   }, [wlFrom, wlTo]);
 
 
-const handleAdminEdit = async (e) => {
+  const handleAdminEdit = async (e) => {
   e.preventDefault();
   const errs = {};
   if (!adminEditForm.name.trim())     errs.name     = "Name is required.";
@@ -323,6 +323,7 @@ const handleAdminEdit = async (e) => {
     setAdminEditing(false);
   }
 };
+
 const toggleMentor = (userId) => {
   setSelectedMentorIds((prev) =>
     prev.includes(userId)
@@ -351,7 +352,7 @@ const toggleMentor = (userId) => {
       await approveIntern(id, {
         start_date: approveForm.start_date,
         end_date:   approveForm.end_date,
-        mentor_ids:  approveForm.mentor_ids || null,
+        mentor_id:  approveForm.mentor_id || null,
       });
       toast.success("Intern approved successfully!");
       setShowApprove(false);
@@ -565,7 +566,7 @@ const handleUpdateMentor = async (e) => {
                 ["Enrollment No.", intern.enrollment_no || "—"],
                 ["Degree",        intern.degree_type ? intern.degree_type.charAt(0).toUpperCase() + intern.degree_type.slice(1) : "—"],
                 ["College",       intern.college_name  || "—"],
-                // ["Mentor",        intern.mentors?.name  || "Not assigned"],
+                ["Mentor",        intern.mentor?.name  || "Not assigned"],
                 ["Start Date",    intern.start_date ? formatDate(intern.start_date) : "—"],
                 ["End Date",      intern.end_date   ? formatDate(intern.end_date)   : "—"],
                 ["Applied On",    intern.createdAt  ? formatDate(intern.createdAt)  : "—"],
@@ -580,14 +581,6 @@ const handleUpdateMentor = async (e) => {
                 </div>
               ))}
             </div>
-
-{/* // Remove "Mentor" from the grid array entirely, then add below the grid: */}
-<div className="mt-4">
-  <p className={fieldLbl}>Mentors</p>
-  <div className="mt-2">
-    <MentorChips mentors={intern.mentors} />
-  </div>
-</div>
 
             {/* Rejection reason */}
             {intern.status === "rejected" && intern.rejection_reason && (
@@ -655,18 +648,6 @@ const handleUpdateMentor = async (e) => {
 
           </div>
         )}
-
-
-        {/* Add this outside the status check — admin can always edit */}
-<div className="flex flex-wrap gap-3 mt-6 pt-5 border-t border-slate-100">
-  <button
-    onClick={() => setShowAdminEdit(true)}
-    className="px-4 py-2.5 rounded-xl border-2 border-[#132ea7] text-[#132ea7] text-xs font-black uppercase tracking-widest hover:bg-[#132ea7] hover:text-white transition"
-  >
-    Edit Intern
-  </button>
-  {/* existing status-based buttons below... */}
-</div>
       </div>
 
       {/* ── Tabs ────────────────────────────────────────────────────────────── */}
@@ -1064,8 +1045,8 @@ const handleUpdateMentor = async (e) => {
                 <label className={labelCls}>Mentor <span className="text-slate-400 font-medium normal-case tracking-normal">(optional)</span></label>
                 <LocalSearchableSelect
                   options={users}
-                  value={approveForm.mentor_ids}
-                  onChange={(id) => setApproveForm((p) => ({ ...p, mentor_ids: id }))}
+                  value={approveForm.mentor_id}
+                  onChange={(id) => setApproveForm((p) => ({ ...p, mentor_id: id }))}
                   getId={(u) => u.id}
                   getLabel={getMemberLabel}
                   getSearchText={(u) => `${u.name} ${u.employee_id}`}

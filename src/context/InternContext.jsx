@@ -288,6 +288,8 @@ const getMyWorkLogs = useCallback(async (
   const getInternById = useCallback(async (id) => {
     try {
       const { data } = await api.get(ENDPOINTS.INTERNS.GET_BY_ID(id));
+      console.log("🚀 ~ InternProvider ~ data:", data)
+      
       return data;
     } catch (error) {
       throw error;

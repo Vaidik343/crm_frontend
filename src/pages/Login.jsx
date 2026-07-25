@@ -153,7 +153,7 @@ const [showPassword, setShowPassword] = useState(false);
   <p className="text-sm text-slate-400 font-bold">
     Are you an intern or trainee?{" "}
     
-     <a href="/intern/register"
+     <a href="/intern/login"
       className="text-[#132ea7] font-black hover:underline"
     >
       Click here

@@ -47,6 +47,34 @@ const initialForm = {
   remark: "",
 };
 
+
+ const formatTimelineDate = (dateString) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  const now = new Date();
+
+  const isToday = date.toDateString() === now.toDateString();
+
+  const yesterday = new Date();
+  yesterday.setDate(now.getDate() - 1);
+  const isYesterday = date.toDateString() === yesterday.toDateString();
+
+  const timeStr = date.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  if (isToday) return `Today • ${timeStr}`;
+  if (isYesterday) return `Yesterday • ${timeStr}`;
+
+  const monthDayStr = date.toLocaleDateString([], {
+    month: "short",
+    day: "numeric",
+  });
+  return `${monthDayStr} • ${timeStr}`;
+};
+
+
 const MyTasks = () => {
   const {
     tasks,
@@ -932,37 +960,74 @@ const MyTasks = () => {
                 </button>
               </div>
 
-              {/* Existing remarks log */}
-              {Array.isArray(editTarget?.remarks) &&
-              editTarget.remarks.length > 0 ? (
-                <div className="space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar">
-                  {[...editTarget.remarks].reverse().map((r, i) => (
-                    <div
-                      key={i}
-                      className="p-3 bg-slate-50 rounded-xl border border-slate-100"
-                    >
-                      <p className="text-sm font-bold text-slate-700">
-                        {r.text}
-                      </p>
-                      <div className="flex justify-between mt-1.5">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                          {r.added_by_name}
-                        </p>
-                        <p className="text-[10px] font-bold text-slate-300">
-                        {formatDateTime(r.created_at)}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                editTarget && (
-                  <p className="text-xs font-bold text-slate-400 text-center py-3">
-                    No remarks yet
-                  </p>
-                )
-              )}
+     {/* Existing remarks log — Timeline UI */}
+{Array.isArray(editTarget?.remarks) && editTarget.remarks.length > 0 ? (
+  <div className="relative pl-5 space-y-3 max-h-[280px] overflow-y-auto custom-scrollbar pr-2 py-1">
+    {/* Continuous Vertical Timeline Line */}
+    <div className="absolute left-[7px] top-2 bottom-2 w-[2px] bg-slate-200 rounded-full" />
 
+    {[...editTarget.remarks].reverse().map((r, i) => {
+      // Split remark text by line breaks for bullet formatting (if multi-line)
+      const lines = r.text ? r.text.split("\n").filter((l) => l.trim() !== "") : [];
+
+      return (
+        <div key={i} className="relative group">
+          {/* Timeline Dot / Node */}
+          <div
+            className={`absolute -left-[17px] top-1.5 w-2.5 h-2.5 rounded-full border-2 border-white ring-2 transition-all ${
+              i === 0
+                ? "bg-[#132ea7] ring-[#132ea7]/20" // Highlight latest remark
+                : "bg-slate-300 ring-slate-100"    // Muted color for older remarks
+            }`}
+          />
+
+          {/* Remark Card Content */}
+          <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-100 hover:border-slate-200 hover:bg-white transition-all shadow-xs">
+            
+            {/* Remark Text — Bullet points for multi-line text & overflow wrapping */}
+            {lines.length > 1 ? (
+              <div className="space-y-1 mt-0.5">
+                {lines.map((line, lineIdx) => (
+                  <div key={lineIdx} className="flex items-start gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mt-1.5 shrink-0" />
+                    <p className="text-xs font-semibold text-slate-700 leading-relaxed break-words [overflow-wrap:anywhere]">
+                      {line}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs font-semibold text-slate-700 leading-relaxed whitespace-pre-wrap break-words [overflow-wrap:anywhere]">
+                {r.text}
+              </p>
+            )}
+
+            {/* Footer with Metadata */}
+            <div className="flex items-center justify-between mt-2 pt-2 border-t border-slate-100/80">
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                {r.added_by_name}
+              </span>
+              <span className="text-[10px] font-bold text-slate-400">
+                {new Date(r.created_at).toLocaleString("default", {
+                  month: "short",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
+            </div>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+) : (
+  editTarget && (
+    <div className="text-center py-6 border border-dashed border-slate-200 rounded-xl">
+      <p className="text-xs font-bold text-slate-400">No remarks yet</p>
+    </div>
+  )
+)}
               {/* New remark input — shown when + is clicked, or always on create */}
               {(showNewRemark || !editTarget) && (
                 <Textarea
@@ -1101,42 +1166,116 @@ const MyTasks = () => {
     </ul>
   </div>
 )}
-            {/* Remarks log */}
-            {viewTarget.remarks &&
-              Array.isArray(viewTarget.remarks) &&
-              viewTarget.remarks.length > 0 && (
-                <div className="space-y-2">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                    Remarks ({viewTarget.remarks.length})
-                  </p>
-                  <div className="space-y-2 max-h-[180px] overflow-y-auto custom-scrollbar">
-                    {[...viewTarget.remarks].reverse().map((r, i) => (
-                      <div
-                        key={i}
-                        className="p-3 bg-slate-50 rounded-xl border border-slate-100"
-                      >
-                        <p className="text-sm font-bold text-slate-700">
-                          {r.text}
-                        </p>
-                        <div className="flex justify-between mt-1.5">
-                          <p className="text-[10px] font-black text-slate-400 uppercase">
-                            {r.added_by_name}
-                          </p>
-                          <p className="text-[10px] font-bold text-slate-300">
-                            {new Date(r.created_at).toLocaleString("default", {
-                              month: "short",
-                              day: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
+       {/* Tree / Branch Timeline Remarks */}
+{viewTarget?.remarks && Array.isArray(viewTarget.remarks) && viewTarget.remarks.length > 0 && (() => {
+  // Calculate today's remarks count
+  const todayCount = viewTarget.remarks.filter((r) => {
+    if (!r.created_at) return false;
+    return new Date(r.created_at).toDateString() === new Date().toDateString();
+  }).length;
+
+  return (
+    <div className="space-y-3">
+      {/* Header with Total & Today's Counter Badge */}
+      <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+        <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">
+          Remarks History ({viewTarget.remarks.length})
+        </p>
+
+        {todayCount > 0 ? (
+          <span className="flex items-center gap-1.5 px-3 py-1 text-xs font-black bg-emerald-50 text-emerald-700 rounded-full border border-emerald-200/80 shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            {todayCount} Added Today
+          </span>
+        ) : (
+          <span className="text-xs font-bold text-slate-400">
+            0 Today
+          </span>
+        )}
+      </div>
+
+      <div className="relative pl-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-2 py-1">
+        {/* Main Continuous Trunk Line */}
+        <div className="absolute left-[11px] top-2 bottom-2 w-[2px] bg-slate-200 rounded-full" />
+
+        {[...viewTarget.remarks].reverse().map((r, i) => {
+          const isLatest = i === 0;
+          // Split remark text by line breaks for bullet formatting
+          const lines = r.text ? r.text.split("\n").filter((l) => l.trim() !== "") : [];
+
+          return (
+            <div key={i} className="relative mb-3.5 last:mb-0 group">
+              
+              {/* 1. Date Header Node */}
+              <div className="flex items-center gap-2 z-10 relative">
+                <div
+                  className={`w-3 h-3 rounded-full border-2 border-white ring-2 transition-transform duration-200 group-hover:scale-125 ${
+                    isLatest
+                      ? "bg-indigo-600 ring-indigo-200"
+                      : "bg-slate-400 ring-slate-100"
+                  }`}
+                />
+                <span
+                  className={`text-[11px] font-black uppercase tracking-wider ${
+                    isLatest ? "text-indigo-600" : "text-slate-500"
+                  }`}
+                >
+                  {formatTimelineDate(r.created_at)}
+                </span>
+              </div>
+
+              {/* 2. Branch Connector & Expanded Card */}
+              <div className="pl-6 pt-1.5 relative">
+                
+                {/* Curved Branch Line (├──) */}
+                <div className="absolute left-[11px] -top-1 w-3.5 h-5 border-l-2 border-b-2 border-slate-200 rounded-bl-md" />
+
+                <div
+                  className={`p-3.5 rounded-xl transition-all duration-200 ${
+                    isLatest
+                      ? "bg-indigo-50/50 border border-indigo-100 shadow-xs"
+                      : "bg-slate-50 border border-slate-200/80 hover:bg-white hover:border-slate-300"
+                  }`}
+                >
+                  {/* Author Header */}
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-extrabold text-slate-800 tracking-wide">
+                      {r.added_by_name}
+                    </span>
+                    {isLatest && (
+                      <span className="px-2 py-0.5 text-[9px] font-black uppercase tracking-wider bg-indigo-600 text-white rounded">
+                        Latest
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Remark Body — Bullet points for multi-line text */}
+                  {lines.length > 1 ? (
+                    <div className="space-y-1.5 mt-1">
+                      {lines.map((line, lineIdx) => (
+                        <div key={lineIdx} className="flex items-start gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mt-2 shrink-0" />
+                          <p className="text-sm text-slate-700 leading-relaxed font-medium break-words [overflow-wrap:anywhere]">
+                            {line}
                           </p>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-700 leading-relaxed font-medium break-words [overflow-wrap:anywhere]">
+                      {r.text}
+                    </p>
+                  )}
                 </div>
-              )}
 
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+})()}
             <div className="flex justify-end pt-2">
               <Button
                 variant="ghost"

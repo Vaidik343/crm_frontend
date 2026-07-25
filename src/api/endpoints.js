@@ -140,6 +140,8 @@ export const ENDPOINTS = {
         LOGIN: '/intern/login',
         ME: '/intern/me',
          UPDATE_PROFILE:   '/intern/me', 
+         UPDATE_MY_DOCUMENTS: '/intern/documents',
+ADMIN_UPDATE: (id) => `/admin/interns/${id}`,
 
         //ADMIN ROUTES
         ALL:'/admin/interns',
@@ -164,7 +166,7 @@ export const ENDPOINTS = {
 
         // ADMIN
         PROJECT: (intern_id) => `/admin/interns/${intern_id}/project`,
-        MENTOR: (intern_id) => `/admin/interns/${intern_id}/project`,
+        UPDATE_MENTOR : (intern_id) => `/admin/interns/${intern_id}/project`, //patch
     },
 
         INTER_TASKS: {
