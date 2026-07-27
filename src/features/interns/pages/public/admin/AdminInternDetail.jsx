@@ -37,17 +37,36 @@ const TABS = ["Documents", "Project", "Tasks", "Work Logs"];
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 const FileLink = ({ label, url }) => {
-  if (!url) return (
-    <div>
-      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</p>
-      <p className="text-xs text-slate-300 font-semibold mt-0.5 italic">Not uploaded</p>
-    </div>
-  );
+  const API_BASE =
+    import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "") ||
+    "http://localhost:7015";
+
+  const fileUrl = url
+    ? url.startsWith("http")
+      ? url
+      : `${API_BASE}${url}`
+    : "";
+
+  if (!url) {
+    return (
+      <div>
+        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+          {label}
+        </p>
+        <p className="text-xs text-slate-300 font-semibold mt-0.5 italic">
+          Not uploaded
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div>
-      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</p>
-        <a 
-        href={url}
+      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+        {label}
+      </p>
+      <a
+        href={fileUrl}
         target="_blank"
         rel="noopener noreferrer"
         className="text-xs font-black text-[#132ea7] hover:underline uppercase tracking-widest mt-0.5 inline-block"
@@ -102,6 +121,7 @@ const AdminInternDetail = () => {
   // ── Core data ──────────────────────────────────────────────────────────────
   const [intern, setIntern]         = useState(null);
 
+
   const [loading, setLoading]       = useState(true);
 
   // ── Tab ───────────────────────────────────────────────────────────────────
@@ -133,7 +153,10 @@ const AdminInternDetail = () => {
 
   // Approve
   const [showApprove, setShowApprove]   = useState(false);
-  const [approveForm, setApproveForm]   = useState({ start_date: "", end_date: "", mentor_ids: "" });
+  const [approveForm, setApproveForm]   = useState({ start_date: "", end_date: "", mentor_ids: [] });
+
+  const [selectedApproveMentorIds, setSelectedApproveMentorIds] = useState([]);
+
   const [approveErrors, setApproveErrors] = useState({});
   const [approving, setApproving]       = useState(false);
 
@@ -200,6 +223,8 @@ const [selectedProjectMentorIds, setSelectedProjectMentorIds] = useState([]);
     }
   };
 
+
+
   // ── Fetch users for mentor dropdown ───────────────────────────────────────
   const fetchUsers = async () => {
     try {
@@ -257,6 +282,7 @@ const [selectedProjectMentorIds, setSelectedProjectMentorIds] = useState([]);
   useEffect(() => {
     fetchIntern();
     fetchUsers();
+    
   }, [id]);
 
   useEffect(() => {
@@ -317,6 +343,7 @@ const handleAdminEdit = async (e) => {
     toast.success("Intern updated successfully!");
     setShowAdminEdit(false);
     fetchIntern();
+     
   } catch (error) {
     toast.error(error?.response?.data?.message || "Failed to update intern.");
   } finally {
@@ -351,11 +378,12 @@ const toggleMentor = (userId) => {
       await approveIntern(id, {
         start_date: approveForm.start_date,
         end_date:   approveForm.end_date,
-        mentor_ids:  approveForm.mentor_ids || null,
+        mentor_ids:  selectedApproveMentorIds
       });
       toast.success("Intern approved successfully!");
       setShowApprove(false);
       fetchIntern();
+       
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to approve.");
     } finally {
@@ -377,6 +405,7 @@ const toggleMentor = (userId) => {
       setShowReject(false);
       setRejectReason("");
       fetchIntern();
+
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to reject.");
     } finally {
@@ -395,6 +424,7 @@ const toggleMentor = (userId) => {
       setShowExtend(false);
       setExtendDate("");
       fetchIntern();
+
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to extend.");
     } finally {
@@ -410,6 +440,7 @@ const toggleMentor = (userId) => {
       toast.success("Intern deactivated.");
       setShowDeactivate(false);
       fetchIntern();
+       
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to deactivate.");
     } finally {
@@ -505,7 +536,8 @@ const handleUpdateMentor = async (e) => {
 
   if (!intern) return null;
 
-  const doc = intern.documents?.[0];
+  const doc = intern.documents;
+
   console.log("🚀 ~ AdminInternDetail ~ doc:", doc)
 
   // ── Render ─────────────────────────────────────────────────────────────────
@@ -564,7 +596,7 @@ const handleUpdateMentor = async (e) => {
                 ["Mobile",        intern.mobile        || "—"],
                 ["Enrollment No.", intern.enrollment_no || "—"],
                 ["Degree",        intern.degree_type ? intern.degree_type.charAt(0).toUpperCase() + intern.degree_type.slice(1) : "—"],
-                ["College",       intern.college_name  || "—"],
+                // ["College",       intern.college_name  || "—"],
                 // ["Mentor",        intern.mentors?.name  || "Not assigned"],
                 ["Start Date",    intern.start_date ? formatDate(intern.start_date) : "—"],
                 ["End Date",      intern.end_date   ? formatDate(intern.end_date)   : "—"],
@@ -581,7 +613,7 @@ const handleUpdateMentor = async (e) => {
               ))}
             </div>
 
-{/* // Remove "Mentor" from the grid array entirely, then add below the grid: */}
+{/* mentor */}
 <div className="mt-4">
   <p className={fieldLbl}>Mentors</p>
   <div className="mt-2">
@@ -609,13 +641,15 @@ const handleUpdateMentor = async (e) => {
             {intern.status === "pending" && (
               <>
                 <button
-                  onClick={() => setShowApprove(true)}
+                  // where you call setShowApprove(true):
+onClick={() => { setSelectedApproveMentorIds([]); setShowApprove(true); }}
                   className="px-4 py-2.5 rounded-xl bg-green-500 text-white text-xs font-black uppercase tracking-widest hover:bg-green-600 transition"
                 >
                   Approve
                 </button>
                 <button
-                  onClick={() => setShowReject(true)}
+                  // where you call setShowApprove(true):
+onClick={() => { setSelectedApproveMentorIds([]); setShowApprove(true); }}
                   className="px-4 py-2.5 rounded-xl bg-red-500 text-white text-xs font-black uppercase tracking-widest hover:bg-red-600 transition"
                 >
                   Reject
@@ -1060,19 +1094,45 @@ const handleUpdateMentor = async (e) => {
                 </div>
               </div>
 
-              <div>
-                <label className={labelCls}>Mentor <span className="text-slate-400 font-medium normal-case tracking-normal">(optional)</span></label>
-                <LocalSearchableSelect
-                  options={users}
-                  value={approveForm.mentor_ids}
-                  onChange={(id) => setApproveForm((p) => ({ ...p, mentor_ids: id }))}
-                  getId={(u) => u.id}
-                  getLabel={getMemberLabel}
-                  getSearchText={(u) => `${u.name} ${u.employee_id}`}
-                  placeholder="Search employee..."
-                  emptyOptionLabel="No Mentor"
-                />
-              </div>
+          {/* Replace the existing single LocalSearchableSelect mentor block with this: */}
+<div>
+  <label className={labelCls}>
+    Mentors{" "}
+    <span className="text-slate-400 font-medium normal-case tracking-normal">(optional)</span>
+  </label>
+
+  {/* Selected chips */}
+  {selectedApproveMentorIds.length > 0 && (
+    <div className="flex flex-wrap gap-2 mb-3">
+      {users
+        .filter((u) => selectedApproveMentorIds.includes(u.id))
+        .map((u) => (
+          <div
+            key={u.id}
+            className="flex items-center gap-1.5 bg-[#132ea7]/10 text-[#132ea7] px-3 py-1 rounded-full text-xs font-black cursor-pointer hover:bg-red-100 hover:text-red-500 transition"
+            onClick={() =>
+              setSelectedApproveMentorIds((prev) => prev.filter((id) => id !== u.id))
+            }
+          >
+            {u.name} <MdClose size={12} />
+          </div>
+        ))}
+    </div>
+  )}
+
+  <LocalSearchableSelect
+    options={users.filter((u) => !selectedApproveMentorIds.includes(u.id))}
+    value=""
+    onChange={(id) => {
+      if (id) setSelectedApproveMentorIds((prev) => [...prev, id]);
+    }}
+    getId={(u) => u.id}
+    getLabel={getMemberLabel}
+    getSearchText={(u) => `${u.name} ${u.employee_id}`}
+    placeholder="Search and add mentor..."
+    emptyOptionLabel="None"
+  />
+</div>
 
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowApprove(false)}

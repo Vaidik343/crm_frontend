@@ -6,6 +6,7 @@ import {
    MdLogout, MdTask, MdPhone, MdBook, MdLock, MdDashboard, MdMenu,MdClose, MdFolder, MdNotifications } from "react-icons/md";
 import { useState } from "react";
 import NotificationBell from "../NotificationBell";
+import HeaderLogo from "../common/HeaderLogo";
 
 const navItems = [
     { to: "/employee/myDashboard", label: "Dashboard", icon: <MdDashboard size={18} /> },
@@ -49,15 +50,11 @@ const cancelLogout = () => setShowLogoutModal(false);
  <div className="flex items-center gap-4 lg:gap-8 min-w-0 flex-1">
 
             {/* Brand */}
-            <div className="flex items-center gap-2 shrink-0">
-                <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shadow-lg">
-                    <span className="text-[#132ea7] font-black text-xs">CRM</span>
-                </div>
-
-                <span className="font-black text-lg text-white tracking-tight uppercase">
-                    Portal
-                </span>
-            </div>
+            <HeaderLogo
+              title="Portal"
+              logoClassName="h-8 w-auto object-contain bg-white rounded-lg p-1 shrink-0 shadow-lg"
+              titleClassName="font-black text-lg text-white tracking-tight uppercase"
+            />
 
             {/* Desktop Nav */}
             <ul className="hidden min-[1180px]:flex   items-center gap-1 lg:gap-2 flex flex-wrap mt-4 p-1 no-scrollbar min-w-0">

@@ -402,7 +402,7 @@ const InternTasks = () => {
       {/* ── Create Modal ─────────────────────────────────────────────────────── */}
       {showCreate && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[100vh] overflow-y-auto">
             <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 sticky top-0 bg-white rounded-t-2xl z-10">
               <h2 className="text-sm font-black uppercase tracking-widest text-slate-700">Add Task</h2>
               <button onClick={() => { setShowCreate(false); setForm(initialForm); setFormErrors({}); }} className="text-slate-400 hover:text-slate-600 transition">

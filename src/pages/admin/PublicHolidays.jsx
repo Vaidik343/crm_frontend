@@ -174,7 +174,7 @@ const PublicHolidays = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-            Public <span className="text-indigo-600">Holidays</span>
+            Public <span className="text-primary">Holidays</span>
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
             Manage company-wide holidays and working schedules for the fiscal year.
@@ -198,7 +198,7 @@ const PublicHolidays = () => {
           {/* Add Holiday Button */}
           <Button
             variant="primary"
-            className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-md shadow-indigo-200 flex items-center gap-2 text-sm transition-all"
+            className="bg-[#132ea7]  text-white font-semibold px-5 py-2.5 rounded-xl shadow-md shadow-indigo-200 flex items-center gap-2 text-sm transition-all"
             onClick={() => {
               setShowModal(true);
               setForm({ name: "", date: "", type: "NATIONAL" });
@@ -228,11 +228,11 @@ const PublicHolidays = () => {
               </span>
               <span className="text-xs font-medium text-slate-400">days</span>
             </div>
-            <p className="text-[11px] text-emerald-600 font-semibold mt-3 flex items-center gap-1">
+            {/* <p className="text-[11px] text-emerald-600 font-semibold mt-3 flex items-center gap-1">
               <MdTrendingUp className="w-3.5 h-3.5" /> +2 from last year
-            </p>
+            </p> */}
           </div>
-          <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+          <div className="p-3 bg-indigo-50 text-primary rounded-xl">
             <MdCalendarToday className="w-6 h-6 text-indigo-400" />
           </div>
         </div>
@@ -250,7 +250,7 @@ const PublicHolidays = () => {
             {/* Progress bar */}
             <div className="w-full max-w-[140px] bg-slate-100 h-1.5 rounded-full mt-4 overflow-hidden">
               <div
-                className="bg-indigo-600 h-full rounded-full transition-all duration-500"
+                className="bg-[#132ea7] h-full rounded-full transition-all duration-500"
                 style={{
                   width: `${
                     totalHolidays > 0 ? (remainingHolidays / totalHolidays) * 100 : 0
@@ -259,7 +259,7 @@ const PublicHolidays = () => {
               />
             </div>
           </div>
-          <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl shrink-0">
+          <div className="p-3 bg-indigo-50 text-primary rounded-xl shrink-0">
             <MdOutlineHourglassEmpty className="w-6 h-6 text-indigo-400" />
           </div>
         </div>
@@ -272,7 +272,7 @@ const PublicHolidays = () => {
               {nextHoliday ? nextHoliday.name : "None upcoming"}
             </p>
             {nextHoliday ? (
-              <p className="text-xs text-indigo-600 font-medium mt-3 flex items-center gap-1">
+              <p className="text-xs text-primary font-medium mt-3 flex items-center gap-1">
                 <MdAccessTime className="w-3.5 h-3.5" /> In {daysToNextHoliday} days
               </p>
             ) : (
@@ -299,7 +299,7 @@ const PublicHolidays = () => {
               onClick={() => setActiveTab(tab.id)}
               className={`flex-1 sm:flex-none px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
                 activeTab === tab.id
-                  ? "bg-white text-indigo-600 shadow-sm"
+                  ? "bg-white text-primary shadow-sm"
                   : "text-slate-500 hover:text-slate-700"
               }`}
             >
@@ -325,7 +325,7 @@ const PublicHolidays = () => {
               onClick={() => setViewMode("list")}
               className={`p-1.5 rounded-lg transition-colors ${
                 viewMode === "list"
-                  ? "bg-indigo-600 text-white shadow-sm"
+                  ? "bg-[#132ea7] text-white shadow-sm"
                   : "text-slate-400 hover:text-slate-600"
               }`}
             >
@@ -335,7 +335,7 @@ const PublicHolidays = () => {
               onClick={() => setViewMode("grid")}
               className={`p-1.5 rounded-lg transition-colors ${
                 viewMode === "grid"
-                  ? "bg-indigo-600 text-white shadow-sm"
+                  ? "bg-[#132ea7] text-white shadow-sm"
                   : "text-slate-400 hover:text-slate-600"
               }`}
             >
@@ -392,7 +392,7 @@ const PublicHolidays = () => {
                         <div className="flex items-center gap-4">
                           {/* Date box */}
                           <div className="w-14 h-14 rounded-2xl bg-indigo-50/70 flex flex-col items-center justify-center shrink-0">
-                            <span className="text-lg font-extrabold text-indigo-600 leading-none">
+                            <span className="text-lg font-extrabold text-primary leading-none">
                               {new Date(holiday.date).getDate()}
                             </span>
                             <span className="text-[9px] font-bold text-indigo-400 uppercase tracking-wider mt-1">
@@ -487,21 +487,7 @@ const PublicHolidays = () => {
             required
           />
 
-          <div>
-            <label className="block text-xs font-semibold text-slate-600 mb-1">
-              Holiday Type
-            </label>
-            <select
-              value={form.type}
-              onChange={(e) => setForm((prev) => ({ ...prev, type: e.target.value }))}
-              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            >
-              <option value="NATIONAL">NATIONAL</option>
-              <option value="OPTIONAL">OPTIONAL</option>
-              <option value="COMPANY">COMPANY</option>
-            </select>
-          </div>
-
+          
           <div className="flex gap-3 pt-4 border-t border-slate-100">
             <Button
               variant="ghost"
@@ -514,7 +500,7 @@ const PublicHolidays = () => {
             <Button
               type="submit"
               variant="primary"
-              className="flex-[2] bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold py-2.5 rounded-xl shadow-md shadow-indigo-100"
+              className="flex-[2] bg-[#132ea7] text-white text-xs font-semibold py-2.5 rounded-xl shadow-md shadow-indigo-100"
               loading={submitting}
             >
               Add Holiday

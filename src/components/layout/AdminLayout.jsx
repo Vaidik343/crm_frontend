@@ -27,6 +27,8 @@ import { BsFillCaretRightSquareFill } from "react-icons/bs";
 import NotificationBell from "../NotificationBell";
 import { usePWAInstall } from "../../hooks/usePWAInstall";
 
+import HeaderLogo from "../common/HeaderLogo";
+
 const navItems = [
     { to: "/admin/dashboard", label: "Dashboard", icon: <MdDashboard size={20} /> },
     { to: "/admin/employees", label: "Employees", icon: <MdPeople size={20} /> },
@@ -91,12 +93,11 @@ console.log("🚀 ~ AdminLayout ~ isInstallable:", isInstallable)
                 {/* logo + toggle */}
                 <div className="flex items-center justify-between h-[70px] px-4 border-b border-white/10 shrink-0">
                     {!collapsed && (
-                        <div className="flex items-center gap-2 overflow-hidden">
-                            <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center shrink-0">
-                                <span className="text-white font-bold">C</span>
-                            </div>
-                            <span className="font-bold text-lg tracking-tight whitespace-nowrap ">CRM Panel</span>
-                        </div>
+                        <HeaderLogo 
+                          title="CRM Panel" 
+                          logoClassName="h-8 w-auto object-contain bg-white rounded-lg p-1 shrink-0"
+                          titleClassName="font-bold text-lg text-white tracking-tight whitespace-nowrap"
+                        />
                     )}
                     <button
                         className={`p-2 rounded hover:bg-white/10 transition-colors flex items-center justify-center ${collapsed ? "mx-auto w-10 h-10" : ""}`}

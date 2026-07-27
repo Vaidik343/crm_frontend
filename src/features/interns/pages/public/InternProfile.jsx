@@ -24,6 +24,7 @@ import {
 import { formatDate } from "../../../../utils/formatDate";
 import api from "../../../../api/axiosInstance";
 import { ENDPOINTS } from "../../../../api/endpoints";
+import internApi from "../../../../api/internApi";
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -90,50 +91,61 @@ const MentorChips = ({ mentors }) => {
 
 // ── Styled File Upload Field ──────────────────────────────────────────────────
 
-const CustomFileUpload = ({ label, name, accept, file, onChange }) => {
+const CustomFileUpload = ({ label, name, accept, file, onChange, existingUrl }) => {
+  // extract filename from URL path
+  const existingName = existingUrl
+    ? existingUrl.split("/").pop()
+    : null;
+
   return (
     <div className="flex flex-col gap-1.5">
       <label className="text-xs font-bold uppercase tracking-wider text-slate-500">
         {label}
       </label>
       <label className="relative flex items-center justify-between p-3.5 rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 hover:bg-slate-50 hover:border-[#132ea7]/50 cursor-pointer transition group">
-        <input
-          type="file"
-          name={name}
-          accept={accept}
-          onChange={onChange}
-          className="sr-only"
-        />
+        <input type="file" name={name} accept={accept} onChange={onChange} className="sr-only" />
         <div className="flex items-center gap-3 truncate">
-          <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 text-[#132ea7] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-            <MdCloudUpload size={18} />
+          <div className={`w-8 h-8 rounded-lg border flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform ${file ? "bg-[#132ea7] border-[#132ea7]" : existingName ? "bg-emerald-50 border-emerald-200" : "bg-white border-slate-200"}`}>
+            <MdCloudUpload size={18} className={file ? "text-white" : existingName ? "text-emerald-500" : "text-slate-400"} />
           </div>
           <div className="truncate">
-            <p className="text-xs font-bold text-slate-700 truncate">
-              {file ? file.name : "Choose file or drag here"}
-            </p>
-            <p className="text-[10px] text-slate-400 font-medium">
-              {file ? `${(file.size / 1024).toFixed(1)} KB` : "Leave empty to keep current"}
-            </p>
+            {file ? (
+              <>
+                <p className="text-xs font-bold text-[#132ea7] truncate">{file.name}</p>
+                <p className="text-[10px] text-slate-400 font-medium">{(file.size / 1024).toFixed(1)} KB · New file</p>
+              </>
+            ) : existingName ? (
+              <>
+                <p className="text-xs font-bold text-slate-600 truncate">{existingName}</p>
+                <p className="text-[10px] text-emerald-600 font-medium">✓ Currently uploaded · click to replace</p>
+              </>
+            ) : (
+              <>
+                <p className="text-xs font-bold text-slate-400 truncate">No file uploaded</p>
+                <p className="text-[10px] text-slate-400 font-medium">Click to upload</p>
+              </>
+            )}
           </div>
         </div>
-        <span className="text-[10px] font-bold uppercase tracking-wider text-[#132ea7] bg-indigo-50 px-2.5 py-1 rounded-md shrink-0">
-          {file ? "Change" : "Browse"}
+        <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md shrink-0 ${file ? "bg-[#132ea7] text-white" : "bg-indigo-50 text-[#132ea7]"}`}>
+          {file ? "Change" : existingName ? "Replace" : "Browse"}
         </span>
       </label>
     </div>
   );
 };
-
 // ── Main Component ─────────────────────────────────────────────────────────────
 
 const InternProfile = () => {
-  const { profile, profileLoading, getMyProfile, updateMyProfile } = useIntern();
+  const { profile, profileLoading, getMyProfile, updateMyProfile, updateMyDocuments  } = useIntern();
 
   // ── Modals State ──
   const [showEdit, setShowEdit] = useState(false);
   const [form, setForm] = useState({});
+  
   const [errors, setErrors] = useState({});
+  console.log("🚀 ~ InternProfile ~ errors:", errors)
+  
   const [submitting, setSubmitting] = useState(false);
 
   const [showDocEdit, setShowDocEdit] = useState(false);
@@ -148,6 +160,7 @@ const InternProfile = () => {
     resume: null,
     last_sem_marksheet: null,
   });
+  console.log("🚀 ~ InternProfile ~ docForm:", docForm)
   const [docSubmitting, setDocSubmitting] = useState(false);
 
   // ── Fetch Profile ──
@@ -182,6 +195,7 @@ const InternProfile = () => {
   useEffect(() => {
     if (showDocEdit && profile) {
       const doc = profile.documents?.[0];
+      console.log("🚀 ~ InternProfile ~ doc:", doc)
       setDocForm({
         document_type: doc?.document_type || "",
         college_name: doc?.college_detail?.college_name || "",
@@ -218,6 +232,7 @@ const InternProfile = () => {
     return Object.keys(e).length === 0;
   };
 
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
@@ -246,13 +261,14 @@ const InternProfile = () => {
         });
         const fd = new FormData();
         fd.append("college_detail", college_detail);
-        await api.patch(ENDPOINTS.INTERNS.UPDATE_MY_DOCUMENTS, fd);
+     await updateMyDocuments(fd);
       }
 
       toast.success("Profile updated successfully!");
       setShowEdit(false);
       getMyProfile();
     } catch (error) {
+          console.log("🚀 ~ handleSubmit ~ error:", error)
       toast.error(error?.response?.data?.message || "Failed to update profile.");
     } finally {
       setSubmitting(false);
@@ -274,6 +290,7 @@ const InternProfile = () => {
     try {
       setDocSubmitting(true);
       const fd = new FormData();
+      console.log("🚀 ~ handleDocSubmit ~ fd:", fd)
 
       if (docForm.document_type) fd.append("document_type", docForm.document_type);
       if (docForm.id_proof) fd.append("id_proof", docForm.id_proof);
@@ -290,9 +307,7 @@ const InternProfile = () => {
       });
       fd.append("college_detail", college_detail);
 
-      await api.patch(ENDPOINTS.INTERNS.UPDATE_MY_DOCUMENTS, fd, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+   await updateMyDocuments(fd); 
 
       toast.success("Documents updated successfully!");
       setShowDocEdit(false);
@@ -895,6 +910,7 @@ const InternProfile = () => {
                   accept=".pdf,.doc,.docx,image/*"
                   file={docForm.id_proof}
                   onChange={handleDocFileChange}
+                   existingUrl={doc?.id_proof}
                 />
                 <CustomFileUpload
                   label="Profile Photo"
@@ -902,6 +918,7 @@ const InternProfile = () => {
                   accept="image/*"
                   file={docForm.photo}
                   onChange={handleDocFileChange}
+                    existingUrl={doc?.photo}
                 />
                 <CustomFileUpload
                   label="Resume / CV"
@@ -909,6 +926,7 @@ const InternProfile = () => {
                   accept=".pdf,.doc,.docx"
                   file={docForm.resume}
                   onChange={handleDocFileChange}
+                    existingUrl={doc?.resume}
                 />
                 <CustomFileUpload
                   label="Last Sem Marksheet"
@@ -916,6 +934,7 @@ const InternProfile = () => {
                   accept=".pdf,.doc,.docx,image/*"
                   file={docForm.last_sem_marksheet}
                   onChange={handleDocFileChange}
+                    existingUrl={doc?.last_sem_marksheet}
                 />
               </div>
 

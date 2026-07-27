@@ -5,6 +5,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useIntern } from "../../../../context/InternContext";
 import toast from "react-hot-toast";
 import { MdCheckCircle, MdCancel, MdHourglassTop, MdRefresh } from "react-icons/md";
+import HeaderLogo from "../../../../components/common/HeaderLogo";
 
 const POLL_INTERVAL_MS = 10000; // poll every 10 seconds
 
@@ -111,14 +112,13 @@ console.log("Token:", data.setup_token);
     <div className="min-h-screen bg-slate-100 flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
 
-        {/* Header */}
-        <div className="bg-[#132ea7] px-8 py-6 flex items-center gap-3">
-          <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shrink-0">
-            <span className="text-[#132ea7] font-black text-xs">CRM</span>
-          </div>
-          <span className="font-black text-white text-lg uppercase tracking-tight">
-            Application Status
-          </span>
+{/* Header */}
+        <div className="bg-[#132ea7] px-8 py-6">
+          <HeaderLogo
+            title="Application Status"
+            logoClassName="h-8 w-auto object-contain bg-white rounded-lg p-1 shrink-0"
+            titleClassName="font-black text-white text-lg uppercase tracking-tight"
+          />
         </div>
 
         {/* Body */}

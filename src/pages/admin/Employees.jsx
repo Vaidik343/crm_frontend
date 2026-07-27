@@ -10,6 +10,7 @@ import ConfirmDialog from "../../components/ui/ConfirmDialog";
 import Spinner from "../../components/ui/Spinner";
 import Badge from "../../components/ui/Badge";
 import ExportModal from "../../components/ui/ExportModal";
+import toast from "react-hot-toast";
 import {
   MdAdd,
   MdEdit,
@@ -30,6 +31,10 @@ import { useNavigate } from "react-router-dom";
 
 import { useLeave } from "../../context/LeaveContext";
 import { formatDate } from "../../utils/formatDate";
+import { useProbation } from "../../context/ProbationContext";
+
+
+
 
 
 const initialForm = {
@@ -46,6 +51,7 @@ const Employees = () => {
   const { resetPassword } = usePassword();
 
   const navigate = useNavigate();
+const { startProbation } = useProbation();
 
   const [showModal, setShowModal] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
@@ -69,6 +75,12 @@ const [saturdayDate,     setSaturdayDate]     = useState("");
 const [saturdayError, setSaturdayError] = useState("");
 const [markingSaturday, setMarkingSaturday] = useState(false);
 const [saturdayAlert, setSaturdayAlert] = useState({type:"", message:""});
+
+
+const [probationTarget, setProbationTarget] = useState(null);
+const [probationForm, setProbationForm]     = useState({ probation_start: "", probation_end: "" });
+const [probationErrors, setProbationErrors] = useState({});
+const [startingProbation, setStartingProbation] = useState(false);
 
 
   useEffect(() => {
@@ -258,6 +270,15 @@ if (!isValid) {
   }
 };
 
+
+const inputCls = (err) =>
+  `w-full px-4 py-3 rounded-2xl border text-sm font-bold transition focus:outline-none focus:ring-4 focus:ring-[#132ea7]/10 ${
+    err ? "border-red-400 bg-red-50" : "border-slate-200 bg-slate-50"
+  }`;
+const labelCls = "block text-[11px] font-black uppercase tracking-widest text-slate-500 mb-1 ml-1";
+const errCls   = "text-xs text-red-500 font-bold mt-1 ml-1 uppercase";
+
+
   if (loading && !users.length)
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
@@ -430,6 +451,23 @@ if (!isValid) {
   <MdCalendarToday size={20} />
 </button>
 
+
+
+{/* // button in actions column (after saturday button): */}
+{!user.is_admin && !user.is_probation && (
+  <button
+    onClick={() => { setProbationTarget(user); setProbationForm({ probation_start: "", probation_end: "" }); }}
+    title="Start Probation"
+    className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:bg-amber-500/10 hover:text-amber-500 transition-all"
+  >
+    <MdPerson size={20} />  {/* or any suitable icon */}
+  </button>
+)}
+{user.is_probation && (
+  <span className="px-2 py-1 rounded-lg text-[10px] font-black uppercase bg-amber-100 text-amber-600">
+    Probation
+  </span>
+)}
 
                     </div>
                   </td>
@@ -761,7 +799,8 @@ if (!isValid) {
         <div>
           <p className="font-black text-slate-800">{saturdayTarget.name}</p>
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-            {saturdayTarget.employee_id} — Group {saturdayTarget.saturday_group || "Not Set"}
+            {saturdayTarget.employee_id} 
+            {/* — Group {saturdayTarget.saturday_group || "Not Set"} */}
           </p>
         </div>
       </div>
@@ -869,6 +908,61 @@ if (!isValid) {
         </Button>
       </div>
     </div>
+  )}
+</Modal>
+
+<Modal
+  show={!!probationTarget}
+  onClose={() => setProbationTarget(null)}
+  title="Start Probation"
+  size="sm"
+>
+  {probationTarget && (
+    <form onSubmit={async (e) => {
+      e.preventDefault();
+      const errs = {};
+      if (!probationForm.probation_start) errs.probation_start = "Required";
+      if (!probationForm.probation_end)   errs.probation_end   = "Required";
+      else if (probationForm.probation_start >= probationForm.probation_end)
+        errs.probation_end = "Must be after start date";
+      setProbationErrors(errs);
+      if (Object.keys(errs).length) return;
+      try {
+        setStartingProbation(true);
+       const sp =  await startProbation(probationTarget.id, probationForm);
+        console.log("🚀 ~ Employees ~ sp:", sp)
+        toast.success(`${probationTarget.name} placed on probation.`);
+        setProbationTarget(null);
+        getAllUsers(); // refresh so badge shows
+      } catch (err) {
+        toast.error(err?.response?.data?.message || "Failed.");
+      } finally { setStartingProbation(false); }
+    }} className="space-y-4">
+      <div>
+        <label className={labelCls}>Start Date *</label>
+        <input type="date" value={probationForm.probation_start}
+          onChange={(e) => setProbationForm((p) => ({ ...p, probation_start: e.target.value }))}
+          className={inputCls(probationErrors.probation_start)} />
+        {probationErrors.probation_start && <p className={errCls}>{probationErrors.probation_start}</p>}
+      </div>
+      <div>
+        <label className={labelCls}>End Date *</label>
+        <input type="date" value={probationForm.probation_end}
+          onChange={(e) => setProbationForm((p) => ({ ...p, probation_end: e.target.value }))}
+          className={inputCls(probationErrors.probation_end)} />
+        {probationErrors.probation_end && <p className={errCls}>{probationErrors.probation_end}</p>}
+      </div>
+      <div className="flex gap-3 pt-2">
+        <button type="button" onClick={() => setProbationTarget(null)}
+          className="flex-1 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-black text-sm uppercase tracking-widest">
+          Cancel
+        </button>
+        <button type="submit" disabled={startingProbation}
+          className="flex-1 py-3 rounded-xl bg-amber-500 text-white font-black text-sm uppercase tracking-widest disabled:opacity-60">
+          {startingProbation ? "Starting..." : "Start Probation"}
+        </button>
+      </div>
+    </form>
   )}
 </Modal>
     </div>

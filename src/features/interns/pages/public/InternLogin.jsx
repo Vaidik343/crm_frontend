@@ -7,6 +7,10 @@ import { saveInternToken } from "../../hooks/useInternAuth";
 import toast from "react-hot-toast";
 import { MdVisibility, MdVisibilityOff } from "react-icons/md";
 
+
+import loginBg from '../../../../assets/login.png';
+
+
 const InternLogin = () => {
   const navigate         = useNavigate();
   const { loginIntern }  = useIntern();
@@ -80,20 +84,27 @@ const InternLogin = () => {
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-slate-100 flex items-center justify-center px-4 py-10">
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden">
+    <div
+      className="min-h-screen bg-slate-100 bg-cover bg-center bg-no-repeat flex items-center justify-center px-4 py-10 relative"
+      style={{ backgroundImage: `url(${loginBg})` }}
+    >
+      <div className="absolute inset-0 bg-slate-900/30 backdrop-blur-[2px]" />
+
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden relative z-10">
 
         {/* Header */}
         <div className="bg-[#132ea7] px-8 py-6">
           <div className="flex items-center gap-3 mb-1">
-            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center shrink-0">
-              <span className="text-[#132ea7] font-black text-xs">CRM</span>
-            </div>
+            <img
+              src="/Bluebell-Logo.webp"
+              alt="Bluebell Logo"
+              className="h-9 w-auto object-contain bg-white rounded-lg p-1 shrink-0"
+            />
             <span className="font-black text-white text-lg uppercase tracking-tight">
               Intern Portal
             </span>
           </div>
-          <p className="text-white/60 text-xs font-semibold mt-2 ml-11">
+          <p className="text-white/60 text-xs font-semibold mt-2">
             Sign in to your intern account
           </p>
         </div>

@@ -112,7 +112,8 @@ const cancelLeave = useCallback(async (id) => {
       if (filters.search)     params.set("search",     filters.search);
       if (filters.user_id)    params.set("user_id",    filters.user_id);
 
-      const { data } = await api.get(ENDPOINTS.LEAVES.ALL)
+      
+const { data } = await api.get(`${ENDPOINTS.LEAVES.ALL}?${params.toString()}`)
       console.log("🚀 ~ LeaveProvider ~ data:", data)
 
       setLeaves(data.data || []);

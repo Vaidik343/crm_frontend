@@ -1,11 +1,11 @@
-import { createContext, useContext, useMemo, useState, useCallback } from "react";
+import { createContext, useContext, useMemo, useState, useCallback, useEffect } from "react";
 
 import { io } from 'socket.io-client';
 import { ENDPOINTS } from "../api/endpoints";
 import api from "../api/axiosInstance";
 import internApi from "../api/internApi";
 
-
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:7015";
 export const InternContext = createContext(null);
 
 export const InternProvider = ({children}) => {
@@ -13,6 +13,8 @@ export const InternProvider = ({children}) => {
     // socket 
     const [socket, setSocket] = useState(null);
 
+
+  
     // intern task state
 
     const [tasks, setTasks] = useState([]);
@@ -60,6 +62,20 @@ export const InternProvider = ({children}) => {
   const [project, setProject]           = useState(null);
   const [projectLoading, setProjectLoading] = useState(false);
 
+    useEffect(() => {
+  const token = localStorage.getItem('intern_token');
+  if (!token || !profile?.id) return;
+
+  const newSocket = io(SOCKET_URL, { auth: { token } });
+  newSocket.emit('join_intern', { intern_id: profile.id });
+  setSocket(newSocket);
+
+  newSocket.on('TASK_ASSIGNED',       handleTaskAssigned);
+  newSocket.on('TASK_UPDATED',        handleTaskUpdated);
+  newSocket.on('INTERN_STATUS_UPDATED', handleStatusUpdated);
+
+  return () => newSocket.disconnect();
+}, [profile?.id]);
 
   // ─────────────────────────────────────────────────────────────────────────
   // API — Auth (public, no token needed, uses plain fetch or api without auth)
@@ -142,6 +158,21 @@ export const InternProvider = ({children}) => {
       throw error;
     }
   }, []);
+
+
+  const updateMyDocuments = useCallback(async (formData) => {
+ 
+    try {
+       const { data } = await internApi.patch(
+    ENDPOINTS.INTERNS.UPDATE_MY_DOCUMENTS,
+    formData,
+    { headers: { "Content-Type": "multipart/form-data" } }
+  );
+  return data;
+    } catch (error) {
+       throw error;
+    }
+}, []);
 
   const getMyProject = useCallback(async () => {
     try {
@@ -431,7 +462,7 @@ const adminUpdateProject = useCallback(async (internId, payload) => {
 
     // Profile
     profile, profileLoading,
-    getMyProfile, updateMyProfile,
+    getMyProfile, updateMyProfile, updateMyDocuments ,
 
     // Project
     project, projectLoading,
@@ -459,7 +490,7 @@ createProject, updateProject,
     registerIntern, checkStatus, setupPassword, loginIntern,
   }), [
     socket,
-    profile, profileLoading, getMyProfile, updateMyProfile,
+    profile, profileLoading, getMyProfile, updateMyProfile, updateMyDocuments ,
     project, projectLoading, getMyProject,
     tasks, tasksLoading, tasksPage, tasksLimit, tasksTotal, tasksTotalPages,
     getMyTasks, createTask, updateTask,
