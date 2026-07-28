@@ -51,7 +51,8 @@ const Employees = () => {
   const { resetPassword } = usePassword();
 
   const navigate = useNavigate();
-const { startProbation } = useProbation();
+
+  const { startProbation, passProbation, terminateProbation, updateProbationDates  } = useProbation();
 
   const [showModal, setShowModal] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
@@ -372,6 +373,7 @@ const errCls   = "text-xs text-red-500 font-bold mt-1 ml-1 uppercase";
                           <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-2.5 py-1 rounded-md border border-slate-200">
                             {user.employee_id}
                           </span>
+
                         </div>
                       </div>
                     </div>
@@ -453,21 +455,24 @@ const errCls   = "text-xs text-red-500 font-bold mt-1 ml-1 uppercase";
 
 
 
-{/* // button in actions column (after saturday button): */}
-{!user.is_admin && !user.is_probation && (
+{!user.is_admin && (
   <button
-    onClick={() => { setProbationTarget(user); setProbationForm({ probation_start: "", probation_end: "" }); }}
-    title="Start Probation"
-    className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:bg-amber-500/10 hover:text-amber-500 transition-all"
+    onClick={() => {
+      setProbationTarget(user);
+      setProbationForm({ probation_start: "", probation_end: "" });
+      setProbationErrors({});
+    }}
+    title={user.is_probation ? "Manage Probation" : "Start Probation"}
+    className={`p-3 rounded-xl transition-all ${
+      user.is_probation
+        ? "bg-amber-100 text-amber-600 hover:bg-amber-200"
+        : "bg-slate-50 text-slate-400 hover:bg-amber-500/10 hover:text-amber-500"
+    }`}
   >
-    <MdPerson size={20} />  {/* or any suitable icon */}
+    <MdPerson size={20} />
   </button>
 )}
-{user.is_probation && (
-  <span className="px-2 py-1 rounded-lg text-[10px] font-black uppercase bg-amber-100 text-amber-600">
-    Probation
-  </span>
-)}
+
 
                     </div>
                   </td>
@@ -505,6 +510,7 @@ const errCls   = "text-xs text-red-500 font-bold mt-1 ml-1 uppercase";
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-100 px-2 py-0.5 rounded-md">
                     {user.employee_id}
                   </span>
+ 
                 </div>
                 <Badge value={user.role === "admin" ? "admin" : "employee"} />
               </div>
@@ -910,59 +916,493 @@ const errCls   = "text-xs text-red-500 font-bold mt-1 ml-1 uppercase";
     </div>
   )}
 </Modal>
-
 <Modal
   show={!!probationTarget}
-  onClose={() => setProbationTarget(null)}
-  title="Start Probation"
+  onClose={() => {
+    setProbationTarget(null);
+    setProbationErrors({});
+  }}
+  title={
+    !probationTarget
+      ? ""
+      : probationTarget.probation_status === "passed"
+      ? "Probation Passed"
+      : probationTarget.probation_status === "terminated"
+      ? "Probation Terminated"
+      : probationTarget.is_probation
+      ? "Manage Probation"
+      : "Start Probation"
+  }
   size="sm"
 >
   {probationTarget && (
-    <form onSubmit={async (e) => {
-      e.preventDefault();
-      const errs = {};
-      if (!probationForm.probation_start) errs.probation_start = "Required";
-      if (!probationForm.probation_end)   errs.probation_end   = "Required";
-      else if (probationForm.probation_start >= probationForm.probation_end)
-        errs.probation_end = "Must be after start date";
-      setProbationErrors(errs);
-      if (Object.keys(errs).length) return;
-      try {
-        setStartingProbation(true);
-       const sp =  await startProbation(probationTarget.id, probationForm);
-        console.log("🚀 ~ Employees ~ sp:", sp)
-        toast.success(`${probationTarget.name} placed on probation.`);
-        setProbationTarget(null);
-        getAllUsers(); // refresh so badge shows
-      } catch (err) {
-        toast.error(err?.response?.data?.message || "Failed.");
-      } finally { setStartingProbation(false); }
-    }} className="space-y-4">
-      <div>
-        <label className={labelCls}>Start Date *</label>
-        <input type="date" value={probationForm.probation_start}
-          onChange={(e) => setProbationForm((p) => ({ ...p, probation_start: e.target.value }))}
-          className={inputCls(probationErrors.probation_start)} />
-        {probationErrors.probation_start && <p className={errCls}>{probationErrors.probation_start}</p>}
+    <div className="space-y-4">
+      {/* Employee Info Card — Always Shown */}
+      <div className="flex items-center gap-3.5 bg-slate-50 border border-slate-100 rounded-2xl p-3.5">
+        <div className="w-10 h-10 rounded-full bg-[#132ea7] text-white flex items-center justify-center font-black text-sm shrink-0 shadow-sm">
+          {probationTarget.name?.charAt(0)}
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="font-bold text-slate-800 text-sm truncate">
+            {probationTarget.name}
+          </p>
+          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            {probationTarget.employee_id}
+          </p>
+        </div>
       </div>
-      <div>
-        <label className={labelCls}>End Date *</label>
-        <input type="date" value={probationForm.probation_end}
-          onChange={(e) => setProbationForm((p) => ({ ...p, probation_end: e.target.value }))}
-          className={inputCls(probationErrors.probation_end)} />
-        {probationErrors.probation_end && <p className={errCls}>{probationErrors.probation_end}</p>}
-      </div>
-      <div className="flex gap-3 pt-2">
-        <button type="button" onClick={() => setProbationTarget(null)}
-          className="flex-1 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-black text-sm uppercase tracking-widest">
-          Cancel
-        </button>
-        <button type="submit" disabled={startingProbation}
-          className="flex-1 py-3 rounded-xl bg-amber-500 text-white font-black text-sm uppercase tracking-widest disabled:opacity-60">
-          {startingProbation ? "Starting..." : "Start Probation"}
-        </button>
-      </div>
-    </form>
+
+      {/* ── CASE 1: Already passed or terminated ── */}
+      {probationTarget.probation_status === "passed" ||
+      probationTarget.probation_status === "terminated" ? (
+        <div className="space-y-4 pt-1">
+          <div
+            className={`rounded-2xl p-5 text-center ${
+              probationTarget.probation_status === "passed"
+                ? "bg-emerald-50/80 border border-emerald-100"
+                : "bg-rose-50/80 border border-rose-100"
+            }`}
+          >
+            <div
+              className={`w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center font-black text-lg ${
+                probationTarget.probation_status === "passed"
+                  ? "bg-emerald-100 text-emerald-600"
+                  : "bg-rose-100 text-rose-600"
+              }`}
+            >
+              {probationTarget.probation_status === "passed" ? "✓" : "✕"}
+            </div>
+            <p
+              className={`font-extrabold text-xs uppercase tracking-wider ${
+                probationTarget.probation_status === "passed"
+                  ? "text-emerald-800"
+                  : "text-rose-800"
+              }`}
+            >
+              Probation{" "}
+              {probationTarget.probation_status === "passed"
+                ? "Passed"
+                : "Terminated"}
+            </p>
+            <p className="text-xs text-slate-500 font-medium mt-1">
+              {probationTarget.probation_status === "passed"
+                ? "Employee is now a confirmed team member."
+                : "Employee account has been deactivated."}
+            </p>
+
+            <div className="grid grid-cols-2 gap-2.5 mt-4">
+              <div className="bg-white/80 border border-slate-200/60 rounded-xl p-2.5 text-center">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                  Start
+                </p>
+                <p className="text-xs font-bold text-slate-700">
+                  {formatDate(probationTarget.probation_start)}
+                </p>
+              </div>
+              <div className="bg-white/80 border border-slate-200/60 rounded-xl p-2.5 text-center">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                  End
+                </p>
+                <p className="text-xs font-bold text-slate-700">
+                  {formatDate(probationTarget.probation_end)}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setProbationTarget(null)}
+            className="w-full py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-wider hover:bg-slate-50 transition"
+          >
+            Close
+          </button>
+        </div>
+      ) : probationTarget.is_probation ? (
+        /* ── CASE 2: Currently on probation ── */
+        <div className="space-y-4">
+          {/* Dates & Days Left Card */}
+          <div className="grid grid-cols-3 gap-2">
+            <div className="bg-slate-50 border border-slate-100 rounded-xl p-2.5 text-center">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                Start
+              </p>
+              <p className="text-xs font-bold text-slate-700">
+                {formatDate(probationTarget.probation_start)}
+              </p>
+            </div>
+            <div className="bg-slate-50 border border-slate-100 rounded-xl p-2.5 text-center">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                End
+              </p>
+              <p className="text-xs font-bold text-slate-700">
+                {formatDate(probationTarget.probation_end)}
+              </p>
+            </div>
+            <div
+              className={`border rounded-xl p-2.5 text-center ${(() => {
+                const days = Math.ceil(
+                  (new Date(probationTarget.probation_end) - new Date()) /
+                    86400000
+                );
+                return days <= 7
+                  ? "bg-rose-50 border-rose-100"
+                  : days <= 14
+                  ? "bg-amber-50 border-amber-100"
+                  : "bg-emerald-50 border-emerald-100";
+              })()}`}
+            >
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">
+                Days Left
+              </p>
+              <p
+                className={`text-xs font-extrabold ${(() => {
+                  const days = Math.ceil(
+                    (new Date(probationTarget.probation_end) - new Date()) /
+                      86400000
+                  );
+                  return days <= 7
+                    ? "text-rose-600"
+                    : days <= 14
+                    ? "text-amber-600"
+                    : "text-emerald-600";
+                })()}`}
+              >
+                {Math.max(
+                  0,
+                  Math.ceil(
+                    (new Date(probationTarget.probation_end) - new Date()) /
+                      86400000
+                  )
+                )}
+                d
+              </p>
+            </div>
+          </div>
+
+          {/* Edit Dates Accordion */}
+          <div className="border border-slate-200/80 rounded-xl overflow-hidden bg-white">
+            <button
+              type="button"
+              onClick={() =>
+                setProbationForm((p) => ({
+                  ...p,
+                  showEditDates: !p.showEditDates,
+                }))
+              }
+              className="w-full px-3.5 py-2.5 flex items-center justify-between text-xs font-bold text-slate-600 hover:bg-slate-50 transition"
+            >
+              <span>Edit Probation Dates</span>
+              <span className="text-[10px] text-slate-400">
+                {probationForm.showEditDates ? "▲" : "▼"}
+              </span>
+            </button>
+
+            {probationForm.showEditDates && (
+              <div className="px-3.5 pb-3.5 pt-2 space-y-3 border-t border-slate-100 bg-slate-50/50">
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div>
+                    <label className={labelCls}>New Start Date</label>
+                    <input
+                      type="date"
+                      value={
+                        probationForm.edit_start ||
+                        probationTarget.probation_start ||
+                        ""
+                      }
+                      onChange={(e) =>
+                        setProbationForm((p) => ({
+                          ...p,
+                          edit_start: e.target.value,
+                        }))
+                      }
+                      className={inputCls(false)}
+                    />
+                  </div>
+                  <div>
+                    <label className={labelCls}>New End Date</label>
+                    <input
+                      type="date"
+                      value={
+                        probationForm.edit_end ||
+                        probationTarget.probation_end ||
+                        ""
+                      }
+                      onChange={(e) =>
+                        setProbationForm((p) => ({
+                          ...p,
+                          edit_end: e.target.value,
+                        }))
+                      }
+                      className={inputCls(false)}
+                    />
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  disabled={startingProbation}
+                  onClick={async () => {
+                    if (!probationForm.edit_start && !probationForm.edit_end) {
+                      toast.error("Change at least one date.");
+                      return;
+                    }
+                    try {
+                      setStartingProbation(true);
+                      await updateProbationDates(probationTarget.id, {
+                        probation_start:
+                          probationForm.edit_start || undefined,
+                        probation_end: probationForm.edit_end || undefined,
+                      });
+                      await getAllUsers();
+                      toast.success("Probation dates updated.");
+                      setProbationForm((p) => ({
+                        ...p,
+                        showEditDates: false,
+                        edit_start: "",
+                        edit_end: "",
+                      }));
+                      setProbationTarget((prev) => ({
+                        ...prev,
+                        probation_start:
+                          probationForm.edit_start || prev.probation_start,
+                        probation_end:
+                          probationForm.edit_end || prev.probation_end,
+                      }));
+                    } catch (err) {
+                      toast.error(
+                        err?.response?.data?.message ||
+                          "Failed to update dates."
+                      );
+                    } finally {
+                      setStartingProbation(false);
+                    }
+                  }}
+                  className="w-full py-2 rounded-lg bg-[#132ea7] text-white font-bold text-xs uppercase tracking-wider hover:bg-[#0f2490] transition disabled:opacity-60"
+                >
+                  {startingProbation ? "Saving..." : "Save Dates"}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Actions Section */}
+          <div className="space-y-3 pt-1">
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+              Actions
+            </p>
+
+            {/* Option 1: Pass Card */}
+            <div className="p-3.5 rounded-2xl bg-emerald-50/60 border border-emerald-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-bold text-emerald-950">
+                  Confirm Employee
+                </p>
+                <p className="text-[11px] text-emerald-700/80 font-medium">
+                  Pass probation and promote to full team member.
+                </p>
+              </div>
+              <button
+                disabled={startingProbation}
+                onClick={async () => {
+                  try {
+                    setStartingProbation(true);
+                    await passProbation(probationTarget.id);
+                    await getAllUsers();
+                    toast.success(
+                      `${probationTarget.name} has passed probation.`
+                    );
+                    setProbationTarget(null);
+                    setProbationErrors({});
+                  } catch (err) {
+                    toast.error(err?.response?.data?.message || "Failed.");
+                  } finally {
+                    setStartingProbation(false);
+                  }
+                }}
+                className="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 transition disabled:opacity-60 shadow-sm shrink-0"
+              >
+                {startingProbation ? "Processing..." : "✓ Pass Probation"}
+              </button>
+            </div>
+
+            {/* Option 2: Terminate Card */}
+            <div className="p-3.5 rounded-2xl bg-rose-50/60 border border-rose-100 space-y-2.5">
+              <div>
+                <p className="text-xs font-bold text-rose-950">
+                  Terminate Probation
+                </p>
+                <p className="text-[11px] text-rose-700/80 font-medium">
+                  Provide a mandatory reason to deactivate account.
+                </p>
+              </div>
+
+              <textarea
+                value={probationForm.terminate_reason || ""}
+                onChange={(e) => {
+                  setProbationForm((p) => ({
+                    ...p,
+                    terminate_reason: e.target.value,
+                  }));
+                  if (probationErrors.terminate_reason)
+                    setProbationErrors((p) => ({
+                      ...p,
+                      terminate_reason: "",
+                    }));
+                }}
+                rows={2}
+                placeholder="Termination reason..."
+                className={`w-full px-3 py-2 text-xs rounded-xl border bg-white focus:outline-none focus:border-rose-400 ${
+                  probationErrors.terminate_reason
+                    ? "border-rose-300 bg-rose-50/30"
+                    : "border-slate-200"
+                }`}
+              />
+              {probationErrors.terminate_reason && (
+                <p className={errCls}>{probationErrors.terminate_reason}</p>
+              )}
+
+              <button
+                disabled={startingProbation}
+                onClick={async () => {
+                  if (
+                    !probationForm.terminate_reason?.trim() ||
+                    probationForm.terminate_reason.trim().length < 5
+                  ) {
+                    setProbationErrors((p) => ({
+                      ...p,
+                      terminate_reason: "Reason required (min 5 chars).",
+                    }));
+                    return;
+                  }
+                  try {
+                    setStartingProbation(true);
+                    await terminateProbation(
+                      probationTarget.id,
+                      probationForm.terminate_reason.trim()
+                    );
+                    await getAllUsers();
+                    toast.success(
+                      `${probationTarget.name} has been terminated.`
+                    );
+                    setProbationTarget(null);
+                    setProbationErrors({});
+                  } catch (err) {
+                    toast.error(err?.response?.data?.message || "Failed.");
+                  } finally {
+                    setStartingProbation(false);
+                  }
+                }}
+                className="w-full py-2.5 rounded-xl bg-rose-600 text-white font-bold text-xs hover:bg-rose-700 transition disabled:opacity-60 shadow-sm"
+              >
+                {startingProbation
+                  ? "Processing..."
+                  : "✕ Terminate Account"}
+              </button>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              setProbationTarget(null);
+              setProbationErrors({});
+            }}
+            className="w-full py-2.5 rounded-xl border border-slate-200 text-slate-500 font-bold text-xs hover:bg-slate-50 transition"
+          >
+            Cancel
+          </button>
+        </div>
+      ) : (
+        /* ── CASE 3: Not on probation → start form ── */
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+            const errs = {};
+            if (!probationForm.probation_start) errs.probation_start = "Required.";
+            if (!probationForm.probation_end) errs.probation_end = "Required.";
+            else if (
+              probationForm.probation_start >= probationForm.probation_end
+            )
+              errs.probation_end = "Must be after start date.";
+            setProbationErrors(errs);
+            if (Object.keys(errs).length) return;
+            try {
+              setStartingProbation(true);
+              await startProbation(probationTarget.id, probationForm);
+              await getAllUsers();
+              toast.success(`${probationTarget.name} placed on probation.`);
+              setProbationTarget(null);
+              setProbationErrors({});
+            } catch (err) {
+              toast.error(err?.response?.data?.message || "Failed.");
+            } finally {
+              setStartingProbation(false);
+            }
+          }}
+          className="space-y-4 pt-1"
+        >
+          <div>
+            <label className={labelCls}>
+              Start Date <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="date"
+              value={probationForm.probation_start}
+              onChange={(e) =>
+                setProbationForm((p) => ({
+                  ...p,
+                  probation_start: e.target.value,
+                }))
+              }
+              className={inputCls(probationErrors.probation_start)}
+            />
+            {probationErrors.probation_start && (
+              <p className={errCls}>{probationErrors.probation_start}</p>
+            )}
+          </div>
+
+          <div>
+            <label className={labelCls}>
+              End Date <span className="text-red-400">*</span>
+            </label>
+            <input
+              type="date"
+              value={probationForm.probation_end}
+              onChange={(e) =>
+                setProbationForm((p) => ({
+                  ...p,
+                  probation_end: e.target.value,
+                }))
+              }
+              className={inputCls(probationErrors.probation_end)}
+            />
+            {probationErrors.probation_end && (
+              <p className={errCls}>{probationErrors.probation_end}</p>
+            )}
+          </div>
+
+          <div className="flex gap-2.5 pt-2">
+            <button
+              type="button"
+              onClick={() => {
+                setProbationTarget(null);
+                setProbationErrors({});
+              }}
+              className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-wider hover:bg-slate-50 transition"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={startingProbation}
+              className="flex-1 py-2.5 rounded-xl bg-amber-500 text-white font-bold text-xs uppercase tracking-wider hover:bg-amber-600 transition disabled:opacity-60 shadow-sm"
+            >
+              {startingProbation ? "Starting..." : "Start Probation"}
+            </button>
+          </div>
+        </form>
+      )}
+    </div>
   )}
 </Modal>
     </div>

@@ -2,7 +2,7 @@ import { useState } from "react";
 import api from "../../api/axiosInstance";
 import Modal from "./Modal";
 import Button from "./Button";
-import { MdDownload, MdCalendarToday, MdPhone, MdAssignment, MdHistory } from "react-icons/md";
+import { MdDownload, MdCalendarToday, MdPhone, MdAssignment, MdHistory, MdEventAvailable } from "react-icons/md";
 
 const DATA_TYPES = [
   { value: "calls",     label: "Calls",     icon: MdPhone },
@@ -24,16 +24,25 @@ const ExportModal = ({ show, onClose, employee, projectId = "", fixedDateRange =
     if (!employee) return;
     try {
       setDownloadingType(type);
-      const endpoint = type === "all"
-        ? `/export/${employee.id}/export/all`
-        : `/export/employee/${employee.id}`;
+ let endpoint = "";
+const params = new URLSearchParams();
 
-      const params = new URLSearchParams();
-      if (type !== "all") params.set("type", type);
+if (type === "all") {
+  endpoint = `/export/${employee.id}/export/all`;
+}
+else if (type === "leaves") {
+  endpoint = "/export/leaves";
+  params.set("user_id", employee.id);
+}
+else {
+  endpoint = `/export/employee/${employee.id}`;
+  params.set("type", type);
+}
       if (fromDate) { params.set("from", fromDate); params.set("to", toDate); }
       if (projectId) params.set("project_id", projectId);  // ← add project filter
 
       const res = await api.get(`${endpoint}?${params}`, { responseType: "blob" });
+      console.log("🚀 ~ download ~ res:", res)
 
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement("a");
@@ -56,6 +65,7 @@ const ExportModal = ({ show, onClose, employee, projectId = "", fixedDateRange =
     { value: "calls",     label: "Calls",     icon: MdPhone },
     { value: "tasks",     label: "Tasks",     icon: MdAssignment },
     { value: "work-logs", label: "Work Logs", icon: MdHistory },
+      { value: "leaves", label: "Leaves", icon: MdEventAvailable },
   ];
 
   return (

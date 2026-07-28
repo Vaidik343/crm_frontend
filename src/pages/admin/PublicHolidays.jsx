@@ -250,7 +250,7 @@ const PublicHolidays = () => {
             {/* Progress bar */}
             <div className="w-full max-w-[140px] bg-slate-100 h-1.5 rounded-full mt-4 overflow-hidden">
               <div
-                className="bg-[#132ea7] h-full rounded-full transition-all duration-500"
+                className="bg-indigo-600 h-full rounded-full transition-all duration-500"
                 style={{
                   width: `${
                     totalHolidays > 0 ? (remainingHolidays / totalHolidays) * 100 : 0
@@ -409,9 +409,9 @@ const PublicHolidays = () => {
                                 {holiday.name}
                               </h4>
                               {/* Holiday Tag */}
-                              <span className="text-[9px] font-bold uppercase tracking-wider bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md">
+                              {/* <span className="text-[9px] font-bold uppercase tracking-wider bg-slate-100 text-slate-500 px-2 py-0.5 rounded-md">
                                 {holiday.type || "OPTIONAL"}
-                              </span>
+                              </span> */}
                             </div>
                             <p className="text-xs font-medium text-slate-400 mt-1 flex items-center gap-1">
                               <MdCalendarToday className="w-3 h-3 text-slate-400" />

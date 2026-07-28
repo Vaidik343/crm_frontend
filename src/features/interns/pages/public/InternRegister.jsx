@@ -4,6 +4,22 @@ import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useIntern } from "../../../../context/InternContext";
 import toast from "react-hot-toast";
+import {
+  MdCloudUpload,
+  MdPhotoCamera,
+  MdDescription,
+  MdAssignment,
+  MdCheck,
+  MdEdit,
+  MdPerson,
+  MdSchool,
+  MdAttachFile,
+  MdInfo,
+  MdArrowForward,
+  MdArrowBack,
+  MdPriorityHigh,
+  MdRemove,
+} from "react-icons/md";
 
 import loginBg from "../../../../assets/login.png";
 
@@ -111,7 +127,7 @@ const UploadDropzone = ({ file, onChange, error }) => {
       />
       <div
         onClick={() => ref.current.click()}
-        className={`border-2 border-dashed rounded-xl p-4 sm:p-6 text-center cursor-pointer transition ${
+        className={`border-2 border-dashed rounded-xl p-4 sm:p-6 text-center cursor-pointer transition flex flex-col items-center justify-center ${
           error
             ? "border-red-400 bg-red-50"
             : file
@@ -119,7 +135,7 @@ const UploadDropzone = ({ file, onChange, error }) => {
             : "border-indigo-200 bg-[#f8f9ff] hover:border-[#132ea7] hover:bg-[#eef0ff]"
         }`}
       >
-        <div className="text-2xl sm:text-3xl mb-1.5 text-[#132ea7]">☁</div>
+        <MdCloudUpload className="text-3xl sm:text-4xl mb-1 text-[#132ea7]" />
         {file ? (
           <>
             <p className="text-xs sm:text-sm font-bold text-[#132ea7] break-all">{file.name}</p>
@@ -139,7 +155,7 @@ const UploadDropzone = ({ file, onChange, error }) => {
 
 // ── Upload Mini Card (Photo / Resume / Marksheet) ─────────────────────────────
 
-const UploadCard = ({ label, optional, accept, file, onChange, error, icon }) => {
+const UploadCard = ({ label, optional, accept, file, onChange, error, icon: Icon }) => {
   const ref = useRef();
   return (
     <div>
@@ -152,14 +168,14 @@ const UploadCard = ({ label, optional, accept, file, onChange, error, icon }) =>
       />
       <div
         onClick={() => ref.current.click()}
-        className={`border-2 border-dashed rounded-xl p-3.5 sm:p-4 text-center cursor-pointer transition ${
+        className={`border-2 border-dashed rounded-xl p-3.5 sm:p-4 text-center cursor-pointer transition flex flex-col items-center justify-center ${
           file
             ? "border-[#132ea7] border-solid bg-[#f0f3ff]"
             : "border-slate-200 bg-slate-50 hover:border-[#132ea7] hover:bg-[#f0f3ff]"
         }`}
       >
         <div className={`text-xl sm:text-2xl mb-1 ${file ? "text-[#132ea7]" : "text-slate-400"}`}>
-          {icon}
+          {Icon}
         </div>
         <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
           {label}
@@ -193,7 +209,7 @@ const SectionHead = ({ children }) => (
 // ── Left panel (Desktop Only) ──────────────────────────────────────────────────
 
 const LeftPanel = ({ step }) => (
-  <div className="hidden lg:flex bg-[#132ea7] w-[35%] xl:w-[32%] shrink-0 p-8 flex-col justify-between">
+  <div className="hidden lg:flex bg-[#132ea7] w-[35%] xl:w-[32%] shrink-0 p-8 flex-col justify-between h-full">
     <div>
       {/* Brand */}
       <div className="flex items-center gap-2.5 mb-8">
@@ -236,7 +252,7 @@ const LeftPanel = ({ step }) => (
                   : "bg-white/15 text-white/50"
               }`}
             >
-              {idx < step ? "✓" : idx + 1}
+              {idx < step ? <MdCheck size={16} /> : idx + 1}
             </div>
             <div className="pt-0.5">
               <p
@@ -360,18 +376,19 @@ const InternRegister = () => {
 
   return (
     <div
-      className="min-h-screen bg-slate-100 bg-cover bg-center bg-no-repeat flex items-center justify-center p-2 sm:p-4 lg:p-6 relative"
+      className="min-h-screen bg-slate-100 bg-cover bg-center bg-no-repeat flex items-center justify-center p-2 sm:p-4 lg:p-6 relative overflow-hidden"
       style={{ backgroundImage: `url(${loginBg})` }}
     >
       <div className="absolute inset-0 bg-slate-900/30 backdrop-blur-[2px]" />
 
-      <div className="w-full max-w-6xl flex flex-col lg:flex-row bg-white rounded-2xl shadow-2xl overflow-hidden relative z-10 max-h-[92vh] sm:max-h-[90vh]">
+      {/* Main Container: Fixed height h-[92vh] sm:h-[90vh] forces accurate overflow calculation */}
+      <div className="w-full max-w-6xl flex flex-col lg:flex-row bg-white rounded-2xl shadow-2xl overflow-hidden relative z-10 h-[92vh] sm:h-[90vh] my-auto">
         
         {/* Desktop Left Sidebar */}
         <LeftPanel step={step} />
 
         {/* Form Main Area */}
-        <div className="bg-white flex-1 flex flex-col h-full overflow-hidden">
+        <div className="bg-white flex-1 flex flex-col h-full min-h-0 overflow-hidden">
           
           {/* Mobile & Tablet Header Progress Bar (Hidden on Desktop) */}
           <div className="lg:hidden bg-slate-50 border-b border-slate-100 p-4 shrink-0">
@@ -401,7 +418,7 @@ const InternRegister = () => {
           </div>
 
           {/* Scrollable Form Content */}
-          <div className="flex-1 px-4 py-5 sm:px-8 sm:py-7 overflow-y-auto">
+          <div className="flex-1 px-4 py-5 sm:px-8 sm:py-7 overflow-y-auto min-h-0 h-full">
             {/* ── STEP 1 ── */}
             {step === 0 && (
               <>
@@ -555,6 +572,7 @@ const InternRegister = () => {
                           value={step1.reference_contact}
                           onChange={handleStep1Change}
                           className={inputCls(errors1.reference_contact)}
+                          maxLength={10}
                           placeholder="Mobile Number or Email (Optional)"
                         />
                         <FieldError msg={errors1.reference_contact} />
@@ -606,7 +624,7 @@ const InternRegister = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <UploadCard
                     label="Photo"
-                    icon="📷"
+                    icon={<MdPhotoCamera />}
                     accept="image/*"
                     file={step2.photo}
                     onChange={handleFileChange("photo")}
@@ -614,7 +632,7 @@ const InternRegister = () => {
                   />
                   <UploadCard
                     label="Resume"
-                    icon="📄"
+                    icon={<MdDescription />}
                     accept=".pdf,.doc,.docx"
                     file={step2.resume}
                     onChange={handleFileChange("resume")}
@@ -622,7 +640,7 @@ const InternRegister = () => {
                   />
                   <UploadCard
                     label="Marksheet"
-                    icon="📋"
+                    icon={<MdAssignment />}
                     accept=".pdf,image/*"
                     file={step2.last_sem_marksheet}
                     onChange={handleFileChange("last_sem_marksheet")}
@@ -702,16 +720,16 @@ const InternRegister = () => {
                 <div className="mb-4 border border-slate-100 rounded-2xl overflow-hidden">
                   <div className="flex items-center justify-between px-4 sm:px-5 py-3 bg-slate-50 border-b border-slate-100">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm sm:text-base">👤</span>
+                      <MdPerson className="text-slate-500 text-lg" />
                       <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
                         Personal Information
                       </p>
                     </div>
                     <button
                       onClick={() => setStep(0)}
-                      className="text-[11px] font-bold text-[#132ea7] hover:bg-indigo-50 px-2.5 py-1 rounded-lg transition"
+                      className="inline-flex items-center gap-1 text-[11px] font-bold text-[#132ea7] hover:bg-indigo-50 px-2.5 py-1 rounded-lg transition"
                     >
-                      ✏ Edit
+                      <MdEdit size={14} /> Edit
                     </button>
                   </div>
                   <div className="divide-y divide-slate-50">
@@ -749,16 +767,16 @@ const InternRegister = () => {
                 <div className="mb-4 border border-slate-100 rounded-2xl overflow-hidden">
                   <div className="flex items-center justify-between px-4 sm:px-5 py-3 bg-slate-50 border-b border-slate-100">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm sm:text-base">🎓</span>
+                      <MdSchool className="text-slate-500 text-lg" />
                       <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
                         College Details
                       </p>
                     </div>
                     <button
                       onClick={() => setStep(1)}
-                      className="text-[11px] font-bold text-[#132ea7] hover:bg-indigo-50 px-2.5 py-1 rounded-lg transition"
+                      className="inline-flex items-center gap-1 text-[11px] font-bold text-[#132ea7] hover:bg-indigo-50 px-2.5 py-1 rounded-lg transition"
                     >
-                      ✏ Edit
+                      <MdEdit size={14} /> Edit
                     </button>
                   </div>
                   <div className="divide-y divide-slate-50">
@@ -787,16 +805,16 @@ const InternRegister = () => {
                 <div className="mb-4 border border-slate-100 rounded-2xl overflow-hidden">
                   <div className="flex items-center justify-between px-4 sm:px-5 py-3 bg-slate-50 border-b border-slate-100">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm sm:text-base">📎</span>
+                      <MdAttachFile className="text-slate-500 text-lg" />
                       <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
                         Uploaded Documents
                       </p>
                     </div>
                     <button
                       onClick={() => setStep(1)}
-                      className="text-[11px] font-bold text-[#132ea7] hover:bg-indigo-50 px-2.5 py-1 rounded-lg transition"
+                      className="inline-flex items-center gap-1 text-[11px] font-bold text-[#132ea7] hover:bg-indigo-50 px-2.5 py-1 rounded-lg transition"
                     >
-                      ✏ Edit
+                      <MdEdit size={14} /> Edit
                     </button>
                   </div>
                   <div className="divide-y divide-slate-50">
@@ -805,28 +823,28 @@ const InternRegister = () => {
                         file: step2.id_proof,
                         label: "ID Proof",
                         sub: formatLabel(step2.document_type),
-                        icon: "📄",
+                        icon: <MdDescription className="text-slate-500" />,
                         required: true,
                       },
                       {
                         file: step2.photo,
                         label: "Profile Photo",
                         sub: "Image file",
-                        icon: "📷",
+                        icon: <MdPhotoCamera className="text-slate-500" />,
                         required: true,
                       },
                       {
                         file: step2.resume,
                         label: "Resume",
                         sub: "PDF / DOC",
-                        icon: "📋",
+                        icon: <MdAssignment className="text-slate-500" />,
                         required: false,
                       },
                       {
                         file: step2.last_sem_marksheet,
                         label: "Last Sem Marksheet",
                         sub: "PDF / Image",
-                        icon: "📋",
+                        icon: <MdAssignment className="text-slate-500" />,
                         required: false,
                       },
                     ].map(({ file, label, sub, icon, required }) => (
@@ -859,15 +877,15 @@ const InternRegister = () => {
                         </div>
                         {file ? (
                           <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center text-xs font-bold shrink-0">
-                            ✓
+                            <MdCheck size={14} />
                           </span>
                         ) : required ? (
                           <span className="w-5 h-5 rounded-full bg-red-100 text-red-500 flex items-center justify-center text-xs font-bold shrink-0">
-                            !
+                            <MdPriorityHigh size={12} />
                           </span>
                         ) : (
                           <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center text-xs shrink-0">
-                            —
+                            <MdRemove size={14} />
                           </span>
                         )}
                       </div>
@@ -877,9 +895,7 @@ const InternRegister = () => {
 
                 {/* Disclaimer Box */}
                 <div className="flex items-start gap-3 bg-indigo-50 border border-indigo-100 rounded-2xl px-4 sm:px-5 py-3.5 mt-2">
-                  <span className="text-[#132ea7] text-sm sm:text-base shrink-0">
-                    ℹ
-                  </span>
+                  <MdInfo className="text-[#132ea7] text-base sm:text-lg shrink-0 mt-0.5" />
                   <p className="text-[11px] sm:text-xs text-indigo-800 leading-relaxed font-medium">
                     By submitting, you confirm that all information provided is accurate and complete.
                   </p>
@@ -894,9 +910,9 @@ const InternRegister = () => {
               <button
                 onClick={handleBack}
                 disabled={submitting}
-                className="px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-black text-[11px] sm:text-xs uppercase tracking-widest hover:bg-slate-50 transition disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-black text-[11px] sm:text-xs uppercase tracking-widest hover:bg-slate-50 transition disabled:opacity-50"
               >
-                ← Back
+                <MdArrowBack size={16} /> Back
               </button>
             ) : (
               <div className="hidden sm:block flex-1" />
@@ -905,17 +921,23 @@ const InternRegister = () => {
             {step < 2 ? (
               <button
                 onClick={handleNext}
-                className="flex-1 py-2.5 sm:py-3 rounded-xl bg-[#132ea7] text-white font-black text-[11px] sm:text-xs uppercase tracking-widest hover:bg-[#0f2490] transition shadow-sm"
+                className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 sm:py-3 rounded-xl bg-[#132ea7] text-white font-black text-[11px] sm:text-xs uppercase tracking-widest hover:bg-[#0f2490] transition shadow-sm"
               >
-                Next →
+                Next <MdArrowForward size={16} />
               </button>
             ) : (
               <button
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="flex-1 py-2.5 sm:py-3 rounded-xl bg-[#e98937] text-white font-black text-[11px] sm:text-xs uppercase tracking-widest hover:bg-[#d4782a] transition disabled:opacity-60 shadow-sm"
+                className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 sm:py-3 rounded-xl bg-[#e98937] text-white font-black text-[11px] sm:text-xs uppercase tracking-widest hover:bg-[#d4782a] transition disabled:opacity-60 shadow-sm"
               >
-                {submitting ? "Submitting..." : "Submit Application →"}
+                {submitting ? (
+                  "Submitting..."
+                ) : (
+                  <>
+                    Submit Application <MdArrowForward size={16} />
+                  </>
+                )}
               </button>
             )}
           </div>

@@ -128,6 +128,12 @@ const Export = ({ from: parentFrom = "", to: parentTo = "" }) => {
       icon: <MdHistory size={24} />,
       description: "Export employee work submissions",
     },
+    {
+  id: "leaves",
+  label: "Leave Records",
+  icon: <MdEventAvailable size={24} />,
+  description: "Export employee leave records",
+},
   ];
 
   return (
