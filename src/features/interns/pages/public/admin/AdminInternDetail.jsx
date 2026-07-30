@@ -207,6 +207,11 @@ const [selectedProjectMentorIds, setSelectedProjectMentorIds] = useState([]);
 
 
 
+const [verifying, setVerifying] = useState(false);
+console.log("🚀 ~ AdminInternDetail ~ verifying:", verifying)
+
+
+
   // ── Fetch intern ───────────────────────────────────────────────────────────
   const fetchIntern = async () => {
     try {
@@ -518,6 +523,22 @@ const handleUpdateMentor = async (e) => {
   }
 };
 
+
+const handleVerifyDocuments = async (fields) => {
+  try {
+    setVerifying(true);
+    await api.patch(ENDPOINTS.INTERNS.ADMIN_UPDATE(id), {
+      verify_document_fields: fields,
+    });
+    toast.success('Documents verified.');
+    fetchIntern(); // refresh so verified_fields updates in doc
+  } catch (err) {
+    toast.error(err?.response?.data?.message || 'Failed to verify.');
+  } finally {
+    setVerifying(false);
+  }
+};
+
   // ── Shared classes ─────────────────────────────────────────────────────────
   const inputCls = (err) =>
     `w-full px-4 py-2.5 rounded-xl border text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-[#132ea7]/30 ${
@@ -729,58 +750,119 @@ onClick={() => { setSelectedApproveMentorIds([]); setShowApprove(true); }}
         <div className="p-6">
 
           {/* ── Documents tab ─────────────────────────────────────────────── */}
-          {activeTab === "Documents" && (
-            <div className="flex flex-col gap-6">
+        {activeTab === "Documents" && (
+  <div className="flex flex-col gap-6">
+    {!doc ? (
+      <p className="text-sm text-slate-400 font-medium">No documents found.</p>
+    ) : (
+      <>
+        {/* Verify summary + Verify All button */}
+        <div className="flex items-center justify-between">
+          <div>
+            <p className={fieldLbl}>Verification Status</p>
+            <p className="text-sm font-semibold text-slate-600 mt-0.5">
+              {(doc.verified_fields || []).length} of {(doc.verified_fields || []).length}   fields verified
+            </p>
+          </div>
+          {(doc.verified_fields || []).length < 5 && (
+            <button
+              disabled={verifying}
+              onClick={() => handleVerifyDocuments(['id_proof', 'photo', 'resume', 'last_sem_marksheet', 'document_type'])}
+              className="px-4 py-2 rounded-xl bg-green-500 text-white text-xs font-black uppercase tracking-widest hover:bg-green-600 transition disabled:opacity-60"
+            >
+              {verifying ? "Verifying..." : "✓ Verify All"}
+            </button>
+          )}
+          {(doc.verified_fields || []).length === 5 && (
+            <span className="text-xs font-black uppercase tracking-widest px-3 py-1.5 rounded-full bg-green-100 text-green-600">
+              ✓ All Verified
+            </span>
+          )}
+        </div>
 
-              {!doc ? (
-                <p className="text-sm text-slate-400 font-medium">No documents found.</p>
+        {/* ID proof type with verify button */}
+        <div className="flex items-center justify-between">
+          <div>
+            <p className={fieldLbl}>ID Proof Type</p>
+            <p className={fieldVal}>
+              {doc.document_type
+                ? doc.document_type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+                : "—"}
+            </p>
+          </div>
+          {doc.verified_fields?.includes('document_type') ? (
+            <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-green-100 text-green-600">
+              ✓ Verified
+            </span>
+          ) : (
+            <button
+              disabled={verifying}
+              onClick={() => handleVerifyDocuments(['document_type'])}
+              className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border border-slate-200 text-slate-500 hover:border-green-500 hover:text-green-600 transition disabled:opacity-60"
+            >
+              Verify
+            </button>
+          )}
+        </div>
+
+        {/* Files grid with verify buttons */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+          {[
+            { field: 'id_proof',           label: 'ID Proof',  url: doc.id_proof },
+            { field: 'photo',              label: 'Photo',     url: doc.photo },
+            { field: 'resume',             label: 'Resume',    url: doc.resume },
+            { field: 'last_sem_marksheet', label: 'Marksheet', url: doc.last_sem_marksheet },
+          ].map(({ field, label, url }) => (
+            <div key={field} className="flex flex-col gap-2">
+              <FileLink label={label} url={url} />
+              {url ? (
+                doc.verified_fields?.includes(field) ? (
+                  <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-green-100 text-green-600 w-fit">
+                    ✓ Verified
+                  </span>
+                ) : (
+                  <button
+                    disabled={verifying}
+                    onClick={() => handleVerifyDocuments([field])}
+                    className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-slate-200 text-slate-500 hover:border-green-500 hover:text-green-600 transition w-fit disabled:opacity-60"
+                  >
+                    Verify
+                  </button>
+                )
               ) : (
-                <>
-                  {/* ID proof type */}
-                  <div>
-                    <p className={fieldLbl}>ID Proof Type</p>
-                    <p className={fieldVal}>
-                      {doc.document_type
-                        ? doc.document_type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-                        : "—"}
-                    </p>
-                  </div>
-
-                  {/* Files */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-                    <FileLink label="ID Proof"   url={doc.id_proof} />
-                    <FileLink label="Photo"      url={doc.photo} />
-                    <FileLink label="Resume"     url={doc.resume} />
-                    <FileLink label="Marksheet"  url={doc.last_sem_marksheet} />
-                  </div>
-
-                  {/* College detail */}
-                  {doc.college_detail && (
-                    <div>
-                      <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">
-                        College Details
-                      </p>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-4 bg-slate-50 rounded-xl p-4">
-                        {[
-                          ["College Name",    doc.college_detail.college_name],
-                          ["Address",         doc.college_detail.college_address],
-                          ["Branch",          doc.college_detail.branch],
-                          ["Current Year",    doc.college_detail.current_year],
-                        ].map(([label, val]) => (
-                          <div key={label}>
-                            <p className={fieldLbl}>{label}</p>
-                            <p className={fieldVal}>{val || "—"}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-
-                </>
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-300 italic">
+                  Not uploaded
+                </span>
               )}
             </div>
-          )}
+          ))}
+        </div>
+
+        {/* College detail — unchanged */}
+        {doc.college_detail && (
+          <div>
+            <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">
+              College Details
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-4 bg-slate-50 rounded-xl p-4">
+              {[
+                ["College Name",  doc.college_detail.college_name],
+                ["Address",       doc.college_detail.college_address],
+                ["Branch",        doc.college_detail.branch],
+                ["Current Year",  doc.college_detail.current_year],
+              ].map(([label, val]) => (
+                <div key={label}>
+                  <p className={fieldLbl}>{label}</p>
+                  <p className={fieldVal}>{val || "—"}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </>
+    )}
+  </div>
+)}
 
           {/* ── Project tab ───────────────────────────────────────────────── */}
           {activeTab === "Project" && (
