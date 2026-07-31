@@ -3,7 +3,9 @@ import { useAuth } from '../../context/AuthContext';
 import Button from "../ui/Button";
 
 import {  
-   MdLogout, MdTask, MdPhone, MdBook, MdLock, MdDashboard, MdMenu,MdClose, MdFolder, MdNotifications } from "react-icons/md";
+   MdLogout, MdTask, MdPhone, MdBook, MdLock, MdDashboard, MdMenu,MdClose, MdFolder, MdNotifications,       MdEventAvailable,
+  MdHistory,
+  MdCelebration, } from "react-icons/md";
 import { useState } from "react";
 import NotificationBell from "../NotificationBell";
 import HeaderLogo from "../common/HeaderLogo";
@@ -15,7 +17,8 @@ const navItems = [
     { to: "/employee/work-logs", label: "Work Log", icon: <MdBook size={18} /> },
     { to: "/employee/password", label: "Password", icon: <MdLock size={18} /> },
     { to: "/employee/projects", label: "Projects", icon: <MdFolder size={18} /> },
-    { to: "/employee/leaves", label: "Leaves", icon: <MdFolder size={18} /> },
+    { to: "/employee/leaves", label: "Leaves", icon: <MdEventAvailable size={18} /> },
+    { to: "/employee/holiday", label: "Holidays", icon: <MdCelebration size={18} /> },
     //   { to: "/employee/notifications", label: "Notifications", icon: <MdNotifications size={18} /> },
     //   {to: "/Team", label:"Team", }
 ];

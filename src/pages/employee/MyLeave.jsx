@@ -522,7 +522,9 @@ const [balanceLoading, setBalanceLoading] = useState(false);
                     </td>
                   </tr>
                 )}
-                {leaves.map((leave) => (
+                {leaves.filter(Boolean).map((leave) => (
+
+                  
                   <tr key={leave.id} className="hover:bg-slate-50/80 transition-colors group">
 
                     {/* Requested On */}
@@ -605,7 +607,7 @@ const [balanceLoading, setBalanceLoading] = useState(false);
             No leave requests found.
           </div>
         ) : (
-          leaves.map((leave) => (
+          leaves.filter(Boolean).map((leave) => (
             <div key={leave.id} className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-3">
               <div className="flex items-start justify-between gap-3">
                 <div>

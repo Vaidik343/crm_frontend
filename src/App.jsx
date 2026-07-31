@@ -22,6 +22,7 @@ import AdminWorkLogs from "./pages/admin/WorkLogs";
 import Leaves from "./pages/admin/Leave"
 import PublicHolidays  from "./pages/admin/PublicHolidays"
 import Clients from "./pages/admin/Clients"
+import Holiday from "./pages/employee/Holidays"
 
 import MyTasks         from "./pages/employee/MyTasks";
 import MyCalls         from "./pages/employee/MyCalls";
@@ -148,6 +149,8 @@ const App = () => {
   <Route path="tasks" element={<MyTasks />} />
   <Route path="work-logs" element={<WorkLog />} />
   <Route path="leaves" element={<MyLeaves />} />
+  <Route path="holiday" element={<Holiday />} />
+
   <Route path="password" element={<ChangePassword />} />
 
   {/* Dashboard */}

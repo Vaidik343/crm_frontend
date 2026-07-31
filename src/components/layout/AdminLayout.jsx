@@ -17,7 +17,10 @@ import {
     MdGroup,
     MdNotifications,
     MdLogout ,
-    MdPerson 
+    MdPerson ,
+      MdEventAvailable,
+  MdHistory,
+  MdCelebration,
 } from "react-icons/md";
 import { ImUserTie } from "react-icons/im";
 
@@ -38,8 +41,8 @@ const navItems = [
     { to: "/admin/tasks", label: "Tasks", icon: <MdCheckCircle size={20} /> },
     { to: "/admin/permissions", label: "Permissions", icon: <MdLock size={20} /> },
     { to: "/admin/work-logs", label: "Work Logs", icon: <MdBook size={20} /> },
-    { to: "/admin/leaves", label: "Leaves", icon: <MdBook size={20} /> },
-    { to: "/admin/holidays", label: "Public Holiday", icon: <MdBook size={20} /> },
+    { to: "/admin/leaves", label: "Leaves", icon: <MdEventAvailable size={20} /> },
+    { to: "/admin/holidays", label: "Public Holiday", icon: <MdCelebration size={20} /> },
     { to: "/admin/interns", label: "Interns", icon: <MdPerson size={18} /> },
     {to: "/admin/clients", label:"Clients", icon: <ImUserTie size={20}/>},
     //   { to: "/admin/notifications", label: "Notifications", icon: <MdNotifications size={20} /> },

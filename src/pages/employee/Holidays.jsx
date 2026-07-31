@@ -17,7 +17,6 @@ import {
   MdAccessTime,
   MdCelebration,
   MdTrendingUp,
-   MdEdit,
 } from "react-icons/md";
 import { formatDate } from "../../utils/formatDate";
 
@@ -27,8 +26,8 @@ const MONTH_NAMES = [
   "October", "November", "December",
 ];
 
-const PublicHolidays = () => {
-  const { getPublicHolidays, addPublicHoliday,  updatePublicHoliday,deletePublicHoliday } = useLeave();
+const Holidays = () => {
+  const { getPublicHolidays, addPublicHoliday, deletePublicHoliday } = useLeave();
 
   const currentYear = new Date().getFullYear();
   const [year, setYear] = useState(currentYear);
@@ -49,11 +48,6 @@ const PublicHolidays = () => {
   const [deleting, setDeleting] = useState(false);
   const [alert, setAlert] = useState({ type: "", message: "" });
 
-
-  const [editingHoliday, setEditingHoliday] = useState(null);
-  console.log("🚀 ~ PublicHolidays ~ editingHoliday:", editingHoliday)
-
-
   const fetchHolidays = (y) => {
     setLoading(true);
     getPublicHolidays(y)
@@ -66,80 +60,59 @@ const PublicHolidays = () => {
     fetchHolidays(year);
   }, [year]);
 
-  const validate = () => {
-    const errors = {};
-    if (!form.name.trim()) errors.name = "Holiday name is required.";
-    if (!form.date) errors.date = "Date is required.";
-    return errors;
-  };
+//   const validate = () => {
+//     const errors = {};
+//     if (!form.name.trim()) errors.name = "Holiday name is required.";
+//     if (!form.date) errors.date = "Date is required.";
+//     return errors;
+//   };
 
-   
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const errors = validate();
-    if (Object.keys(errors).length) {
-      setFieldErrors(errors);
-      return;
-    }
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     const errors = validate();
+//     if (Object.keys(errors).length) {
+//       setFieldErrors(errors);
+//       return;
+//     }
 
-    try {
-      setSubmitting(true);
-  if (editingHoliday) {
-  await updatePublicHoliday(editingHoliday.id, {
-    name: form.name.trim(),
-    date: form.date,
-    type: form.type,
-  });
+//     try {
+//       setSubmitting(true);
+//       await addPublicHoliday({
+//         name: form.name.trim(),
+//         date: form.date,
+//         type: form.type,
+//       });
+//       setAlert({ type: "success", message: "Holiday added successfully." });
+//       setShowModal(false);
+//       setForm({ name: "", date: "", type: "NATIONAL" });
+//       fetchHolidays(year);
+//     } catch (err) {
+//       setAlert({
+//         type: "danger",
+//         message: err?.response?.data?.message || "Failed to add holiday.",
+//       });
+//     } finally {
+//       setSubmitting(false);
+//     }
+//   };
 
-  setAlert({
-    type: "success",
-    message: "Holiday updated successfully.",
-  });
-} else {
-  await addPublicHoliday({
-    name: form.name.trim(),
-    date: form.date,
-    type: form.type,
-  });
-
-  setAlert({
-    type: "success",
-    message: "Holiday added successfully.",
-  });
-}
-      setAlert({ type: "success", message: "Holiday added successfully." });
-      setEditingHoliday(null);
-      setShowModal(false);
-      setForm({ name: "", date: "", type: "NATIONAL" });
-      fetchHolidays(year);
-    } catch (err) {
-       console.log("🚀 ~ handleSubmit ~ err:", err)
-      setAlert({
-        type: "danger",
-        message: err?.response?.data?.message || "Failed to add holiday.",
-      });
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!confirmDelete) return;
-    try {
-      setDeleting(true);
-      await deletePublicHoliday(confirmDelete.id);
-      setAlert({ type: "success", message: "Holiday deleted." });
-      fetchHolidays(year);
-    } catch (err) {
-      setAlert({
-        type: "danger",
-        message: err?.response?.data?.message || "Failed to delete.",
-      });
-    } finally {
-      setDeleting(false);
-      setConfirmDelete(null);
-    }
-  };
+//   const handleDelete = async () => {
+//     if (!confirmDelete) return;
+//     try {
+//       setDeleting(true);
+//       await deletePublicHoliday(confirmDelete.id);
+//       setAlert({ type: "success", message: "Holiday deleted." });
+//       fetchHolidays(year);
+//     } catch (err) {
+//       setAlert({
+//         type: "danger",
+//         message: err?.response?.data?.message || "Failed to delete.",
+//       });
+//     } finally {
+//       setDeleting(false);
+//       setConfirmDelete(null);
+//     }
+//   };
 
   // --- Calculations for Top Stat Cards ---
   const today = new Date();
@@ -201,11 +174,9 @@ const PublicHolidays = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-            Public <span className="text-primary">Holidays</span>
+             <span className="text-primary">Holidays</span>
           </h2>
-          <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-            Manage company-wide holidays and working schedules for the fiscal year.
-          </p>
+
         </div>
 
         <div className="flex items-center gap-3">
@@ -223,22 +194,17 @@ const PublicHolidays = () => {
           </select>
 
           {/* Add Holiday Button */}
-          <Button
+          {/* <Button
             variant="primary"
             className="bg-[#132ea7]  text-white font-semibold px-5 py-2.5 rounded-xl shadow-md shadow-indigo-200 flex items-center gap-2 text-sm transition-all"
             onClick={() => {
-            setEditingHoliday(null);
-setShowModal(true);
-setForm({
-  name: "",
-  date: "",
-  type: "NATIONAL",
-});
-setFieldErrors({});
+              setShowModal(true);
+              setForm({ name: "", date: "", type: "NATIONAL" });
+              setFieldErrors({});
             }}
           >
             <MdAdd className="w-5 h-5 bg-white/20 rounded-full p-0.5" /> Add Holiday
-          </Button>
+          </Button> */}
         </div>
       </div>
 
@@ -469,33 +435,13 @@ setFieldErrors({});
                             {isUpcoming ? "Upcoming" : "Completed"}
                           </span>
 
-<button
-  onClick={() => {
-    setEditingHoliday(holiday);
-
-    setForm({
-      name: holiday.name,
-      date: holiday.date.slice(0, 10),
-      type: holiday.type || "NATIONAL",
-    });
-
-    setFieldErrors({});
-    setShowModal(true);
-  }}
-  className="p-2 rounded-xl text-slate-300 hover:text-indigo-600 hover:bg-indigo-50  group-hover:opacity-100 transition-all"
-  title="Edit holiday"
->
-  <MdEdit className="w-4 h-4" />
-</button>
-
-
-                          <button
+                          {/* <button
                             onClick={() => setConfirmDelete(holiday)}
-                            className="p-2 rounded-xl text-slate-300 hover:text-rose-500 hover:bg-rose-50  group-hover:opacity-100 transition-all"
+                            className="p-2 rounded-xl text-slate-300 hover:text-rose-500 hover:bg-rose-50 opacity-0 group-hover:opacity-100 transition-all"
                             title="Delete holiday"
                           >
                             <MdDelete className="w-4 h-4" />
-                          </button>
+                          </button> */}
                         </div>
                       </div>
                     );
@@ -507,22 +453,10 @@ setFieldErrors({});
       )}
 
       {/* Add Holiday Modal */}
-      <Modal
+      {/* <Modal
         show={showModal}
-        onClose={() => {
-  setShowModal(false);
-  setEditingHoliday(null);
-  setForm({
-    name: "",
-    date: "",
-    type: "NATIONAL",
-  });
-}}
-        title={
-  editingHoliday
-    ? "Edit Public Holiday"
-    : "Add Public Holiday"
-}
+        onClose={() => setShowModal(false)}
+        title="Add Public Holiday"
         size="sm"
       >
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
@@ -567,14 +501,14 @@ setFieldErrors({});
               className="flex-[2] bg-[#132ea7] text-white text-xs font-semibold py-2.5 rounded-xl shadow-md shadow-indigo-100"
               loading={submitting}
             >
-              {editingHoliday ? "Save Changes" : "Add Holiday"}
+              Add Holiday
             </Button>
           </div>
         </form>
-      </Modal>
+      </Modal> */}
 
       {/* Delete Confirmation Modal */}
-      <ConfirmDialog
+      {/* <ConfirmDialog
         show={!!confirmDelete}
         message={`Delete "${confirmDelete?.name}" (${
           confirmDelete ? formatDate(confirmDelete.date) : ""
@@ -582,9 +516,9 @@ setFieldErrors({});
         onConfirm={handleDelete}
         onCancel={() => setConfirmDelete(null)}
         loading={deleting}
-      />
+      /> */}
     </div>
   );
 };
 
-export default PublicHolidays;
+export default Holidays;

@@ -43,7 +43,7 @@ export const LeaveProvider = ({children}) => {
 
             if(filter.status)  params.set("status", filter.status);
             if(filter.leave_type) params.set("leave_type", filter.leave_type);
-            if(filter.from) params.set("from", filters.from);
+            if(filter.from) params.set("from", filter.from);
             if(filter.to)  params.set("to", filter.to);
             if(filter.search) params.set("search", filter.search);
 
@@ -70,7 +70,7 @@ export const LeaveProvider = ({children}) => {
 
         setLeaves((prev) => {
             if(prev.some((l) => l.id ===data.id )) return prev;
-            return [data.data, ...prev];
+            return [data.leave, ...prev];
         });
         return data;
 
@@ -265,6 +265,21 @@ const addPublicHoliday = useCallback(async (payload) => {
   }
 }, []);
 
+
+const updatePublicHoliday = useCallback(async (id, payload) => {
+  try {
+    const { data } = await api.put(
+      ENDPOINTS.LEAVES.HOLIDAY_UPDATE(id),
+      payload
+    );
+    console.log("🚀 ~ LeaveProvider ~ data:", data)
+    return data;
+  } catch (error) {
+    throw error;
+  }
+}, []);
+
+
 const deletePublicHoliday = useCallback(async (id) => {
   try {
     const { data } = await api.delete(ENDPOINTS.LEAVES.HOLIDAY_DELETE(id));
@@ -299,6 +314,7 @@ const value = useMemo(() => ({
   getEmployeeBalanceHistory,
   getPublicHolidays,
   addPublicHoliday,
+  updatePublicHoliday,
   deletePublicHoliday,
   }), [
     leaves,
@@ -321,6 +337,7 @@ const value = useMemo(() => ({
   getEmployeeBalanceHistory,
   getPublicHolidays,
   addPublicHoliday,
+  updatePublicHoliday,
   deletePublicHoliday,
   ]);
   return (

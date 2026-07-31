@@ -126,6 +126,7 @@ export const ENDPOINTS = {
     BALANCE:           (user_id) => `/leaves/balance/${user_id}`,
     BALANCE_HISTORY:   (user_id) => `/leaves/balance/${user_id}/history`,
     HOLIDAYS:          '/leaves/holidays',
+    HOLIDAY_UPDATE:  (id) => `/leaves/holidays/${id}`,
     HOLIDAY_DELETE:    (id) =>      `/leaves/holidays/${id}`,
       
     },
