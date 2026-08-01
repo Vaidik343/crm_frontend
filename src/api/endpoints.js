@@ -201,6 +201,10 @@ ADMIN_UPDATE: (id) => `/admin/interns/${id}`,
         TERMINATE: (id) => `/probation/${id}/terminate`,
         DATES: (id) => `/probation/${id}/dates`,
 
-     }
+     } ,
+     SETTINGS: {
+  GET:    '/settings',
+  UPDATE: '/settings',
+},
 
 }
