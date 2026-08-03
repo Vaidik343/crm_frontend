@@ -177,7 +177,7 @@ const MyTasks = () => {
   const validate = () => {
     const errors = {};
     if (!form.task.trim()) errors.task = "Task name is required";
-    if (!editTarget && !form.project_id)
+    if ( !form.project_id)
       errors.project_id = "Project is required";
     return errors;
   };
@@ -238,6 +238,7 @@ const MyTasks = () => {
           description: form.description || null,
           assigned_to: form.assigned_to || "",
           due_date: form.due_date || null,
+          project_id: form.project_id || null,
           status: form.status,
           remark: form.remark || undefined,
         });
@@ -345,51 +346,53 @@ const MyTasks = () => {
   return (
     <div className="space-y-8 px-4 animate-in fade-in duration-700">
       {/* Header */}
-
-   <div className="space-y-4">
-  {/* Title row */}
-  <div className="flex items-center justify-between">
+{/* Header & Controls Section */}
+<div className="space-y-6">
+  {/* Title & Action Buttons */}
+  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
     <div>
       <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-1 uppercase">
         Task <span className="text-[#132ea7]">Board</span>
       </h2>
       <p className="text-slate-500 font-bold text-base">Total Tasks: {total}</p>
     </div>
-    {/* Action buttons always top-right */}
-    <div className="flex gap-3 shrink-0">
+    <div className="flex items-center gap-3 shrink-0">
       <Button
         variant="ghost"
-        className="shadow-sm px-6 rounded-xl font-black uppercase tracking-widest text-sm whitespace-nowrap min-h-[52px] bg-white border border-slate-100"
+        className="shadow-sm px-5 rounded-xl font-black uppercase tracking-widest text-xs whitespace-nowrap h-[48px] bg-white border border-slate-100"
         onClick={() => setShowExportModal(true)}
       >
-        <MdDownload size={20} className="mr-1" /> Download
+        <MdDownload size={18} className="mr-1.5" /> Download
       </Button>
       <Button
         variant="primary"
-        className="shadow-lg shadow-[#132ea7]/20 px-8 rounded-xl h-[52px] font-black uppercase tracking-widest text-sm whitespace-nowrap"
+        className="shadow-lg shadow-[#132ea7]/20 px-6 rounded-xl h-[48px] font-black uppercase tracking-widest text-xs whitespace-nowrap"
         onClick={openCreate}
       >
-        <MdAdd size={22} className="mr-1" /> New Task
+        <MdAdd size={20} className="mr-1.5" /> New Task
       </Button>
     </div>
   </div>
 
-  {/* Controls grid — 1 col on mobile, 3 cols on lg */}
-  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
-
-    {/* Filter buttons */}
-    <div className="flex items-center gap-2 flex-wrap">
+  {/* Controls Toolbar */}
+  <div className="flex flex-col xl:flex-row lg:items-center justify-between gap-3">
+    
+    {/* 1. Filter buttons */}
+    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 shrink-0">
       {[
         { value: "", label: "All" },
         { value: "due_soon", label: "Due Soon" },
         { value: "overdue", label: "Overdue" },
       ].map((opt) => (
-        <button 
+        <button
           key={opt.value}
-          onClick={() => { setPage(1); setDueFilter(opt.value); }}
-          className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+          onClick={() => {
+            setPage(1);
+            setDueFilter(opt.value);
+          }}
+          className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${
             dueFilter === opt.value
-              ? "bg-[#132ea7] text-white shadow-lg shadow-[#132ea7]/20"
+              ? "bg-[#132ea7] text-white shadow-md shadow-[#132ea7]/20"
               : "bg-slate-100 text-slate-500 hover:bg-slate-200"
           }`}
         >
@@ -398,40 +401,52 @@ const MyTasks = () => {
       ))}
     </div>
 
-    {/* Search */}
-    <SearchInput
-      value={search}
-      onChange={setSearch}
-      placeholder="Search Tasks, Projects..."
+    {/* 2. Search Input */}
+    <div className="flex-1  max-w-md w-full">
+      <SearchInput
+        value={search}
+        onChange={setSearch}
+        placeholder="Search Tasks, Projects..."
+      />
+    </div>
 
-    />
+    {/* 3. Compact Date Range */}
+    <div className="flex items-center gap-2 bg-white border border-slate-100 rounded-2xl px-3 py-2 shadow-sm shrink-0 overflow-x-auto">
+      <div className="flex items-center gap-1.5">
+        <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">From</label>
+        <input
+          type="date"
+          value={dateFrom}
+          max={today}
+          onChange={(e) => setDateFrom(e.target.value)}
+          className="bg-slate-50 border border-slate-200/80 rounded-xl px-2 py-1 text-xs font-bold text-slate-700 outline-none focus:border-[#132ea7]"
+        />
+      </div>
 
-    {/* Date range */}
+      <span className="text-slate-300 font-bold">•</span>
 
-<div className="flex flex-wrap items-center gap-2 bg-white border border-slate-100 rounded-2xl px-4 py-3 shadow-sm min-h-[52px]">
-  <label className="text-xs font-black text-slate-400 uppercase">From</label>
-  <input
-    type="date"
-    value={dateFrom}
-    max={today}
-    onChange={(e) => setDateFrom(e.target.value)}
-    className="bg-slate-50 border border-slate-100 rounded-xl px-2 py-1.5 text-sm font-bold"
-  />
-  <label className="text-xs font-black text-slate-400 uppercase">To</label>
-  <input
-    type="date"
-    value={dateTo}
-    max={today}
-    onChange={(e) => setDateTo(e.target.value)}
-    className="bg-slate-50 border border-slate-100 rounded-xl px-2 py-1.5 text-sm font-bold"
-  />
-  <button
-    onClick={() => { setPage(1); setDateFrom(sevenDaysAgo); setDateTo(today); }}
-    className="text-[10px] font-black text-[#132ea7] uppercase tracking-widest hover:underline whitespace-nowrap"
-  >
-    Reset
-  </button>
-</div>
+      <div className="flex items-center gap-1.5">
+        <label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">To</label>
+        <input
+          type="date"
+          value={dateTo}
+          max={today}
+          onChange={(e) => setDateTo(e.target.value)}
+          className="bg-slate-50 border border-slate-200/80 rounded-xl px-2 py-1 text-xs font-bold text-slate-700 outline-none focus:border-[#132ea7]"
+        />
+      </div>
+
+      <button
+        onClick={() => {
+          setPage(1);
+          setDateFrom(sevenDaysAgo);
+          setDateTo(today);
+        }}
+        className="ml-1 text-[10px] font-black text-[#132ea7] uppercase tracking-widest hover:underline whitespace-nowrap"
+      >
+        Reset
+      </button>
+    </div>
 
   </div>
 </div>
@@ -783,8 +798,8 @@ const MyTasks = () => {
               />
             </div>
 
-            {/* Project — only on create */}
-            {!editTarget && (
+            {/* Project — */}
+            {/* {!editTarget && ( */}
               <div className="space-y-1.5">
                 <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
                   Project
@@ -809,7 +824,7 @@ const MyTasks = () => {
                   }}
                   getLabel={(p) => `${p.name}${p.code ? ` (${p.code})` : ""}`}
                   placeholder="Search project by name or code..."
-                  emptyOptionLabel="No Project"
+                  emptyOptionLabel={editTarget ? undefined : "No Project"}
                   required
                   error={fieldErrors.project_id}
                 />
@@ -819,7 +834,7 @@ const MyTasks = () => {
                   </p>
                 )}
               </div>
-            )}
+            {/* // )} */}
 
             {/* Assign to — any employee, optional-  filtered by selected project (blank = self) */}
             {!editTarget && (

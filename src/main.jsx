@@ -19,6 +19,8 @@ import { SocketProvider } from './context/SocketContext.jsx';
 import { ClientProvider } from './context/ClientContext.jsx'
 import { LeaveProvider } from './context/LeaveContext.jsx'
 import { ProbationProvider } from './context/ProbationContext.jsx'
+import { InternProvider } from './context/InternContext.jsx'
+import { NotificationProvider } from './context/NotificationContext';
 
 
 createRoot(document.getElementById('root')).render(
@@ -26,6 +28,7 @@ createRoot(document.getElementById('root')).render(
     <BrowserRouter>
      <AuthProvider>
       <SocketProvider>
+          <NotificationProvider>
       <UserProvider>
         <RoleProvider>
           <ProjectProvider>
@@ -35,17 +38,20 @@ createRoot(document.getElementById('root')).render(
               <WorkLogProvider>
                 <LeaveProvider>
                   <ProbationProvider>
+                    <InternProvider>
                   
                 <TeamProvider>
                   <TeamMemberProvider>
                 <PermissionProvider>
                   <PasswordProvider>
+
                     <App />
                   </PasswordProvider>
                 </PermissionProvider>
                 </TeamMemberProvider>
                 </TeamProvider>
 
+</InternProvider>
                 </ProbationProvider>
                 </LeaveProvider>
               </WorkLogProvider>
@@ -55,6 +61,7 @@ createRoot(document.getElementById('root')).render(
           </ProjectProvider>
         </RoleProvider>
       </UserProvider>
+      </NotificationProvider>
      </SocketProvider>
      </AuthProvider>
     </BrowserRouter>

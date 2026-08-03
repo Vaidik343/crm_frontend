@@ -720,9 +720,6 @@ className="flex items-center gap-2 px-4 py-2 bg-[#132ea7] text-white rounded tex
 </div>
   {totalPages > 1 && activeTab !== "leave" && <Pagination />}
 
-
-
-
   <ExportModal
   show={showExportModal}
   onClose={() => setShowExportModal(false)}

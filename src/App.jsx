@@ -22,7 +22,7 @@ import AdminWorkLogs from "./pages/admin/WorkLogs";
 import Leaves from "./pages/admin/Leave"
 import PublicHolidays  from "./pages/admin/PublicHolidays"
 import Clients from "./pages/admin/Clients"
-
+import Settings from "./pages/admin/CompanySettings"
 
 import Holiday from "./pages/employee/Holidays"
 
@@ -101,6 +101,7 @@ const App = () => {
   <Route path='work-logs' element={<AdminWorkLogs />} />
   <Route path='leaves' element={<Leaves />} />
   <Route path="holidays"  element={<PublicHolidays />} />
+  <Route path="settings"  element={<Settings />} />
   <Route
     path="interns"
     element={

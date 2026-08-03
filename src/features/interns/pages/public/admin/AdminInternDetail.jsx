@@ -18,18 +18,18 @@ import { formatDate } from "../../../../../utils/formatDate";
 // ── Constants ──────────────────────────────────────────────────────────────────
 
 const STATUS_COLORS = {
-  pending:   "bg-amber-100 text-amber-700",
-  approved:  "bg-blue-100 text-blue-700",
-  active:    "bg-green-100 text-green-700",
-  rejected:  "bg-red-100 text-red-700",
+  pending: "bg-amber-100 text-amber-700",
+  approved: "bg-blue-100 text-blue-700",
+  active: "bg-green-100 text-green-700",
+  rejected: "bg-red-100 text-red-700",
   completed: "bg-slate-100 text-slate-500",
 };
 
 const TASK_STATUS_COLORS = {
-  open:    "bg-blue-100 text-blue-700",
+  open: "bg-blue-100 text-blue-700",
   ongoing: "bg-amber-100 text-amber-700",
-  hold:    "bg-slate-100 text-slate-600",
-  closed:  "bg-green-100 text-green-700",
+  hold: "bg-slate-100 text-slate-600",
+  closed: "bg-green-100 text-green-700",
 };
 
 const TABS = ["Documents", "Project", "Tasks", "Work Logs"];
@@ -103,8 +103,8 @@ const MentorChips = ({ mentors }) => {
 // ── Component ──────────────────────────────────────────────────────────────────
 
 const AdminInternDetail = () => {
-  const { id }    = useParams();
-  const navigate  = useNavigate();
+  const { id } = useParams();
+  const navigate = useNavigate();
 
   const {
     getInternById,
@@ -116,99 +116,104 @@ const AdminInternDetail = () => {
     getInternWorkLogs,
     getInternProject,
     adminUpdateProject,
+    deleteInternTask 
   } = useIntern();
+    // console.log("🚀 ~ AdminInternDetail ~ getInternById:", getInternById)
 
   // ── Core data ──────────────────────────────────────────────────────────────
-  const [intern, setIntern]         = useState(null);
+  const [intern, setIntern] = useState(null);
 
-
-  const [loading, setLoading]       = useState(true);
+  const [loading, setLoading] = useState(true);
 
   // ── Tab ───────────────────────────────────────────────────────────────────
-  const [activeTab, setActiveTab]   = useState("Documents");
+  const [activeTab, setActiveTab] = useState("Documents");
 
   // ── Users list (for mentor dropdown) ──────────────────────────────────────
-  const [users, setUsers]           = useState([]);
+  const [users, setUsers] = useState([]);
 
   // ── Tab data ───────────────────────────────────────────────────────────────
-  const [project, setProject]               = useState(null);
+  const [project, setProject] = useState(null);
   const [projectLoading, setProjectLoading] = useState(false);
 
-  const [tasks, setTasks]                   = useState([]);
-  const [tasksLoading, setTasksLoading]     = useState(false);
-  const [tasksTotal, setTasksTotal]         = useState(0);
-  const [tasksPage, setTasksPage]           = useState(1);
+  const [tasks, setTasks] = useState([]);
+  console.log("🚀 ~ AdminInternDetail ~ tasks:", tasks)
+  const [tasksLoading, setTasksLoading] = useState(false);
+  const [tasksTotal, setTasksTotal] = useState(0);
+  const [tasksPage, setTasksPage] = useState(1);
   const [tasksTotalPages, setTasksTotalPages] = useState(1);
   const [taskStatusFilter, setTaskStatusFilter] = useState("");
+  const [deletingTaskId, setDeletingTaskId] = useState(null);
 
-  const [workLogs, setWorkLogs]             = useState([]);
+
+
+  const [workLogs, setWorkLogs] = useState([]);
   const [workLogsLoading, setWorkLogsLoading] = useState(false);
-  const [workLogsTotal, setWorkLogsTotal]   = useState(0);
-  const [workLogsPage, setWorkLogsPage]     = useState(1);
+  const [workLogsTotal, setWorkLogsTotal] = useState(0);
+  const [workLogsPage, setWorkLogsPage] = useState(1);
   const [workLogsTotalPages, setWorkLogsTotalPages] = useState(1);
-  const [wlFrom, setWlFrom]                 = useState("");
-  const [wlTo, setWlTo]                     = useState("");
+  const [wlFrom, setWlFrom] = useState("");
+  const [wlTo, setWlTo] = useState("");
 
   // ── Modals ─────────────────────────────────────────────────────────────────
 
   // Approve
-  const [showApprove, setShowApprove]   = useState(false);
-  const [approveForm, setApproveForm]   = useState({ start_date: "", end_date: "", mentor_ids: [] });
+  const [showApprove, setShowApprove] = useState(false);
+  const [approveForm, setApproveForm] = useState({ start_date: "", end_date: "", mentor_ids: [] });
 
   const [selectedApproveMentorIds, setSelectedApproveMentorIds] = useState([]);
 
   const [approveErrors, setApproveErrors] = useState({});
-  const [approving, setApproving]       = useState(false);
+  const [approving, setApproving] = useState(false);
 
   // Reject
-  const [showReject, setShowReject]     = useState(false);
+  const [showReject, setShowReject] = useState(false);
   const [rejectReason, setRejectReason] = useState("");
-  const [rejectError, setRejectError]   = useState("");
-  const [rejecting, setRejecting]       = useState(false);
+  const [rejectError, setRejectError] = useState("");
+  const [rejecting, setRejecting] = useState(false);
 
   // Extend
-  const [showExtend, setShowExtend]     = useState(false);
-  const [extendDate, setExtendDate]     = useState("");
-  const [extendError, setExtendError]   = useState("");
-  const [extending, setExtending]       = useState(false);
+  const [showExtend, setShowExtend] = useState(false);
+  const [extendDate, setExtendDate] = useState("");
+  const [extendError, setExtendError] = useState("");
+  const [extending, setExtending] = useState(false);
 
   // Deactivate confirm
   const [showDeactivate, setShowDeactivate] = useState(false);
-  const [deactivating, setDeactivating]     = useState(false);
+  const [deactivating, setDeactivating] = useState(false);
 
   // Regenerate token
-  const [showRegen, setShowRegen]       = useState(false);
-  const [regenToken, setRegenToken]     = useState("");
+  const [showRegen, setShowRegen] = useState(false);
+  const [regenToken, setRegenToken] = useState("");
   const [regenLoading, setRegenLoading] = useState(false);
-  const [copied, setCopied]             = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // Assign task
   const [showAssignTask, setShowAssignTask] = useState(false);
-  const [taskForm, setTaskForm]             = useState({
+  const [taskForm, setTaskForm] = useState({
     task: "", description: "", intern_project_id: "", due_date: "", remark: "",
   });
   const [taskFormErrors, setTaskFormErrors] = useState({});
-  const [assigningTask, setAssigningTask]   = useState(false);
+  const [assigningTask, setAssigningTask] = useState(false);
 
   // Update mentor
-  const [showMentor, setShowMentor]     = useState(false);
-  const [mentorId, setMentorId]         = useState("");
+  const [showMentor, setShowMentor] = useState(false);
+  const [mentorId, setMentorId] = useState("");
   const [updatingMentor, setUpdatingMentor] = useState(false);
 
 
-  const [showAdminEdit, setShowAdminEdit]   = useState(false);
-const [adminEditForm, setAdminEditForm]   = useState({});
-const [adminEditErrors, setAdminEditErrors] = useState({});
-const [adminEditing, setAdminEditing]     = useState(false);
-// mentor_ids multi-select state
-const [selectedMentorIds, setSelectedMentorIds] = useState([]);
-// project mentor_ids
-const [selectedProjectMentorIds, setSelectedProjectMentorIds] = useState([]);
+  const [showAdminEdit, setShowAdminEdit] = useState(false);
+  const [adminEditForm, setAdminEditForm] = useState({});
+  const [adminEditErrors, setAdminEditErrors] = useState({});
+  const [adminEditing, setAdminEditing] = useState(false);
+  // mentor_ids multi-select state
+  const [selectedMentorIds, setSelectedMentorIds] = useState([]);
+  // project mentor_ids
+  const [selectedProjectMentorIds, setSelectedProjectMentorIds] = useState([]);
 
 
 
-const [verifying, setVerifying] = useState(false);
-console.log("🚀 ~ AdminInternDetail ~ verifying:", verifying)
+  const [verifying, setVerifying] = useState(false);
+  console.log("🚀 ~ AdminInternDetail ~ verifying:", verifying)
 
 
 
@@ -218,7 +223,7 @@ console.log("🚀 ~ AdminInternDetail ~ verifying:", verifying)
       setLoading(true);
       const data = await getInternById(id);
       console.log("🚀 ~ fetchIntern ~ data:", data)
-      
+
       setIntern(data.intern || data);
     } catch {
       toast.error("Failed to load intern.");
@@ -257,6 +262,7 @@ console.log("🚀 ~ AdminInternDetail ~ verifying:", verifying)
     try {
       setTasksLoading(true);
       const data = await getInternTasks(id, page, status);
+      console.log("🚀 ~ fetchTasks ~ data:", data)
       setTasks(data.tasks || []);
       setTasksTotal(data.total || 0);
       setTasksPage(data.page || 1);
@@ -283,38 +289,55 @@ console.log("🚀 ~ AdminInternDetail ~ verifying:", verifying)
     }
   };
 
+
+  const handleDeleteTask = async (taskId) => {
+  if (!window.confirm("Delete this task? This cannot be undone.")) return;
+  try {
+    setDeletingTaskId(taskId);
+    await deleteInternTask(taskId);
+    console.log("🚀 ~ handleDeleteTask ~ dt:", dt)
+    toast.success("Task deleted.");
+    fetchTasks(tasksPage, taskStatusFilter);
+  } catch (err) {
+      console.log("🚀 ~ handleDeleteTask ~ err:", err)
+    toast.error(err?.response?.data?.message || "Failed to delete task.");
+  } finally {
+    setDeletingTaskId(null);
+  }
+};
+
   // ── Mount ──────────────────────────────────────────────────────────────────
   useEffect(() => {
     fetchIntern();
     fetchUsers();
-    
+
   }, [id]);
 
   useEffect(() => {
-  if (showAdminEdit && intern) {
-    setAdminEditForm({
-      name:              intern.name              || "",
-      email:             intern.email             || "",
-      mobile:            intern.mobile            || "",
-      college_name:      intern.college_name      || "",
-      enrollment_no:     intern.enrollment_no     || "",
-      degree_type:       intern.degree_type       || "",
-      intern_type:       intern.intern_type       || "",
-      start_date:        intern.start_date        || "",
-      end_date:          intern.end_date          || "",
-      reference_type:    intern.reference_type    || "",
-      reference_name:    intern.reference_name    || "",
-      reference_contact: intern.reference_contact || "",
-    });
-    setSelectedMentorIds(intern.mentor_ids || []);
-    setAdminEditErrors({});
-  }
-}, [showAdminEdit, intern]);
+    if (showAdminEdit && intern) {
+      setAdminEditForm({
+        name: intern.name || "",
+        email: intern.email || "",
+        mobile: intern.mobile || "",
+        college_name: intern.college_name || "",
+        enrollment_no: intern.enrollment_no || "",
+        degree_type: intern.degree_type || "",
+        intern_type: intern.intern_type || "",
+        start_date: intern.start_date || "",
+        end_date: intern.end_date || "",
+        reference_type: intern.reference_type || "",
+        reference_name: intern.reference_name || "",
+        reference_contact: intern.reference_contact || "",
+      });
+      setSelectedMentorIds(intern.mentor_ids || []);
+      setAdminEditErrors({});
+    }
+  }, [showAdminEdit, intern]);
 
   // ── Tab switch ─────────────────────────────────────────────────────────────
   useEffect(() => {
-    if (activeTab === "Project")   fetchProject();
-    if (activeTab === "Tasks")     fetchTasks(1, taskStatusFilter);
+    if (activeTab === "Project") fetchProject();
+    if (activeTab === "Tasks") fetchTasks(1, taskStatusFilter);
     if (activeTab === "Work Logs") fetchWorkLogs(1, wlFrom, wlTo);
   }, [activeTab]);
 
@@ -329,48 +352,48 @@ console.log("🚀 ~ AdminInternDetail ~ verifying:", verifying)
   }, [wlFrom, wlTo]);
 
 
-  
 
-const handleAdminEdit = async (e) => {
-  e.preventDefault();
-  const errs = {};
-  if (!adminEditForm.name.trim())     errs.name     = "Name is required.";
-  if (!adminEditForm.email.trim())    errs.email    = "Email is required.";
-  if (!adminEditForm.mobile.trim())   errs.mobile   = "Mobile is required.";
-  else if (!/^\d{10}$/.test(adminEditForm.mobile)) errs.mobile = "Enter a valid 10-digit mobile.";
-  setAdminEditErrors(errs);
-  if (Object.keys(errs).length > 0) return;
 
-  try {
-    setAdminEditing(true);
-    await api.patch(ENDPOINTS.INTERNS.ADMIN_UPDATE(id), {
-      ...adminEditForm,
-      mentor_ids: selectedMentorIds,
-    });
-    toast.success("Intern updated successfully!");
-    setShowAdminEdit(false);
-    fetchIntern();
-     
-  } catch (error) {
-    toast.error(error?.response?.data?.message || "Failed to update intern.");
-  } finally {
-    setAdminEditing(false);
-  }
-};
-const toggleMentor = (userId) => {
-  setSelectedMentorIds((prev) =>
-    prev.includes(userId)
-      ? prev.filter((id) => id !== userId)
-      : [...prev, userId]
-  );
-};
+  const handleAdminEdit = async (e) => {
+    e.preventDefault();
+    const errs = {};
+    if (!adminEditForm.name.trim()) errs.name = "Name is required.";
+    if (!adminEditForm.email.trim()) errs.email = "Email is required.";
+    if (!adminEditForm.mobile.trim()) errs.mobile = "Mobile is required.";
+    else if (!/^\d{10}$/.test(adminEditForm.mobile)) errs.mobile = "Enter a valid 10-digit mobile.";
+    setAdminEditErrors(errs);
+    if (Object.keys(errs).length > 0) return;
+
+    try {
+      setAdminEditing(true);
+      await api.patch(ENDPOINTS.INTERNS.ADMIN_UPDATE(id), {
+        ...adminEditForm,
+        mentor_ids: selectedMentorIds,
+      });
+      toast.success("Intern updated successfully!");
+      setShowAdminEdit(false);
+      fetchIntern();
+
+    } catch (error) {
+      toast.error(error?.response?.data?.message || "Failed to update intern.");
+    } finally {
+      setAdminEditing(false);
+    }
+  };
+  const toggleMentor = (userId) => {
+    setSelectedMentorIds((prev) =>
+      prev.includes(userId)
+        ? prev.filter((id) => id !== userId)
+        : [...prev, userId]
+    );
+  };
 
 
   // ── Approve ────────────────────────────────────────────────────────────────
   const validateApprove = () => {
     const e = {};
     if (!approveForm.start_date) e.start_date = "Start date is required.";
-    if (!approveForm.end_date)   e.end_date   = "End date is required.";
+    if (!approveForm.end_date) e.end_date = "End date is required.";
     else if (approveForm.start_date && approveForm.end_date <= approveForm.start_date)
       e.end_date = "End date must be after start date.";
     setApproveErrors(e);
@@ -384,13 +407,13 @@ const toggleMentor = (userId) => {
       setApproving(true);
       await approveIntern(id, {
         start_date: approveForm.start_date,
-        end_date:   approveForm.end_date,
-        mentor_ids:  selectedApproveMentorIds
+        end_date: approveForm.end_date,
+        mentor_ids: selectedApproveMentorIds
       });
       toast.success("Intern approved successfully!");
       setShowApprove(false);
       fetchIntern();
-       
+
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to approve.");
     } finally {
@@ -447,7 +470,7 @@ const toggleMentor = (userId) => {
       toast.success("Intern deactivated.");
       setShowDeactivate(false);
       fetchIntern();
-       
+
     } catch (error) {
       toast.error(error?.response?.data?.message || "Failed to deactivate.");
     } finally {
@@ -487,12 +510,12 @@ const toggleMentor = (userId) => {
     try {
       setAssigningTask(true);
       await adminAssignTask(id, {
-        intern_id:         id,
-        task:              taskForm.task.trim(),
-        description:       taskForm.description.trim() || null,
-        intern_project_id: taskForm.intern_project_id  || null,
-        due_date:          taskForm.due_date            || null,
-        remark:            taskForm.remark.trim()       || null,
+        intern_id: id,
+        task: taskForm.task.trim(),
+        description: taskForm.description.trim() || null,
+        intern_project_id: taskForm.intern_project_id || null,
+        due_date: taskForm.due_date || null,
+        remark: taskForm.remark.trim() || null,
       });
       toast.success("Task assigned successfully!");
       setShowAssignTask(false);
@@ -507,46 +530,45 @@ const toggleMentor = (userId) => {
 
   // ── Update mentor ──────────────────────────────────────────────────────────
 
-const handleUpdateMentor = async (e) => {
-  e.preventDefault();
-  try {
-    setUpdatingMentor(true);
-    await adminUpdateProject(id, { mentor_ids: selectedProjectMentorIds });
-    toast.success("Mentors updated successfully!");
-    setShowMentor(false);
-    fetchProject();
-  } catch (error) {
+  const handleUpdateMentor = async (e) => {
+    e.preventDefault();
+    try {
+      setUpdatingMentor(true);
+      await adminUpdateProject(id, { mentor_ids: selectedProjectMentorIds });
+      toast.success("Mentors updated successfully!");
+      setShowMentor(false);
+      fetchProject();
+    } catch (error) {
       console.log("🚀 ~ handleUpdateMentor ~ error:", error)
-    toast.error(error?.response?.data?.message || "Failed to update mentors.");
-  } finally {
-    setUpdatingMentor(false);
-  }
-};
+      toast.error(error?.response?.data?.message || "Failed to update mentors.");
+    } finally {
+      setUpdatingMentor(false);
+    }
+  };
 
 
-const handleVerifyDocuments = async (fields) => {
-  try {
-    setVerifying(true);
-    await api.patch(ENDPOINTS.INTERNS.ADMIN_UPDATE(id), {
-      verify_document_fields: fields,
-    });
-    toast.success('Documents verified.');
-    fetchIntern(); // refresh so verified_fields updates in doc
-  } catch (err) {
-    toast.error(err?.response?.data?.message || 'Failed to verify.');
-  } finally {
-    setVerifying(false);
-  }
-};
+  const handleVerifyDocuments = async (fields) => {
+    try {
+      setVerifying(true);
+      await api.patch(ENDPOINTS.INTERNS.ADMIN_UPDATE(id), {
+        verify_document_fields: fields,
+      });
+      toast.success('Documents verified.');
+      fetchIntern(); // refresh so verified_fields updates in doc
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Failed to verify.');
+    } finally {
+      setVerifying(false);
+    }
+  };
 
   // ── Shared classes ─────────────────────────────────────────────────────────
   const inputCls = (err) =>
-    `w-full px-4 py-2.5 rounded-xl border text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-[#132ea7]/30 ${
-      err ? "border-red-400 bg-red-50" : "border-slate-200 bg-white"
+    `w-full px-4 py-2.5 rounded-xl border text-sm font-medium transition focus:outline-none focus:ring-2 focus:ring-[#132ea7]/30 ${err ? "border-red-400 bg-red-50" : "border-slate-200 bg-white"
     }`;
   const labelCls = "block text-xs font-black uppercase tracking-widest text-slate-500 mb-1";
-  const errCls   = "text-xs text-red-500 font-semibold mt-1";
-  const cardCls  = "bg-white rounded-2xl shadow-sm border border-slate-100 p-6";
+  const errCls = "text-xs text-red-500 font-semibold mt-1";
+  const cardCls = "bg-white rounded-2xl shadow-sm border border-slate-100 p-6";
   const fieldLbl = "text-[10px] font-black uppercase tracking-widest text-slate-400";
   const fieldVal = "text-sm font-semibold text-slate-700 mt-0.5";
 
@@ -561,7 +583,7 @@ const handleVerifyDocuments = async (fields) => {
 
   const doc = intern.documents;
 
-  console.log("🚀 ~ AdminInternDetail ~ doc:", doc)
+  // console.log("🚀 ~ AdminInternDetail ~ doc:", doc)
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -616,17 +638,17 @@ const handleVerifyDocuments = async (fields) => {
             {/* Details grid */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-4 mt-5">
               {[
-                ["Mobile",        intern.mobile        || "—"],
+                ["Mobile", intern.mobile || "—"],
                 ["Enrollment No.", intern.enrollment_no || "—"],
-                ["Degree",        intern.degree_type ? intern.degree_type.charAt(0).toUpperCase() + intern.degree_type.slice(1) : "—"],
+                ["Degree", intern.degree_type ? intern.degree_type.charAt(0).toUpperCase() + intern.degree_type.slice(1) : "—"],
                 // ["College",       intern.college_name  || "—"],
                 // ["Mentor",        intern.mentors?.name  || "Not assigned"],
-                ["Start Date",    intern.start_date ? formatDate(intern.start_date) : "—"],
-                ["End Date",      intern.end_date   ? formatDate(intern.end_date)   : "—"],
-                ["Applied On",    intern.createdAt  ? formatDate(intern.createdAt)  : "—"],
-                ["Reference Type",intern.reference_type  || "—"],
-                ["Reference Name",    intern.reference_name  || "—"],
-                ["Reference Contact",    intern.reference_contact  || "—"],
+                ["Start Date", intern.start_date ? formatDate(intern.start_date) : "—"],
+                ["End Date", intern.end_date ? formatDate(intern.end_date) : "—"],
+                ["Applied On", intern.createdAt ? formatDate(intern.createdAt) : "—"],
+                ["Reference Type", intern.reference_type || "—"],
+                ["Reference Name", intern.reference_name || "—"],
+                ["Reference Contact", intern.reference_contact || "—"],
 
               ].map(([label, val]) => (
                 <div key={label}>
@@ -636,13 +658,13 @@ const handleVerifyDocuments = async (fields) => {
               ))}
             </div>
 
-{/* mentor */}
-<div className="mt-4">
-  <p className={fieldLbl}>Mentors</p>
-  <div className="mt-2">
-    <MentorChips mentors={intern.mentors} />
-  </div>
-</div>
+            {/* mentor */}
+            <div className="mt-4">
+              <p className={fieldLbl}>Mentors</p>
+              <div className="mt-2">
+                <MentorChips mentors={intern.mentors} />
+              </div>
+            </div>
 
             {/* Rejection reason */}
             {intern.status === "rejected" && intern.rejection_reason && (
@@ -665,20 +687,20 @@ const handleVerifyDocuments = async (fields) => {
               <>
                 <button
                   // where you call setShowApprove(true):
-onClick={() => { setSelectedApproveMentorIds([]); setShowApprove(true); }}
+                  onClick={() => { setSelectedApproveMentorIds([]); setShowApprove(true); }}
                   className="px-4 py-2.5 rounded-xl bg-green-500 text-white text-xs font-black uppercase tracking-widest hover:bg-green-600 transition"
                 >
                   Approve
                 </button>
                 <button
                   // where you call setShowApprove(true):
-onClick={() => { setSelectedApproveMentorIds([]); setShowApprove(true); }}
+                  onClick={() => { setSelectedApproveMentorIds([]); setShowApprove(true); }}
                   className="px-4 py-2.5 rounded-xl bg-red-500 text-white text-xs font-black uppercase tracking-widest hover:bg-red-600 transition"
                 >
                   Reject
                 </button>
 
-                
+
               </>
             )}
 
@@ -715,15 +737,15 @@ onClick={() => { setSelectedApproveMentorIds([]); setShowApprove(true); }}
 
 
         {/* Add this outside the status check — admin can always edit */}
-<div className="flex flex-wrap gap-3 mt-6 pt-5 border-t border-slate-100">
-  <button
-    onClick={() => setShowAdminEdit(true)}
-    className="px-4 py-2.5 rounded-xl border-2 border-[#132ea7] text-[#132ea7] text-xs font-black uppercase tracking-widest hover:bg-[#132ea7] hover:text-white transition"
-  >
-    Edit Intern
-  </button>
-  {/* existing status-based buttons below... */}
-</div>
+        <div className="flex flex-wrap gap-3 mt-6 pt-5 border-t border-slate-100">
+          <button
+            onClick={() => setShowAdminEdit(true)}
+            className="px-4 py-2.5 rounded-xl border-2 border-[#132ea7] text-[#132ea7] text-xs font-black uppercase tracking-widest hover:bg-[#132ea7] hover:text-white transition"
+          >
+            Edit Intern
+          </button>
+          {/* existing status-based buttons below... */}
+        </div>
       </div>
 
       {/* ── Tabs ────────────────────────────────────────────────────────────── */}
@@ -735,11 +757,10 @@ onClick={() => { setSelectedApproveMentorIds([]); setShowApprove(true); }}
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-6 py-4 text-xs font-black uppercase tracking-widest whitespace-nowrap transition border-b-2 -mb-px ${
-                activeTab === tab
+              className={`px-6 py-4 text-xs font-black uppercase tracking-widest whitespace-nowrap transition border-b-2 -mb-px ${activeTab === tab
                   ? "border-[#132ea7] text-[#132ea7]"
                   : "border-transparent text-slate-400 hover:text-slate-600"
-              }`}
+                }`}
             >
               {tab}
             </button>
@@ -750,119 +771,119 @@ onClick={() => { setSelectedApproveMentorIds([]); setShowApprove(true); }}
         <div className="p-6">
 
           {/* ── Documents tab ─────────────────────────────────────────────── */}
-        {activeTab === "Documents" && (
-  <div className="flex flex-col gap-6">
-    {!doc ? (
-      <p className="text-sm text-slate-400 font-medium">No documents found.</p>
-    ) : (
-      <>
-        {/* Verify summary + Verify All button */}
-        <div className="flex items-center justify-between">
-          <div>
-            <p className={fieldLbl}>Verification Status</p>
-            <p className="text-sm font-semibold text-slate-600 mt-0.5">
-              {(doc.verified_fields || []).length} of {(doc.verified_fields || []).length}   fields verified
-            </p>
-          </div>
-          {(doc.verified_fields || []).length < 5 && (
-            <button
-              disabled={verifying}
-              onClick={() => handleVerifyDocuments(['id_proof', 'photo', 'resume', 'last_sem_marksheet', 'document_type'])}
-              className="px-4 py-2 rounded-xl bg-green-500 text-white text-xs font-black uppercase tracking-widest hover:bg-green-600 transition disabled:opacity-60"
-            >
-              {verifying ? "Verifying..." : "✓ Verify All"}
-            </button>
-          )}
-          {(doc.verified_fields || []).length === 5 && (
-            <span className="text-xs font-black uppercase tracking-widest px-3 py-1.5 rounded-full bg-green-100 text-green-600">
-              ✓ All Verified
-            </span>
-          )}
-        </div>
-
-        {/* ID proof type with verify button */}
-        <div className="flex items-center justify-between">
-          <div>
-            <p className={fieldLbl}>ID Proof Type</p>
-            <p className={fieldVal}>
-              {doc.document_type
-                ? doc.document_type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
-                : "—"}
-            </p>
-          </div>
-          {doc.verified_fields?.includes('document_type') ? (
-            <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-green-100 text-green-600">
-              ✓ Verified
-            </span>
-          ) : (
-            <button
-              disabled={verifying}
-              onClick={() => handleVerifyDocuments(['document_type'])}
-              className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border border-slate-200 text-slate-500 hover:border-green-500 hover:text-green-600 transition disabled:opacity-60"
-            >
-              Verify
-            </button>
-          )}
-        </div>
-
-        {/* Files grid with verify buttons */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-          {[
-            { field: 'id_proof',           label: 'ID Proof',  url: doc.id_proof },
-            { field: 'photo',              label: 'Photo',     url: doc.photo },
-            { field: 'resume',             label: 'Resume',    url: doc.resume },
-            { field: 'last_sem_marksheet', label: 'Marksheet', url: doc.last_sem_marksheet },
-          ].map(({ field, label, url }) => (
-            <div key={field} className="flex flex-col gap-2">
-              <FileLink label={label} url={url} />
-              {url ? (
-                doc.verified_fields?.includes(field) ? (
-                  <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-green-100 text-green-600 w-fit">
-                    ✓ Verified
-                  </span>
-                ) : (
-                  <button
-                    disabled={verifying}
-                    onClick={() => handleVerifyDocuments([field])}
-                    className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-slate-200 text-slate-500 hover:border-green-500 hover:text-green-600 transition w-fit disabled:opacity-60"
-                  >
-                    Verify
-                  </button>
-                )
+          {activeTab === "Documents" && (
+            <div className="flex flex-col gap-6">
+              {!doc ? (
+                <p className="text-sm text-slate-400 font-medium">No documents found.</p>
               ) : (
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-300 italic">
-                  Not uploaded
-                </span>
+                <>
+                  {/* Verify summary + Verify All button */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className={fieldLbl}>Verification Status</p>
+                      <p className="text-sm font-semibold text-slate-600 mt-0.5">
+                        {(doc.verified_fields || []).length} of 5 fields verified
+                      </p>
+                    </div>
+                    {(doc.verified_fields || []).length < 5 && (
+                      <button
+                        disabled={verifying}
+                        onClick={() => handleVerifyDocuments(['id_proof', 'photo', 'resume', 'last_sem_marksheet', 'document_type'])}
+                        className="px-4 py-2 rounded-xl bg-green-500 text-white text-xs font-black uppercase tracking-widest hover:bg-green-600 transition disabled:opacity-60"
+                      >
+                        {verifying ? "Verifying..." : "✓ Verify All"}
+                      </button>
+                    )}
+                    {(doc.verified_fields || []).length === 5 && (
+                      <span className="text-xs font-black uppercase tracking-widest px-3 py-1.5 rounded-full bg-green-100 text-green-600">
+                        ✓ All Verified
+                      </span>
+                    )}
+                  </div>
+
+                  {/* ID proof type with verify button */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className={fieldLbl}>ID Proof Type</p>
+                      <p className={fieldVal}>
+                        {doc.document_type
+                          ? doc.document_type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
+                          : "—"}
+                      </p>
+                    </div>
+                    {doc.verified_fields?.includes('document_type') ? (
+                      <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-green-100 text-green-600">
+                        ✓ Verified
+                      </span>
+                    ) : (
+                      <button
+                        disabled={verifying}
+                        onClick={() => handleVerifyDocuments(['document_type'])}
+                        className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full border border-slate-200 text-slate-500 hover:border-green-500 hover:text-green-600 transition disabled:opacity-60"
+                      >
+                        Verify
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Files grid with verify buttons */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+                    {[
+                      { field: 'id_proof', label: 'ID Proof', url: doc.id_proof },
+                      { field: 'photo', label: 'Photo', url: doc.photo },
+                      { field: 'resume', label: 'Resume', url: doc.resume },
+                      { field: 'last_sem_marksheet', label: 'Marksheet', url: doc.last_sem_marksheet },
+                    ].map(({ field, label, url }) => (
+                      <div key={field} className="flex flex-col gap-2">
+                        <FileLink label={label} url={url} />
+                        {url ? (
+                          doc.verified_fields?.includes(field) ? (
+                            <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-green-100 text-green-600 w-fit">
+                              ✓ Verified
+                            </span>
+                          ) : (
+                            <button
+                              disabled={verifying}
+                              onClick={() => handleVerifyDocuments([field])}
+                              className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-slate-200 text-slate-500 hover:border-green-500 hover:text-green-600 transition w-fit disabled:opacity-60"
+                            >
+                              Verify
+                            </button>
+                          )
+                        ) : (
+                          <span className="text-[10px] font-black uppercase tracking-widest text-slate-300 italic">
+                            Not uploaded
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* College detail — unchanged */}
+                  {doc.college_detail && (
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">
+                        College Details
+                      </p>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-4 bg-slate-50 rounded-xl p-4">
+                        {[
+                          ["College Name", doc.college_detail.college_name],
+                          ["Address", doc.college_detail.college_address],
+                          ["Branch", doc.college_detail.branch],
+                          ["Current Year", doc.college_detail.current_year],
+                        ].map(([label, val]) => (
+                          <div key={label}>
+                            <p className={fieldLbl}>{label}</p>
+                            <p className={fieldVal}>{val || "—"}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </>
               )}
             </div>
-          ))}
-        </div>
-
-        {/* College detail — unchanged */}
-        {doc.college_detail && (
-          <div>
-            <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">
-              College Details
-            </p>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-4 bg-slate-50 rounded-xl p-4">
-              {[
-                ["College Name",  doc.college_detail.college_name],
-                ["Address",       doc.college_detail.college_address],
-                ["Branch",        doc.college_detail.branch],
-                ["Current Year",  doc.college_detail.current_year],
-              ].map(([label, val]) => (
-                <div key={label}>
-                  <p className={fieldLbl}>{label}</p>
-                  <p className={fieldVal}>{val || "—"}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </>
-    )}
-  </div>
-)}
+          )}
 
           {/* ── Project tab ───────────────────────────────────────────────── */}
           {activeTab === "Project" && (
@@ -900,10 +921,10 @@ onClick={() => { setSelectedApproveMentorIds([]); setShowApprove(true); }}
                       </p>
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-4 bg-slate-50 rounded-xl p-4">
                         {[
-                          ["Languages",  project.tech_details.languages],
+                          ["Languages", project.tech_details.languages],
                           ["Frameworks", project.tech_details.frameworks],
-                          ["Database",   project.tech_details.database],
-                          ["Others",     project.tech_details.others],
+                          ["Database", project.tech_details.database],
+                          ["Others", project.tech_details.others],
                         ].map(([label, val]) => (
                           <div key={label}>
                             <p className={fieldLbl}>{label}</p>
@@ -915,24 +936,24 @@ onClick={() => { setSelectedApproveMentorIds([]); setShowApprove(true); }}
                   )}
 
                   {/* Mentor */}
-            {/* // in Project tab mentor section: */}
-<div className="flex items-center justify-between gap-4 pt-4 border-t border-slate-100">
-  <div className="flex-1">
-    <p className={fieldLbl}>Mentors</p>
-    <div className="mt-2">
-      <MentorChips mentors={project.mentors} />
-    </div>
-  </div>
-  <button
-    onClick={() => {
-      setSelectedProjectMentorIds(project.mentor_ids || []);
-      setShowMentor(true);
-    }}
-    className="px-4 py-2.5 rounded-xl bg-[#132ea7] text-white text-xs font-black uppercase tracking-widest hover:bg-[#0f2490] transition shrink-0"
-  >
-    Update Mentors
-  </button>
-</div>
+                  {/* // in Project tab mentor section: */}
+                  <div className="flex items-center justify-between gap-4 pt-4 border-t border-slate-100">
+                    <div className="flex-1">
+                      <p className={fieldLbl}>Mentors</p>
+                      <div className="mt-2">
+                        <MentorChips mentors={project.mentors} />
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setSelectedProjectMentorIds(project.mentor_ids || []);
+                        setShowMentor(true);
+                      }}
+                      className="px-4 py-2.5 rounded-xl bg-[#132ea7] text-white text-xs font-black uppercase tracking-widest hover:bg-[#0f2490] transition shrink-0"
+                    >
+                      Update Mentors
+                    </button>
+                  </div>
                 </>
               )}
             </div>
@@ -999,6 +1020,16 @@ onClick={() => { setSelectedApproveMentorIds([]); setShowApprove(true); }}
                                 {t.assigned_by ? "Admin" : "Self"}
                               </span>
                             </td>
+                            <td className="px-4 py-3">
+  <button
+    onClick={() => handleDeleteTask(t.id)}
+    disabled={deletingTaskId === t.id}
+    className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition disabled:opacity-40"
+    title="Delete task"
+  >
+    <MdClose size={16} />
+  </button>
+</td>
                           </tr>
                         ))}
                       </tbody>
@@ -1113,7 +1144,7 @@ onClick={() => { setSelectedApproveMentorIds([]); setShowApprove(true); }}
                         <div className="flex gap-3 text-xs text-slate-400 font-semibold flex-wrap">
                           <span>📅 {formatDate(w.log_date)}</span>
                           {w.project && <span>📁 {w.project.name}</span>}
-                          {w.task    && <span>✅ {w.task.display_id}</span>}
+                          {w.task && <span>✅ {w.task.display_id}</span>}
                         </div>
                       </div>
                     ))}
@@ -1178,45 +1209,45 @@ onClick={() => { setSelectedApproveMentorIds([]); setShowApprove(true); }}
                 </div>
               </div>
 
-          {/* Replace the existing single LocalSearchableSelect mentor block with this: */}
-<div>
-  <label className={labelCls}>
-    Mentors{" "}
-    <span className="text-slate-400 font-medium normal-case tracking-normal">(optional)</span>
-  </label>
+              {/* Replace the existing single LocalSearchableSelect mentor block with this: */}
+              <div>
+                <label className={labelCls}>
+                  Mentors{" "}
+                  <span className="text-slate-400 font-medium normal-case tracking-normal">(optional)</span>
+                </label>
 
-  {/* Selected chips */}
-  {selectedApproveMentorIds.length > 0 && (
-    <div className="flex flex-wrap gap-2 mb-3">
-      {users
-        .filter((u) => selectedApproveMentorIds.includes(u.id))
-        .map((u) => (
-          <div
-            key={u.id}
-            className="flex items-center gap-1.5 bg-[#132ea7]/10 text-[#132ea7] px-3 py-1 rounded-full text-xs font-black cursor-pointer hover:bg-red-100 hover:text-red-500 transition"
-            onClick={() =>
-              setSelectedApproveMentorIds((prev) => prev.filter((id) => id !== u.id))
-            }
-          >
-            {u.name} <MdClose size={12} />
-          </div>
-        ))}
-    </div>
-  )}
+                {/* Selected chips */}
+                {selectedApproveMentorIds.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {users
+                      .filter((u) => selectedApproveMentorIds.includes(u.id))
+                      .map((u) => (
+                        <div
+                          key={u.id}
+                          className="flex items-center gap-1.5 bg-[#132ea7]/10 text-[#132ea7] px-3 py-1 rounded-full text-xs font-black cursor-pointer hover:bg-red-100 hover:text-red-500 transition"
+                          onClick={() =>
+                            setSelectedApproveMentorIds((prev) => prev.filter((id) => id !== u.id))
+                          }
+                        >
+                          {u.name} <MdClose size={12} />
+                        </div>
+                      ))}
+                  </div>
+                )}
 
-  <LocalSearchableSelect
-    options={users.filter((u) => !selectedApproveMentorIds.includes(u.id))}
-    value=""
-    onChange={(id) => {
-      if (id) setSelectedApproveMentorIds((prev) => [...prev, id]);
-    }}
-    getId={(u) => u.id}
-    getLabel={getMemberLabel}
-    getSearchText={(u) => `${u.name} ${u.employee_id}`}
-    placeholder="Search and add mentor..."
-    emptyOptionLabel="None"
-  />
-</div>
+                <LocalSearchableSelect
+                  options={users.filter((u) => !selectedApproveMentorIds.includes(u.id))}
+                  value=""
+                  onChange={(id) => {
+                    if (id) setSelectedApproveMentorIds((prev) => [...prev, id]);
+                  }}
+                  getId={(u) => u.id}
+                  getLabel={getMemberLabel}
+                  getSearchText={(u) => `${u.name} ${u.employee_id}`}
+                  placeholder="Search and add mentor..."
+                  emptyOptionLabel="None"
+                />
+              </div>
 
               <div className="flex gap-3 pt-2">
                 <button type="button" onClick={() => setShowApprove(false)}
@@ -1340,15 +1371,15 @@ onClick={() => { setSelectedApproveMentorIds([]); setShowApprove(true); }}
 
               <h2 className="text-sm font-black uppercase tracking-widest text-slate-700">Regenerate Setup Token</h2>
 
-           {/* Approved — only show regenerate if password not yet set */}
-{intern.status === "approved" && !intern.password_hash && (
-  <button
-    onClick={() => { setRegenToken(""); setShowRegen(true); }}
-    className="px-4 py-2.5 rounded-xl bg-[#132ea7] text-white text-xs font-black uppercase tracking-widest hover:bg-[#0f2490] transition"
-  >
-    Resend Setup Link
-  </button>
-)}
+              {/* Approved — only show regenerate if password not yet set */}
+              {intern.status === "approved" && !intern.password_hash && (
+                <button
+                  onClick={() => { setRegenToken(""); setShowRegen(true); }}
+                  className="px-4 py-2.5 rounded-xl bg-[#132ea7] text-white text-xs font-black uppercase tracking-widest hover:bg-[#0f2490] transition"
+                >
+                  Resend Setup Link
+                </button>
+              )}
             </div>
 
             {!regenToken ? (
@@ -1470,217 +1501,217 @@ onClick={() => { setSelectedApproveMentorIds([]); setShowApprove(true); }}
       )}
 
       {/* ── Update Mentor Modal ──────────────────────────────────────────────── */}
-   {showMentor && (
-  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
-      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-        <h2 className="text-sm font-black uppercase tracking-widest text-slate-700">Update Mentors</h2>
-        <button onClick={() => setShowMentor(false)} className="text-slate-400 hover:text-slate-600 transition">
-          <MdClose size={20} />
-        </button>
-      </div>
-      <form onSubmit={handleUpdateMentor} className="px-6 py-6 flex flex-col gap-4">
-
-        {/* Selected mentor chips */}
-        {selectedProjectMentorIds.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {users.filter((u) => selectedProjectMentorIds.includes(u.id)).map((u) => (
-              <div key={u.id}
-                className="flex items-center gap-1.5 bg-[#132ea7]/10 text-[#132ea7] px-3 py-1 rounded-full text-xs font-black cursor-pointer hover:bg-red-100 hover:text-red-500 transition"
-                onClick={() => setSelectedProjectMentorIds((prev) => prev.filter((id) => id !== u.id))}
-              >
-                {u.name} <MdClose size={12} />
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Search + add */}
-        <div>
-          <label className={labelCls}>Add Mentor</label>
-          <LocalSearchableSelect
-            options={users.filter((u) => !selectedProjectMentorIds.includes(u.id))}
-            value=""
-            onChange={(id) => { if (id) setSelectedProjectMentorIds((prev) => [...prev, id]); }}
-            getId={(u) => u.id}
-            getLabel={getMemberLabel}
-            getSearchText={(u) => `${u.name} ${u.employee_id}`}
-            placeholder="Search employee..."
-            emptyOptionLabel="None"
-          />
-        </div>
-
-        <div className="flex gap-3 pt-2">
-          <button type="button" onClick={() => setShowMentor(false)}
-            className="flex-1 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-black text-sm uppercase tracking-widest hover:bg-slate-50 transition">
-            Cancel
-          </button>
-          <button type="submit" disabled={updatingMentor}
-            className="flex-1 py-3 rounded-xl bg-[#132ea7] text-white font-black text-sm uppercase tracking-widest hover:bg-[#0f2490] transition disabled:opacity-60">
-            {updatingMentor ? "Saving..." : "Save"}
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
-)}
-
-{showAdminEdit && (
-  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 sticky top-0 bg-white rounded-t-2xl z-10">
-        <h2 className="text-sm font-black uppercase tracking-widest text-slate-700">Edit Intern</h2>
-        <button onClick={() => setShowAdminEdit(false)} className="text-slate-400 hover:text-slate-600 transition">
-          <MdClose size={20} />
-        </button>
-      </div>
-      <form onSubmit={handleAdminEdit} className="px-6 py-6 flex flex-col gap-5">
-
-        {/* Personal */}
-        <p className="text-xs font-black uppercase tracking-widest text-slate-400">Personal Information</p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {[
-            { name: "name",          label: "Full Name",        type: "text",  required: true  },
-            { name: "email",         label: "Email",            type: "email", required: true  },
-            { name: "mobile",        label: "Mobile",           type: "text",  required: true  },
-            { name: "enrollment_no", label: "Enrollment No.",   type: "text",  required: false },
-          ].map((f) => (
-            <div key={f.name}>
-              <label className={labelCls}>{f.label} {f.required && <span className="text-red-400">*</span>}</label>
-              <input
-                name={f.name}
-                type={f.type}
-                value={adminEditForm[f.name] || ""}
-                onChange={(e) => {
-                  setAdminEditForm((p) => ({ ...p, [e.target.name]: e.target.value }));
-                  if (adminEditErrors[e.target.name]) setAdminEditErrors((p) => ({ ...p, [e.target.name]: "" }));
-                }}
-                className={inputCls(adminEditErrors[f.name])}
-              />
-              {adminEditErrors[f.name] && <p className={errCls}>{adminEditErrors[f.name]}</p>}
+      {showMentor && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+              <h2 className="text-sm font-black uppercase tracking-widest text-slate-700">Update Mentors</h2>
+              <button onClick={() => setShowMentor(false)} className="text-slate-400 hover:text-slate-600 transition">
+                <MdClose size={20} />
+              </button>
             </div>
-          ))}
+            <form onSubmit={handleUpdateMentor} className="px-6 py-6 flex flex-col gap-4">
 
-          <div>
-            <label className={labelCls}>Degree Type</label>
-            <select name="degree_type" value={adminEditForm.degree_type || ""}
-              onChange={(e) => setAdminEditForm((p) => ({ ...p, degree_type: e.target.value }))}
-              className={inputCls(false)}>
-              <option value="">Select</option>
-              <option value="bachelor">Bachelor</option>
-              <option value="master">Master</option>
-            </select>
-          </div>
-
-          <div>
-            <label className={labelCls}>Intern Type</label>
-            <select name="intern_type" value={adminEditForm.intern_type || ""}
-              onChange={(e) => setAdminEditForm((p) => ({ ...p, intern_type: e.target.value }))}
-              className={inputCls(false)}>
-              <option value="">Select</option>
-              <option value="intern">Intern</option>
-              <option value="trainee">Trainee</option>
-            </select>
-          </div>
-
-          <div>
-            <label className={labelCls}>College Name</label>
-            <input name="college_name" value={adminEditForm.college_name || ""}
-              onChange={(e) => setAdminEditForm((p) => ({ ...p, college_name: e.target.value }))}
-              className={inputCls(false)} />
-          </div>
-
-          <div>
-            <label className={labelCls}>Start Date</label>
-            <input type="date" name="start_date" value={adminEditForm.start_date || ""}
-              onChange={(e) => setAdminEditForm((p) => ({ ...p, start_date: e.target.value }))}
-              className={inputCls(false)} />
-          </div>
-
-          <div>
-            <label className={labelCls}>End Date</label>
-            <input type="date" name="end_date" value={adminEditForm.end_date || ""}
-              onChange={(e) => setAdminEditForm((p) => ({ ...p, end_date: e.target.value }))}
-              className={inputCls(false)} />
-          </div>
-        </div>
-
-        {/* Mentors */}
-        <div className="border-t border-slate-100 pt-4">
-          <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">Mentors</p>
-
-          {/* Selected chips */}
-          {selectedMentorIds.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-3">
-              {users.filter((u) => selectedMentorIds.includes(u.id)).map((u) => (
-                <div key={u.id}
-                  className="flex items-center gap-1.5 bg-[#132ea7]/10 text-[#132ea7] px-3 py-1 rounded-full text-xs font-black cursor-pointer hover:bg-red-100 hover:text-red-500 transition"
-                  onClick={() => toggleMentor(u.id)}
-                >
-                  {u.name} <MdClose size={12} />
+              {/* Selected mentor chips */}
+              {selectedProjectMentorIds.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {users.filter((u) => selectedProjectMentorIds.includes(u.id)).map((u) => (
+                    <div key={u.id}
+                      className="flex items-center gap-1.5 bg-[#132ea7]/10 text-[#132ea7] px-3 py-1 rounded-full text-xs font-black cursor-pointer hover:bg-red-100 hover:text-red-500 transition"
+                      onClick={() => setSelectedProjectMentorIds((prev) => prev.filter((id) => id !== u.id))}
+                    >
+                      {u.name} <MdClose size={12} />
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
+              )}
 
-          <LocalSearchableSelect
-            options={users.filter((u) => !selectedMentorIds.includes(u.id))}
-            value=""
-            onChange={(id) => { if (id) toggleMentor(id); }}
-            getId={(u) => u.id}
-            getLabel={getMemberLabel}
-            getSearchText={(u) => `${u.name} ${u.employee_id}`}
-            placeholder="Search and add mentor..."
-            emptyOptionLabel="None"
-          />
-        </div>
+              {/* Search + add */}
+              <div>
+                <label className={labelCls}>Add Mentor</label>
+                <LocalSearchableSelect
+                  options={users.filter((u) => !selectedProjectMentorIds.includes(u.id))}
+                  value=""
+                  onChange={(id) => { if (id) setSelectedProjectMentorIds((prev) => [...prev, id]); }}
+                  getId={(u) => u.id}
+                  getLabel={getMemberLabel}
+                  getSearchText={(u) => `${u.name} ${u.employee_id}`}
+                  placeholder="Search employee..."
+                  emptyOptionLabel="None"
+                />
+              </div>
 
-        {/* Reference */}
-        <div className="border-t border-slate-100 pt-4">
-          <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">
-            Reference <span className="text-slate-300 font-medium normal-case tracking-normal">(optional)</span>
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div>
-              <label className={labelCls}>Reference Type</label>
-              <select name="reference_type" value={adminEditForm.reference_type || ""}
-                onChange={(e) => setAdminEditForm((p) => ({ ...p, reference_type: e.target.value }))}
-                className={inputCls(false)}>
-                <option value="">Select</option>
-                {["employee","intern","college","friend","social_media","website","other"].map((v) => (
-                  <option key={v} value={v}>{v.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className={labelCls}>Reference Name</label>
-              <input name="reference_name" value={adminEditForm.reference_name || ""}
-                onChange={(e) => setAdminEditForm((p) => ({ ...p, reference_name: e.target.value }))}
-                className={inputCls(false)} />
-            </div>
-            <div>
-              <label className={labelCls}>Reference Contact</label>
-              <input name="reference_contact" value={adminEditForm.reference_contact || ""}
-                onChange={(e) => setAdminEditForm((p) => ({ ...p, reference_contact: e.target.value }))}
-                className={inputCls(false)} />
-            </div>
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setShowMentor(false)}
+                  className="flex-1 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-black text-sm uppercase tracking-widest hover:bg-slate-50 transition">
+                  Cancel
+                </button>
+                <button type="submit" disabled={updatingMentor}
+                  className="flex-1 py-3 rounded-xl bg-[#132ea7] text-white font-black text-sm uppercase tracking-widest hover:bg-[#0f2490] transition disabled:opacity-60">
+                  {updatingMentor ? "Saving..." : "Save"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
+      )}
 
-        <div className="flex gap-3 pt-2">
-          <button type="button" onClick={() => setShowAdminEdit(false)}
-            className="flex-1 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-black text-sm uppercase tracking-widest hover:bg-slate-50 transition">
-            Cancel
-          </button>
-          <button type="submit" disabled={adminEditing}
-            className="flex-1 py-3 rounded-xl bg-[#132ea7] text-white font-black text-sm uppercase tracking-widest hover:bg-[#0f2490] transition disabled:opacity-60">
-            {adminEditing ? "Saving..." : "Save Changes"}
-          </button>
+      {showAdminEdit && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 sticky top-0 bg-white rounded-t-2xl z-10">
+              <h2 className="text-sm font-black uppercase tracking-widest text-slate-700">Edit Intern</h2>
+              <button onClick={() => setShowAdminEdit(false)} className="text-slate-400 hover:text-slate-600 transition">
+                <MdClose size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleAdminEdit} className="px-6 py-6 flex flex-col gap-5">
+
+              {/* Personal */}
+              <p className="text-xs font-black uppercase tracking-widest text-slate-400">Personal Information</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[
+                  { name: "name", label: "Full Name", type: "text", required: true },
+                  { name: "email", label: "Email", type: "email", required: true },
+                  { name: "mobile", label: "Mobile", type: "text", required: true },
+                  { name: "enrollment_no", label: "Enrollment No.", type: "text", required: false },
+                ].map((f) => (
+                  <div key={f.name}>
+                    <label className={labelCls}>{f.label} {f.required && <span className="text-red-400">*</span>}</label>
+                    <input
+                      name={f.name}
+                      type={f.type}
+                      value={adminEditForm[f.name] || ""}
+                      onChange={(e) => {
+                        setAdminEditForm((p) => ({ ...p, [e.target.name]: e.target.value }));
+                        if (adminEditErrors[e.target.name]) setAdminEditErrors((p) => ({ ...p, [e.target.name]: "" }));
+                      }}
+                      className={inputCls(adminEditErrors[f.name])}
+                    />
+                    {adminEditErrors[f.name] && <p className={errCls}>{adminEditErrors[f.name]}</p>}
+                  </div>
+                ))}
+
+                <div>
+                  <label className={labelCls}>Degree Type</label>
+                  <select name="degree_type" value={adminEditForm.degree_type || ""}
+                    onChange={(e) => setAdminEditForm((p) => ({ ...p, degree_type: e.target.value }))}
+                    className={inputCls(false)}>
+                    <option value="">Select</option>
+                    <option value="bachelor">Bachelor</option>
+                    <option value="master">Master</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className={labelCls}>Intern Type</label>
+                  <select name="intern_type" value={adminEditForm.intern_type || ""}
+                    onChange={(e) => setAdminEditForm((p) => ({ ...p, intern_type: e.target.value }))}
+                    className={inputCls(false)}>
+                    <option value="">Select</option>
+                    <option value="intern">Intern</option>
+                    <option value="trainee">Trainee</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className={labelCls}>College Name</label>
+                  <input name="college_name" value={adminEditForm.college_name || ""}
+                    onChange={(e) => setAdminEditForm((p) => ({ ...p, college_name: e.target.value }))}
+                    className={inputCls(false)} />
+                </div>
+
+                <div>
+                  <label className={labelCls}>Start Date</label>
+                  <input type="date" name="start_date" value={adminEditForm.start_date || ""}
+                    onChange={(e) => setAdminEditForm((p) => ({ ...p, start_date: e.target.value }))}
+                    className={inputCls(false)} />
+                </div>
+
+                <div>
+                  <label className={labelCls}>End Date</label>
+                  <input type="date" name="end_date" value={adminEditForm.end_date || ""}
+                    onChange={(e) => setAdminEditForm((p) => ({ ...p, end_date: e.target.value }))}
+                    className={inputCls(false)} />
+                </div>
+              </div>
+
+              {/* Mentors */}
+              <div className="border-t border-slate-100 pt-4">
+                <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">Mentors</p>
+
+                {/* Selected chips */}
+                {selectedMentorIds.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {users.filter((u) => selectedMentorIds.includes(u.id)).map((u) => (
+                      <div key={u.id}
+                        className="flex items-center gap-1.5 bg-[#132ea7]/10 text-[#132ea7] px-3 py-1 rounded-full text-xs font-black cursor-pointer hover:bg-red-100 hover:text-red-500 transition"
+                        onClick={() => toggleMentor(u.id)}
+                      >
+                        {u.name} <MdClose size={12} />
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <LocalSearchableSelect
+                  options={users.filter((u) => !selectedMentorIds.includes(u.id))}
+                  value=""
+                  onChange={(id) => { if (id) toggleMentor(id); }}
+                  getId={(u) => u.id}
+                  getLabel={getMemberLabel}
+                  getSearchText={(u) => `${u.name} ${u.employee_id}`}
+                  placeholder="Search and add mentor..."
+                  emptyOptionLabel="None"
+                />
+              </div>
+
+              {/* Reference */}
+              <div className="border-t border-slate-100 pt-4">
+                <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">
+                  Reference <span className="text-slate-300 font-medium normal-case tracking-normal">(optional)</span>
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className={labelCls}>Reference Type</label>
+                    <select name="reference_type" value={adminEditForm.reference_type || ""}
+                      onChange={(e) => setAdminEditForm((p) => ({ ...p, reference_type: e.target.value }))}
+                      className={inputCls(false)}>
+                      <option value="">Select</option>
+                      {["employee", "intern", "college", "friend", "social_media", "website", "other"].map((v) => (
+                        <option key={v} value={v}>{v.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelCls}>Reference Name</label>
+                    <input name="reference_name" value={adminEditForm.reference_name || ""}
+                      onChange={(e) => setAdminEditForm((p) => ({ ...p, reference_name: e.target.value }))}
+                      className={inputCls(false)} />
+                  </div>
+                  <div>
+                    <label className={labelCls}>Reference Contact</label>
+                    <input name="reference_contact" value={adminEditForm.reference_contact || ""}
+                      onChange={(e) => setAdminEditForm((p) => ({ ...p, reference_contact: e.target.value }))}
+                      className={inputCls(false)} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setShowAdminEdit(false)}
+                  className="flex-1 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-black text-sm uppercase tracking-widest hover:bg-slate-50 transition">
+                  Cancel
+                </button>
+                <button type="submit" disabled={adminEditing}
+                  className="flex-1 py-3 rounded-xl bg-[#132ea7] text-white font-black text-sm uppercase tracking-widest hover:bg-[#0f2490] transition disabled:opacity-60">
+                  {adminEditing ? "Saving..." : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-      </form>
-    </div>
-  </div>
-)}
+      )}
     </div>
   );
 };

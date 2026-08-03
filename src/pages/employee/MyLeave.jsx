@@ -31,7 +31,7 @@ const LEAVE_TYPE_LABELS = {
 };
 
 const REASON_TYPE_LABELS = {
-  normal:    "Normal",
+  normal:    "Casual",
   emergency: "Emergency",
 };
 
@@ -624,7 +624,7 @@ const [balanceLoading, setBalanceLoading] = useState(false);
                   { label: "From",      value: formatDate(leave.start_date) },
                   { label: "To",        value: formatDate(leave.end_date)   },
                   { label: "Requested", value: formatDate(leave.createdAt)  },
-                  { label: "Type",      value: leave.reason_type === "emergency" ? "Emergency" : "Normal" },
+                  { label: "Type",      value: leave.reason_type === "emergency" ? "Emergency" : "Casual" },
                 ].map((item) => (
                   <div key={item.label} className="flex justify-between items-center">
                     <span className="text-slate-400 font-bold uppercase text-[10px]">{item.label}</span>
@@ -687,7 +687,7 @@ const [balanceLoading, setBalanceLoading] = useState(false);
               </label>
               <div className="flex flex-wrap gap-2">
                 {[
-                  { value: "normal",    label: "Normal"    },
+                  { value: "normal",    label: "Casual"    },
                   { value: "emergency", label: "Emergency" },
                 ].map((opt) => (
                   <button key={opt.value} type="button"

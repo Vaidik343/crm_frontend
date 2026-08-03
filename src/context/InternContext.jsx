@@ -384,14 +384,33 @@ const getMyWorkLogs = useCallback(async (
     }
   }, []);
 
+    
   const getInternTasks = useCallback(async (internId) => {
     try {
-     const { data } = await api.get(ENDPOINTS.INTER_TASKS.ADMIN_GET(internId));
+     const { data } = await api.get(ENDPOINTS.INTER_TASKS.GET_TASK_BY_ID(internId));
+      console.log("🚀 ~ InternProvider ~ data:", data)
       return data;
     } catch (error) {
+      console.log("🚀 ~ InternProvider ~ error:", error)
       throw error;
     }
   }, []);
+
+
+  const deleteInternTask = useCallback(async (taskId) => {
+  try {
+    const { data } = await api.delete(ENDPOINTS.INTER_TASKS.DELETE_TASK(taskId));
+    console.log("🚀 ~ InternProvider ~ data:", data)
+    
+    return data;
+  } catch (error) {
+    
+  console.log("🚀 ~ InternProvider ~ error:", error)
+    throw error;
+  }
+}, []);
+
+
 
   const createProject = useCallback(async (payload) => {
   const { data } = await internApi.post(ENDPOINTS.INTER_PROJECT.CREATE, payload);
@@ -404,6 +423,9 @@ const updateProject = useCallback(async (payload) => {
   setProject(data.project || null);
   return data;
 }, []);
+
+
+
 
 // and add adminUpdateProject too:
 const adminUpdateProject = useCallback(async (internId, payload) => {
@@ -456,6 +478,7 @@ const adminUpdateProject = useCallback(async (internId, payload) => {
   const workLogsTotalPages = Math.ceil(workLogsTotal / workLogsLimit);
   const internsTotalPages  = Math.ceil(internsTotal / internsLimit);
 
+    console.log("🚀 ~ InternProvider ~ tasks:", tasks)
   const value = useMemo(() => ({
     // Socket
     socket,
@@ -471,7 +494,7 @@ createProject, updateProject,
     // Tasks (intern-side)
     tasks, tasksLoading, tasksPage, tasksLimit, tasksTotal, tasksTotalPages,
     setTasksPage,
-    getMyTasks, createTask, updateTask,
+    getMyTasks, createTask, updateTask,deleteInternTask,
 
     // WorkLogs (intern-side)
     workLogs, workLogsLoading, workLogsPage, workLogsLimit, workLogsTotal, workLogsTotalPages,
@@ -493,7 +516,7 @@ createProject, updateProject,
     profile, profileLoading, getMyProfile, updateMyProfile, updateMyDocuments ,
     project, projectLoading, getMyProject,
     tasks, tasksLoading, tasksPage, tasksLimit, tasksTotal, tasksTotalPages,
-    getMyTasks, createTask, updateTask,
+    getMyTasks, createTask, updateTask,deleteInternTask,
     workLogs, workLogsLoading, workLogsPage, workLogsLimit, workLogsTotal, workLogsTotalPages,
     getMyWorkLogs, createWorkLog, updateWorkLog,
     interns, internsLoading, internsPage, internsLimit, internsTotal, internsTotalPages,

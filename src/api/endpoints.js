@@ -175,11 +175,13 @@ ADMIN_UPDATE: (id) => `/admin/interns/${id}`,
         MY: '/intern/tasks',
         UPDATE: (id) => `/intern/tasks/${id}`,
 
-
         //ADMIN
         ADMIN_ASSIGN: '/admin/intern/tasks',
         GET_TASK_BY_ID: (intern_id) => `/admin/interns/${intern_id}/tasks`,
         UPDATE_TASKS : (id) => `/admin/intern/tasks/${id}`,
+        
+        DELETE_TASK: (id) => `/admin/intern/tasks/${id}`,
+
 
     },
 

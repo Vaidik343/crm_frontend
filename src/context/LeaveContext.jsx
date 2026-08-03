@@ -111,6 +111,8 @@ const cancelLeave = useCallback(async (id) => {
       if (filters.to)         params.set("to",         filters.to);
       if (filters.search)     params.set("search",     filters.search);
       if (filters.user_id)    params.set("user_id",    filters.user_id);
+      if (filters.month)      params.set("month",      filters.month); 
+      if (filters.year)       params.set("year",       filters.year);  
 
       
 const { data } = await api.get(`${ENDPOINTS.LEAVES.ALL}?${params.toString()}`)

@@ -46,7 +46,7 @@ const navItems = [
     { to: "/admin/holidays", label: "Public Holiday", icon: <MdCelebration size={20} /> },
     { to: "/admin/interns", label: "Interns", icon: <MdPerson size={18} /> },
     {to: "/admin/clients", label:"Clients", icon: <ImUserTie size={20}/>},
-    // {to: "/admin/settings", label:"Settings", icon: <IoSettings  size={20}/>},
+    {to: "/admin/settings", label:"Settings", icon: <IoSettings  size={20}/>},
     //   { to: "/admin/notifications", label: "Notifications", icon: <MdNotifications size={20} /> },
     // { to: "/admin/teams", label: "Teams", icon: <MdGroup size={20} /> },
     
