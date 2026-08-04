@@ -128,6 +128,7 @@ export const ENDPOINTS = {
     HOLIDAYS:          '/leaves/holidays',
     HOLIDAY_UPDATE:  (id) => `/leaves/holidays/${id}`,
     HOLIDAY_DELETE:    (id) =>      `/leaves/holidays/${id}`,
+    CALCULATION: "/leaves/calculation"
       
     },
 

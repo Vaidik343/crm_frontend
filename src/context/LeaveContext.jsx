@@ -7,7 +7,7 @@ export const LeaveContext = createContext(null);
 
 export const LeaveProvider = ({children}) => {
     const [leaves, setLeaves] = useState([]);
-    console.log("🚀 ~ LeaveProvider ~ leaves:", leaves)
+    // console.log("🚀 ~ LeaveProvider ~ leaves:", leaves)
     const [loading, setLoading] = useState(false);
 
     // pagination states
@@ -116,7 +116,6 @@ const cancelLeave = useCallback(async (id) => {
 
       
 const { data } = await api.get(`${ENDPOINTS.LEAVES.ALL}?${params.toString()}`)
-      console.log("🚀 ~ LeaveProvider ~ data:", data)
 
       setLeaves(data.data || []);
       setPage(data.page     || 1);
@@ -241,6 +240,53 @@ const getEmployeeBalanceHistory = useCallback(async (user_id) => {
   }
 }, []);
 
+
+// ─────────────────────────────────────────────
+// LEAVE CALCULATION
+// ─────────────────────────────────────────────
+
+
+const getLeaveCalculation = useCallback(async(filters = {}) => {
+
+  try {
+
+    const params = new URLSearchParams();
+
+
+    if(filters.user_id)
+      params.set("user_id", filters.user_id);
+
+
+    if(filters.year)
+      params.set("years", filters.year);
+
+
+    if(filters.month)
+      params.set("month", filters.month);
+
+
+    const {data} = await api.get(
+      `${ENDPOINTS.LEAVES.CALCULATION}?${params.toString()}`
+    );
+
+
+    return data;
+
+
+  } catch(error){
+
+    console.log(
+      "Leave calculation error:",
+      error
+    );
+
+    throw error;
+
+  }
+
+},[]);
+
+
 // ─────────────────────────────────────────────
 // PUBLIC HOLIDAYS
 // ─────────────────────────────────────────────
@@ -314,6 +360,7 @@ const value = useMemo(() => ({
      getMyBalance,
   getEmployeeBalance,
   getEmployeeBalanceHistory,
+  getLeaveCalculation,
   getPublicHolidays,
   addPublicHoliday,
   updatePublicHoliday,
@@ -337,6 +384,7 @@ const value = useMemo(() => ({
      getMyBalance,
   getEmployeeBalance,
   getEmployeeBalanceHistory,
+  getLeaveCalculation,
   getPublicHolidays,
   addPublicHoliday,
   updatePublicHoliday,
