@@ -64,21 +64,36 @@ export const LeaveProvider = ({children}) => {
         }
     }, []);
 
-   const createLeave = useCallback(async (payload) => {
-     try {
-        const {data} = await api.post(ENDPOINTS.LEAVES.CREATE, payload)
+const createLeave = useCallback(async (payload, medicalFile = null) => {
+  try {
+    let body;
+    let headers = {};
 
-        setLeaves((prev) => {
-            if(prev.some((l) => l.id ===data.id )) return prev;
-            return [data.leave, ...prev];
-        });
-        return data;
+    if (medicalFile) {
+      // multipart/form-data when file is present
+      const formData = new FormData();
+      Object.entries(payload).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          formData.append(key, value);
+        }
+      });
+      formData.append("medical_document", medicalFile);
+      body = formData;
+      // axios sets Content-Type automatically for FormData
+    } else {
+      body = payload;
+    }
 
-     } catch (error) {
-        throw error;
-     }
-   }, [])
-
+    const { data } = await api.post(ENDPOINTS.LEAVES.CREATE, body);
+    setLeaves((prev) => {
+      if (prev.some((l) => l.id === data.leave?.id)) return prev;
+      return [data.leave, ...prev];
+    });
+    return data;
+  } catch (error) {
+    throw error;
+  }
+}, []);
 
 const cancelLeave = useCallback(async (id) => {
     try {

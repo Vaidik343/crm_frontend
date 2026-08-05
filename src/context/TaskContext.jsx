@@ -118,6 +118,7 @@ export const TaskProvider = ({ children }) => {
     try {
       const response = await api.patch(ENDPOINTS.TASKS.UPDATE(id), payload);
       const updatedTask = response.data.task || response.data.data || response.data;
+      console.log("🚀 ~ TaskProvider ~ updatedTask:", updatedTask)
       setTasks((prev) =>
         prev.map((t) => (t.id === id ? updatedTask : t))
       );
