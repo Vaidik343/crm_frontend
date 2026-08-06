@@ -36,6 +36,8 @@ import SearchInput from "../../components/ui/SearchInput";
 
 import { formatDate, formatDateTime } from "../../utils/formatDate";
 
+import DataTable from "../../components/shared/table";
+
 const initialForm = {
   task: "",
   description: "",
@@ -329,6 +331,131 @@ const handleSaveEditRemark = async (remarkId) => {
     }
   };
 
+
+  const columns = [
+  {
+    field: "createdAt",
+    headerName: "Register At",
+    width: 220,
+    renderCell: ({ row }) => (
+      <div className="flex items-center gap-4">
+        <div className="w-10 h-10 rounded-xl bg-slate-50 text-[#132ea7] flex items-center justify-center shadow-inner group-hover:bg-[#132ea7] group-hover:text-white transition-all">
+          <MdCalendarToday size={18} />
+        </div>
+        <div>
+          <div className="font-black text-slate-800 text-base">
+            {formatDate(row.createdAt)}
+          </div>
+          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            {formatDateTime(row.createdAt).split(" ")[1]}
+          </div>
+        </div>
+      </div>
+    ),
+  },
+  {
+    field: "display_id",
+    headerName: "Display ID",
+    width: 150,
+    renderCell: ({ value }) => (
+      <span className="px-3 py-1 bg-[#132ea7]/10 text-[#132ea7] rounded-lg text-[11px] font-black uppercase tracking-widest font-mono">
+        {value || "—"}
+      </span>
+    ),
+  },
+  {
+    field: "task",
+    headerName: "Task",
+    width: 300,
+    renderCell: ({ row }) => (
+      <div className="flex items-center gap-4">
+        <div className="w-10 h-10 rounded-xl bg-[#132ea7] text-white flex items-center justify-center font-black shadow-lg shadow-[#132ea7]/10 shrink-0">
+          <MdAssignment size={18} />
+        </div>
+        <div className="min-w-0">
+          <div className="font-black text-slate-800 text-lg truncate max-w-25 leading-tight">
+            {row.task}
+          </div>
+          {row.description && (
+            <div className="text-xs text-slate-400 mt-1 truncate max-w-50 italic">
+              {row.description}
+            </div>
+          )}
+        </div>
+      </div>
+    ),
+  },
+  {
+    field: "status",
+    headerName: "Status",
+    width: 150,
+    renderCell: ({ value }) => <Badge value={value} />,
+  },
+  {
+    field: "assigner",
+    headerName: "Assigned By",
+    width: 200,
+    renderCell: ({ row }) => (
+      <div className="flex items-center gap-3">
+        <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[#132ea7] font-black text-[10px]">
+          {row.assigner?.name?.charAt(0) || "?"}
+        </div>
+        <div className="text-sm font-black text-slate-700">
+          {row.assigner?.name || "—"}
+        </div>
+      </div>
+    ),
+  },
+  {
+    field: "project",
+    headerName: "Project",
+    width: 200,
+    renderCell: ({ row }) => (
+      <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
+        <MdFolder className="text-slate-300" size={18} />
+        {row.project?.name || "—"}
+      </div>
+    ),
+  },
+  {
+    field: "due_date",
+    headerName: "Due Date",
+    width: 180,
+    renderCell: ({ row }) => (
+      <DueDateBadge
+        dueDate={row.due_date}
+        status={row.status}
+        completedAt={row.completed_at}
+      />
+    ),
+  },
+  {
+    field: "actions",
+    headerName: "Actions",
+    width: 160,
+    align: "right",
+    renderCell: ({ row }) => (
+      <div className="flex items-center justify-end gap-3">
+        <button
+          onClick={() => setViewTarget(row)}
+          title="View"
+          className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all"
+        >
+          <MdVisibility size={20} />
+        </button>
+        <button
+          onClick={() => openEdit(row)}
+          title="Edit"
+          className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all"
+        >
+          <MdEdit size={20} />
+        </button>
+      </div>
+    ),
+  },
+];
+
+
   const Pagination = ({ compact = false }) => (
     <div
       className={`flex items-center justify-between px-6 py-6 ${
@@ -497,152 +624,18 @@ const handleSaveEditRemark = async (remarkId) => {
         onClose={() => setAlert({ type: "", message: "" })}
       />
 
-      {/* Desktop Table */}
-      <div className="hidden md:block">
-        <div className="bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
-          <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-200/50">
-                  <th className="px-6 py-5 text-md font-black text-slate-400 uppercase tracking-[0.2em]">
-                    Register At
-                  </th>
-                  <th className="px-6 py-5 text-md font-black text-slate-400 uppercase tracking-[0.2em]">
-                    Display ID
-                  </th>
-                  <th className="px-8 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em]">
-                    Task
-                  </th>
-                  <th className="px-8 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em]">
-                    Status
-                  </th>
-                  <th className="px-8 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em]">
-                    Assigned By
-                  </th>
-                  <th className="px-8 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em]">
-                    Project
-                  </th>
-                  <th className="px-8 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em]">
-                    Due Date
-                  </th>
-                  <th className="px-15 py-6 text-md font-black text-slate-400 uppercase tracking-[0.2em] text-right">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {tasks.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={8}
-                      className="text-center text-slate-400 py-16 font-medium italic text-lg uppercase tracking-widest"
-                    >
-                      No tasks found.
-                    </td>
-                  </tr>
-                )}
-                {tasks.map((task) => (
-                  <tr
-                    key={task.id}
-                    className="hover:bg-slate-50/80 transition-colors group"
-                  >
-                    <td className="px-10 py-6">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-slate-50 text-[#132ea7] flex items-center justify-center shadow-inner group-hover:bg-[#132ea7] group-hover:text-white transition-all">
-                          <MdCalendarToday size={18} />
-                        </div>
-                        <div>
-                          <div className="font-black text-slate-800 text-base">
-                            {formatDate(task.createdAt)}
-                          </div>
-                          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                            {formatDateTime(task.createdAt).split(" ")[1]}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-
-                    <td className="px-6 py-5">
-                      <span className="px-3 py-1 bg-[#132ea7]/10 text-[#132ea7] rounded-lg text-[11px] font-black uppercase tracking-widest font-mono">
-                        {task.display_id || "—"}
-                      </span>
-                    </td>
-
-                    <td className="px-6 py-5">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-[#132ea7] text-white flex items-center justify-center font-black shadow-lg shadow-[#132ea7]/10 shrink-0">
-                          <MdAssignment size={18} />
-                        </div>
-                        <div className="min-w-0">
-                          <div className="font-black text-slate-800 text-lg truncate max-w-25 leading-tight">
-                            {task.task}
-                          </div>
-                          {task.description && (
-                            <div className="text-xs text-slate-400 mt-1 truncate max-w-50 italic">
-                              {task.description}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-
-                    <td className="px-8 py-6">
-                      <Badge value={task.status} />
-                    </td>
-
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[#132ea7] font-black text-[10px]">
-                          {task.assigner?.name?.charAt(0) || "?"}
-                        </div>
-                        <div className="text-sm font-black text-slate-700">
-                          {task.assigner?.name || "—"}
-                        </div>
-                      </div>
-                    </td>
-
-                    <td className="px-8 py-6">
-                      <div className="flex items-center gap-2 text-sm font-bold text-slate-500">
-                        <MdFolder className="text-slate-300" size={18} />
-                        {task.project?.name || "—"}
-                      </div>
-                    </td>
-
-                    <td className="px-8 py-6">
-                      <DueDateBadge
-                        dueDate={task.due_date}
-                        status={task.status}
-                        completedAt={task.completed_at}
-                      />
-                    </td>
-                    <td className="px-5 py-6 text-right">
-                      <div className="flex items-center justify-end gap-3">
-                        <button
-                          onClick={() => setViewTarget(task)}
-                          title="View"
-                          className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all"
-                        >
-                          <MdVisibility size={20} />
-                        </button>
-
-                        <button
-                          onClick={() => openEdit(task)}
-                          title="Edit"
-                          className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all"
-                        >
-                          <MdEdit size={20} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {totalPages > 1 && <Pagination />}
-        </div>
-      </div>
+    {/* Desktop Table */}
+<div className="hidden md:block">
+  <div className="bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
+    <DataTable
+      columns={columns}
+      rows={tasks}
+      rowKey="id"
+      emptyMessage="No tasks found."
+    />
+    {totalPages > 1 && <Pagination />}
+  </div>
+</div>
 
       {/* Mobile Cards */}
       <div className="md:hidden space-y-4">

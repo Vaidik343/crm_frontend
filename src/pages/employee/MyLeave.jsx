@@ -241,9 +241,9 @@ const [balanceLoading, setBalanceLoading] = useState(false);
 // emrg - media
   const [emergencySubType, setEmergencySubType] = useState("");
 const [medicalFile, setMedicalFile]           = useState(null);
-console.log("🚀 ~ MyLeaves ~ medicalFile:", medicalFile)
+// console.log("🚀 ~ MyLeaves ~ medicalFile:", medicalFile)
 const [medicalFileError, setMedicalFileError] = useState("");
-console.log("🚀 ~ MyLeaves ~ medicalFileError:", medicalFileError)
+// console.log("🚀 ~ MyLeaves ~ medicalFileError:", medicalFileError)
 
   // ── Effects ──
   useEffect(() => {
@@ -326,14 +326,14 @@ console.log("🚀 ~ MyLeaves ~ medicalFileError:", medicalFileError)
     if (form.leave_type === "exchange" && !form.worked_saturday_id) {
       errors.worked_saturday_id = "Please select a Saturday to exchange.";
     }
-
-    if (form.reason_type === "emergency" && !emergencySubType) {
-  setFieldErrors((prev) => ({
-    ...prev,
-    emergency_sub_type: "Please select Medical or Other.",
-  }));
-  return;
-}
+         if (form.reason_type === "emergency") {
+    if (!emergencySubType) {
+      errors.emergency_sub_type = "Please select Medical or Other.";
+    }
+    if (!medicalFile) {
+      errors.medical_file = "Supporting document is required for emergency leave.";
+    }
+  }
     return errors;
   };
 
@@ -366,10 +366,12 @@ setMedicalFileError("");
         end_date:    form.end_date,
         duration:    form.duration,
         reason:      form.reason,
-        ...(form.leave_type === "exchange" && { worked_saturday_id: form.worked_saturday_id }),
-         emergency_sub_type: form.reason_type === "emergency" ? emergencySubType : undefined,
+      ...(form.leave_type === "exchange" && { worked_saturday_id: form.worked_saturday_id }),
+  ...(form.reason_type === "emergency" && { emergency_sub_type: emergencySubType }),
       };
-     const cl =  await createLeave(payload,  emergencySubType === "medical" ? medicalFile : null);
+     const cl =  await createLeave(payload,    form.reason_type === "emergency" ? medicalFile : null);
+
+     
       console.log("🚀 ~ handleSubmit ~ cl:", cl)
       setAlert({ type: "success", message: "Leave request submitted successfully." });
       closeForm();
@@ -726,72 +728,83 @@ setMedicalFileError("");
                 ))}
               </div>
             {/* Emergency Sub-type — only shown when emergency is selected */}
+{/* Emergency document upload — shown when emergency is selected */}
 {form.reason_type === "emergency" && (
   <div className="md:col-span-2 space-y-3">
-    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
-      Emergency Type <span className="text-red-500">*</span>
-    </label>
-    <div className="flex gap-3">
-      {["medical", "other"].map((sub) => (
-        <button
-          key={sub}
-          type="button"
-          onClick={() => {
-            setEmergencySubType(sub);
-            if (sub !== "medical") {
-              setMedicalFile(null);
-              setMedicalFileError("");
-            }
-          }}    
-          className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-            emergencySubType === sub
-              ? "bg-[#132ea7] text-white shadow-lg shadow-[#132ea7]/20"
-              : "bg-slate-100 text-slate-400 hover:bg-slate-200"
-          }`}
-        >
-          {sub === "medical" ? "Medical" : "Other"}
-        </button>
-      ))}
+
+    {/* Sub-type selector */}
+    <div className="space-y-2">
+      <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
+        Emergency Type <span className="text-red-500">*</span>
+      </label>
+      <div className="flex gap-3">
+        {["medical", "other"].map((sub) => (
+          <button
+            key={sub}
+            type="button"
+            onClick={() => {
+              setEmergencySubType(sub);
+              setFieldErrors((prev) => ({ ...prev, emergency_sub_type: "" }));
+            }}
+            className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+              emergencySubType === sub
+                ? "bg-[#132ea7] text-white shadow-lg shadow-[#132ea7]/20"
+                : "bg-slate-100 text-slate-400 hover:bg-slate-200"
+            }`}
+          >
+            {sub === "medical" ? "Medical" : "Other"}
+          </button>
+        ))}
+      </div>
+      {fieldErrors.emergency_sub_type && (
+        <p className="text-red-500 text-[10px] font-bold uppercase ml-1">
+          {fieldErrors.emergency_sub_type}
+        </p>
+      )}
     </div>
 
-    {/* Medical document upload */}
-    {emergencySubType === "medical" && (
-      <div className="space-y-2">
-        <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
-          Medical Document{" "}
-          <span className="text-slate-400 font-bold normal-case tracking-normal">
-            (PDF, JPG, PNG — max 10MB)
-          </span>
-        </label>
-        <div className="border-2 border-dashed border-slate-200 rounded-2xl p-4 hover:border-[#132ea7]/40 transition-all">
-          <input
-            type="file"
-            accept=".pdf,.jpg,.jpeg,.png"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (!file) return;
-              if (file.size > 10 * 1024 * 1024) {
-                setMedicalFileError("File must be under 10MB.");
-                return;
-              }
-              setMedicalFile(file);
-              setMedicalFileError("");
-            }}
-            className="w-full text-xs font-bold text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-[#132ea7]/10 file:text-[#132ea7] file:font-black file:text-xs file:uppercase file:tracking-widest hover:file:bg-[#132ea7]/20 cursor-pointer"
-          />
-          {medicalFile && (
-            <p className="text-xs font-bold text-green-600 mt-2">
-              ✓ {medicalFile.name}
-            </p>
-          )}
-          {medicalFileError && (
-            <p className="text-xs font-bold text-red-500 mt-2">
-              {medicalFileError}
-            </p>
-          )}
-        </div>
+    {/* Document upload — always required for emergency */}
+    <div className="space-y-2">
+      <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
+        Supporting Document <span className="text-red-500">*</span>{" "}
+        <span className="text-slate-400 font-bold normal-case tracking-normal">
+          (PDF, JPG, PNG — max 10MB)
+        </span>
+      </label>
+      <div className={`border-2 border-dashed rounded-2xl p-4 transition-all ${
+        fieldErrors.medical_file
+          ? "border-red-300 bg-red-50/30"
+          : "border-slate-200 hover:border-[#132ea7]/40"
+      }`}>
+        <input
+          type="file"
+          accept=".pdf,.jpg,.jpeg,.png"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (!file) return;
+            if (file.size > 10 * 1024 * 1024) {
+              setMedicalFileError("File must be under 10MB.");
+              return;
+            }
+            setMedicalFile(file);
+            setMedicalFileError("");
+            setFieldErrors((prev) => ({ ...prev, medical_file: "" }));
+          }}
+          className="w-full text-xs font-bold text-slate-600 file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-[#132ea7]/10 file:text-[#132ea7] file:font-black file:text-xs file:uppercase file:tracking-widest hover:file:bg-[#132ea7]/20 cursor-pointer"
+        />
+        {medicalFile && (
+          <p className="text-xs font-bold text-green-600 mt-2">
+            ✓ {medicalFile.name}
+          </p>
+        )}
+        {(medicalFileError || fieldErrors.medical_file) && (
+          <p className="text-xs font-bold text-red-500 mt-2">
+            {medicalFileError || fieldErrors.medical_file}
+          </p>
+        )}
       </div>
-    )}
+    </div>
+
   </div>
 )}
             </div>
@@ -989,21 +1002,43 @@ setMedicalFileError("");
               </div>
             )}
 
-            {viewTarget?.medical_document?.url && (
+
+
+
+
+            {viewTarget?.reason_type === "emergency" && (
+  <div className="bg-red-50 border border-red-100 rounded-2xl p-4 space-y-3">
+    <div>
+      <p className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">
+        Emergency Type
+      </p>
+      <p className="font-black text-red-600 text-sm capitalize">
+        {viewTarget.emergency_sub_type === "medical" ? "Medical" : "Other"}
+      </p>
+    </div>
+
+      {viewTarget?.medical_document?.url && (
   <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
       Medical Document
     </p>
+    
     <a
-      href={viewTarget.medical_document.url}
+    href={`${import.meta.env.VITE_API_URL?.replace("/api/", "")
+  .replace("/api", "")}${viewTarget.medical_document.url}`}
       target="_blank"
       rel="noopener noreferrer"
       className="text-xs font-black text-[#132ea7] hover:underline flex items-center gap-1.5"
     >
-      📄 View Document
+      View Document
     </a>
   </div>
 )}
+  </div>
+)}
+
+    
+
 
             {/* Activity Logs */}
             <div className="space-y-3">

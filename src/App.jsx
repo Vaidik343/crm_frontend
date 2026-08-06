@@ -30,6 +30,8 @@ import MyTasks         from "./pages/employee/MyTasks";
 import MyCalls         from "./pages/employee/MyCalls";
 import WorkLog         from "./pages/employee/WorkLog";
 import ChangePassword  from "./pages/employee/ChangePassword";
+import EmployeeProfile   from "./pages/employee/EmployeeProfile";
+
 
 
 import { InternProvider } from "./context/InternContext";
@@ -154,7 +156,8 @@ const App = () => {
   <Route path="leaves" element={<MyLeaves />} />
   <Route path="holiday" element={<Holiday />} />
 
-  <Route path="password" element={<ChangePassword />} />
+  {/* <Route path="password" element={<ChangePassword />} /> */}
+  <Route path="/employee/profile" element={<EmployeeProfile />} />
 
   {/* Dashboard */}
   <Route path="myDashboard" element={<MyDashboard />} />

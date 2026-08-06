@@ -10,12 +10,13 @@ import { useState } from "react";
 import NotificationBell from "../NotificationBell";
 import HeaderLogo from "../common/HeaderLogo";
 
+
 const navItems = [
     { to: "/employee/myDashboard", label: "Dashboard", icon: <MdDashboard size={18} /> },
     { to: "/employee/tasks", label: "My Tasks", icon: <MdTask size={18} /> },
     { to: "/employee/calls", label: "My Calls", icon: <MdPhone size={18} /> },
     { to: "/employee/work-logs", label: "Work Log", icon: <MdBook size={18} /> },
-    { to: "/employee/password", label: "Password", icon: <MdLock size={18} /> },
+    // { to: "/employee/password", label: "Password", icon: <MdLock size={18} /> },
     { to: "/employee/projects", label: "Projects", icon: <MdFolder size={18} /> },
     { to: "/employee/leaves", label: "Leaves", icon: <MdEventAvailable size={18} /> },
     { to: "/employee/holiday", label: "Holidays", icon: <MdCelebration size={18} /> },
@@ -98,12 +99,16 @@ const cancelLogout = () => setShowLogoutModal(false);
 
             {/* Avatar */}
             <NotificationBell />
-            <div className="w-10 h-10 rounded-full bg-white flex items-center truncate max-w-[120px] lg:max-w-none justify-center text-[#132ea7] font-black shadow-inner">
-                {user?.name?.charAt(0) || "E"}
-            </div>
-
+          <NavLink
+    to="/employee/profile"
+    className="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[#132ea7] font-black shadow-inner hover:ring-2 hover:ring-white/50 transition-all no-underline "
+    title="My Profile"
+    style={{ textDecoration: "none" }}
+>
+    {user?.name?.charAt(0) || "E"}
+</NavLink>
             {/* Desktop Logout */}
-            <div className="hidden  min-[1180px]:block">
+            {/* <div className="hidden  min-[1180px]:block">
                 <Button
                     // variant="white"
                     size="sm"
@@ -113,15 +118,15 @@ const cancelLogout = () => setShowLogoutModal(false);
                     <MdLogout size={18} />
                     Logout
                 </Button>
-            </div>
+            </div> */}
 
             {/* Mobile Toggle */}
-            <button
+            {/* <button
                 onClick={() => setMobileOpen(!mobileOpen)}
                 className="min-[1180px]:hidden text-white p-2 rounded-lg hover:bg-white/10 transition"
             >
                 {mobileOpen ? <MdClose size={28} /> : <MdMenu size={28} />}
-            </button>
+            </button> */}
         </div>
     </div>
 

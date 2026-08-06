@@ -115,22 +115,12 @@ const Leaves = () => {
   const [monthFilter, setMonthFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
 
-  // ── Right panel state (Multi-Year calculation) ──
-  const currentYear = new Date().getFullYear();
+  // ── Right panel state ──
   const [calculationData, setCalculationData] = useState([]);
   const [calculationLoading, setCalculationLoading] = useState(false);
   const [calcEmployee, setCalcEmployee] = useState("");
-  const [calcYears, setCalcYears] = useState([String(currentYear)]);
+  const [calcYear, setCalcYear] = useState(new Date().getFullYear());
   const [calcMonth, setCalcMonth] = useState("");
-
-  const handleAddYear = (yr) => {
-    if (!yr) return;
-    setCalcYears((prev) => (prev.includes(String(yr)) ? prev : [...prev, String(yr)]));
-  };
-
-  const handleRemoveYear = (yr) => {
-    setCalcYears((prev) => (prev.length > 1 ? prev.filter((y) => y !== String(yr)) : prev));
-  };
 
   // ── Helpers ──
   const buildFilters = () => ({
@@ -154,30 +144,14 @@ const Leaves = () => {
 
   useEffect(() => {
     const fetchCalculation = async () => {
-      if (!calcYears || calcYears.length === 0) return;
       try {
         setCalculationLoading(true);
-        const results = await Promise.all(
-          calcYears.map(async (yr) => {
-            try {
-              const response = await getLeaveCalculation({
-                user_id: calcEmployee,
-                year: yr,
-                month: calcMonth,
-              });
-              const item = response.result?.[0] || {};
-              return {
-                year: yr,
-                employees: item.employees || [],
-                totals: item.totals || {},
-                type: item.type || "yearly",
-              };
-            } catch (err) {
-              return { year: yr, employees: [], totals: {}, type: "yearly" };
-            }
-          })
-        );
-        setCalculationData(results);
+        const response = await getLeaveCalculation({
+          user_id: calcEmployee,
+          year: calcYear,
+          month: calcMonth,
+        });
+        setCalculationData(response.result?.[0]?.employees || []);
       } catch (error) {
         console.log(error);
       } finally {
@@ -185,7 +159,7 @@ const Leaves = () => {
       }
     };
     fetchCalculation();
-  }, [calcEmployee, calcYears, calcMonth]);
+  }, [calcEmployee, calcYear, calcMonth]);
 
   useEffect(() => {
     if (!viewTarget?.id) { setLogs([]); return; }
@@ -533,11 +507,10 @@ const Leaves = () => {
             calculationData={calculationData}
             loading={calculationLoading}
             employee={calcEmployee}
-            selectedYears={calcYears}
+            year={calcYear}
             month={calcMonth}
             onEmployeeChange={setCalcEmployee}
-            onAddYear={handleAddYear}
-            onRemoveYear={handleRemoveYear}
+            onYearChange={setCalcYear}
             onMonthChange={setCalcMonth}
           />
         </div>
@@ -626,7 +599,7 @@ const Leaves = () => {
       rel="noopener noreferrer"
       className="text-xs font-black text-[#132ea7] hover:underline flex items-center gap-1.5"
     >
-      View Document
+      📄 View Document
     </a>
   </div>
 )}

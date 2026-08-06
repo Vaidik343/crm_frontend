@@ -20,7 +20,7 @@ import ExportModalMine from "../../components/ui/ExportModalMine";
 import MultiSearchableSelect from "../../components/ui/MultiSearchableSelect";
 
 import { formatDate, formatDateTime } from "../../utils/formatDate";
-
+import DataTable from "../../components/ui/DataTable"; // 
 import {
   MdPhone,
   MdAdd,
@@ -446,6 +446,135 @@ else if (name === "is_worklog") {
     setViewHistory([]);
   };
 
+  const columns = useMemo(
+  () => [
+    {
+      field: "createdAt",
+      headerName: "Timestamp",
+      width: 220,
+      renderCell: ({ row }) => (
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-xl bg-slate-50 text-[#132ea7] flex items-center justify-center shadow-inner group-hover:bg-[#132ea7] group-hover:text-white transition-all shrink-0">
+            <MdCalendarToday size={18} />
+          </div>
+          <div>
+            <div className="font-black text-slate-800 text-base">
+              {formatDate(row.createdAt)}
+            </div>
+            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              {formatDateTime(row.createdAt).split(" ")[1]}
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      field: "display_id",
+      headerName: "Display ID",
+      width: 140,
+      renderCell: ({ value }) => (
+        <span className="px-3 py-1 bg-[#132ea7]/10 text-[#132ea7] rounded-lg text-[12px] font-black font-mono">
+          {value || "—"}
+        </span>
+      ),
+    },
+    {
+      field: "caller_name",
+      headerName: "Caller",
+      width: 200,
+      renderCell: ({ row }) => (
+        <div>
+          <div className="font-black text-slate-700 text-lg">
+            {row.caller_name || <MdPhone size={16} />}
+          </div>
+          {row.caller_number && (
+            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+              {row.caller_number}
+            </div>
+          )}
+        </div>
+      ),
+    },
+    {
+      field: "project",
+      headerName: "Project",
+      width: 180,
+      renderCell: ({ row }) => (
+        <div className="flex items-center gap-2 text-md font-black text-slate-600">
+          <MdFolder className="text-[#132ea7]" size={16} />
+          {row.project?.name || "—"}
+        </div>
+      ),
+    },
+    {
+      field: "call_type",
+      headerName: "Type",
+      width: 220,
+      renderCell: ({ row }) => (
+        <div className="flex flex-col gap-1">
+          <Badge value={row.call_type} />
+          <div className="flex gap-1 flex-wrap mt-0.5">
+            {row.is_task && (
+              <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-[9px] font-black uppercase flex items-center gap-1">
+                <MdAssignment size={10} /> Task
+              </span>
+            )}
+            {row.is_worklog && (
+              <span className="px-2 py-0.5 bg-green-50 text-green-600 rounded-md text-[10px] font-black uppercase flex items-center gap-1">
+                <MdAssignment size={12} /> WorkLog
+              </span>
+            )}
+            {row.transfer_to && (
+              <span className="px-1.5 py-0.5 bg-orange-50 text-orange-600 rounded text-[9px] font-black uppercase flex items-center gap-1">
+                <MdTransferWithinAStation size={10} /> Transfer
+              </span>
+            )}
+            {row.parent_call_id && (
+              <span className="px-1.5 py-0.5 bg-purple-50 text-purple-600 rounded text-[9px] font-black uppercase">
+                Follow-Back
+              </span>
+            )}
+          </div>
+        </div>
+      ),
+    },
+    {
+      field: "receive_type",
+      headerName: "Medium",
+      width: 140,
+      renderCell: ({ value }) => (
+        <span className="text-xs font-black text-slate-500 uppercase tracking-[0.2em] bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
+          {value}
+        </span>
+      ),
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      width: 130,
+      align: "right",
+      renderCell: ({ row }) => (
+        <div className="flex items-center justify-end gap-2">
+          <button
+            className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all"
+            onClick={() => setViewTarget(row)}
+            title="View"
+          >
+            <MdVisibility size={20} />
+          </button>
+          <button
+            className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 transition-all"
+            onClick={() => openEdit(row)}
+            title="Edit"
+          >
+            <MdEdit size={20} />
+          </button>
+        </div>
+      ),
+    },
+  ],
+  []
+);
 
    // ── Shared pagination UI ─────────────────────────────────────────────────
   const Pagination = ({ compact = false }) => (
@@ -845,6 +974,16 @@ else if (name === "is_worklog") {
         )}
       </div>
 
+{/* Desktop Table */}
+<div className="hidden md:block">
+  <DataTable
+    columns={columns}
+    rows={filtered}
+    rowKey="id"
+    emptyMessage="No logs archived yet."
+  />
+  {totalPages > 1 && <Pagination />}
+</div>
       {/* Mobile Cards */}
       <div className="md:hidden space-y-4">
         {filtered.length === 0 ? (
