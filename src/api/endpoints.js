@@ -16,7 +16,10 @@ export const ENDPOINTS = {
     },
     EXPORT: {
         ALL: "/export",
-        MINE: "/export/mine"
+        MINE: "/export/mine",
+        
+      LEAVES_EXCEL: "/export/leaves/excel",
+  LEAVES_PDF:   "/export/leaves/pdf",
     },
     PERMISSIONS: {
         ALL: '/permissions',
@@ -112,6 +115,7 @@ export const ENDPOINTS = {
       APPROVE: (id) => `/leaves/approve/${id}`,
       REJECT: (id) => `/leaves/reject/${id}`,
       SATURDAY_MARK: '/leaves/saturday/mark',
+
       
       //both
       GET_MARKED_SATURDAY : (user_id) => `/leaves/saturday/${user_id}`,

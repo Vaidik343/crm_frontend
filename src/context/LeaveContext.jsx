@@ -58,7 +58,7 @@ export const LeaveProvider = ({children}) => {
              return data;
         } catch (error) {
             throw error;
-              console.log("🚀 ~ LeaveProvider ~ error:", error)
+              //("🚀 ~ LeaveProvider ~ error:", error)
         } finally {
             setLoading(false);
         }
@@ -180,7 +180,7 @@ const { data } = await api.get(`${ENDPOINTS.LEAVES.ALL}?${params.toString()}`)
   const getLeaveLogs = useCallback(async (id) => {
     try {
       const { data } = await api.get(ENDPOINTS.LEAVES.LEAVES_LOGS(id));
-      console.log("🚀 ~ LeaveProvider ~ data:", data)
+      //("🚀 ~ LeaveProvider ~ data:", data)
       return data;
     } catch (error) {
       throw error;
@@ -204,11 +204,11 @@ const { data } = await api.get(`${ENDPOINTS.LEAVES.ALL}?${params.toString()}`)
   const markWorkedSaturday = useCallback(async (payload) => {
     try {
       const { data } = await api.post(ENDPOINTS.LEAVES.SATURDAY_MARK, payload);
-      console.log("🚀 ~ LeaveProvider ~ data:", data)
+      //("🚀 ~ LeaveProvider ~ data:", data)
       
       return data;
     } catch (error) {
-      console.log("🚀 ~ LeaveProvider ~ error:", error)
+      //("🚀 ~ LeaveProvider ~ error:", error)
       throw error;
     }
   }, []);
@@ -224,10 +224,10 @@ const { data } = await api.get(`${ENDPOINTS.LEAVES.ALL}?${params.toString()}`)
 const getMyBalance = useCallback(async () => {
   try {
     const { data } = await api.get(ENDPOINTS.LEAVES.BALANCE_MY);
-    console.log("🚀 ~ LeaveProvider ~ data:", data)
+    //("🚀 ~ LeaveProvider ~ data:", data)
     return data;
   } catch (error) {
-    console.log("🚀 ~ LeaveProvider ~ error:", error)
+    //("🚀 ~ LeaveProvider ~ error:", error)
     throw error;
   }
 }, []);
@@ -290,10 +290,7 @@ const getLeaveCalculation = useCallback(async(filters = {}) => {
 
   } catch(error){
 
-    console.log(
-      "Leave calculation error:",
-      error
-    );
+   
 
     throw error;
 
@@ -335,7 +332,7 @@ const updatePublicHoliday = useCallback(async (id, payload) => {
       ENDPOINTS.LEAVES.HOLIDAY_UPDATE(id),
       payload
     );
-    console.log("🚀 ~ LeaveProvider ~ data:", data)
+    //("🚀 ~ LeaveProvider ~ data:", data)
     return data;
   } catch (error) {
     throw error;

@@ -20,7 +20,8 @@ import ExportModalMine from "../../components/ui/ExportModalMine";
 import MultiSearchableSelect from "../../components/ui/MultiSearchableSelect";
 
 import { formatDate, formatDateTime } from "../../utils/formatDate";
-import DataTable from "../../components/ui/DataTable"; // 
+import DataTable from "../../components/shared/table";
+
 import {
   MdPhone,
   MdAdd,
@@ -451,7 +452,7 @@ else if (name === "is_worklog") {
     {
       field: "createdAt",
       headerName: "Timestamp",
-      width: 220,
+      width: 150,
       renderCell: ({ row }) => (
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 rounded-xl bg-slate-50 text-[#132ea7] flex items-center justify-center shadow-inner group-hover:bg-[#132ea7] group-hover:text-white transition-all shrink-0">
@@ -481,7 +482,7 @@ else if (name === "is_worklog") {
     {
       field: "caller_name",
       headerName: "Caller",
-      width: 200,
+      width: 100,
       renderCell: ({ row }) => (
         <div>
           <div className="font-black text-slate-700 text-lg">
@@ -498,7 +499,7 @@ else if (name === "is_worklog") {
     {
       field: "project",
       headerName: "Project",
-      width: 180,
+      width: 150,
       renderCell: ({ row }) => (
         <div className="flex items-center gap-2 text-md font-black text-slate-600">
           <MdFolder className="text-[#132ea7]" size={16} />
@@ -509,7 +510,7 @@ else if (name === "is_worklog") {
     {
       field: "call_type",
       headerName: "Type",
-      width: 220,
+      width: 80,
       renderCell: ({ row }) => (
         <div className="flex flex-col gap-1">
           <Badge value={row.call_type} />
@@ -541,7 +542,7 @@ else if (name === "is_worklog") {
     {
       field: "receive_type",
       headerName: "Medium",
-      width: 140,
+      width: 40,
       renderCell: ({ value }) => (
         <span className="text-xs font-black text-slate-500 uppercase tracking-[0.2em] bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
           {value}
@@ -774,208 +775,10 @@ else if (name === "is_worklog") {
       </div>
 
       {/* Desktop Table */}
-      <div className="hidden md:block bg-white  rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
-        <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-200/50">
-                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
-                  Timestamp
-                </th>
-                <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
-                  Display ID
-                </th>
-
-                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
-                  Caller
-                </th>
-                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
-                  Project
-                </th>
-                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
-                  Type
-                </th>
-                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
-                  Medium
-                </th>
-                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-right">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {filtered.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={7}
-                    className="text-center text-slate-400 py-16 font-bold italic text-lg uppercase tracking-widest"
-                  >
-                    No logs archived yet.
-                  </td>
-                </tr>
-              )}
-              {filtered.map((call) => (
-                <tr
-                  key={call.id}
-                  className="hover:bg-slate-50/80 transition-colors group"
-                >
-                  <td className="px-10 py-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-xl bg-slate-50 text-[#132ea7] flex items-center justify-center shadow-inner group-hover:bg-[#132ea7] group-hover:text-white transition-all">
-                        <MdCalendarToday size={18} />
-                      </div>
-                      <div>
-                        <div className="font-black text-slate-800 text-base">
-                          {formatDate(call.createdAt)}
-                        </div>
-                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                          {formatDateTime(call.createdAt).split(" ")[1]}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-
-                  <td className="px-6 py-5">
-                    <span className="px-3 py-1 bg-[#132ea7]/10 text-[#132ea7] rounded-lg text-[12px] font-black font-mono">
-                      {call.display_id || "—"}
-                    </span>
-                  </td>
-
-                  <td className="px-6 py-5">
-                    <div className="font-black text-slate-700 text-lg">
-                      {call.caller_name || <MdPhone size={16} />}
-                    </div>
-                    {call.caller_number && (
-                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                        {call.caller_number}
-                      </div>
-                    )}
-                  </td>
-
-                  <td className="px-4 py-2">
-                    <div className="flex items-center gap-2 text-md font-black text-slate-600">
-                      <MdFolder className="text-[#132ea7]" size={16} />
-                      {call.project?.name || "—"}
-                    </div>
-                  </td>
-                  <td className="px-6 py-5">
-                    <div className="flex flex-col gap-1">
-                      <Badge value={call.call_type} />
-                      {/* <span className="text-[10px] font-black text-slate-400 bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
-                          {call.call_subtype}
-                        </span> */}
-                      <div className="flex gap-1 flex-wrap mt-0.5">
-                        {call.is_task && (
-                          <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded text-[9px] font-black uppercase flex items-center gap-1">
-                            <MdAssignment size={10} /> Task
-                          </span>
-                        )}
-
-                        {call.is_worklog && (
-  <span className="px-2 py-0.5 bg-green-50 text-green-600 rounded-md text-[10px] font-black uppercase flex items-center gap-1">
-    <MdAssignment size={12} /> WorkLog
-  </span>
-)}
-                        {call.transfer_to && (
-                          <span className="px-1.5 py-0.5 bg-orange-50 text-orange-600 rounded text-[9px] font-black uppercase flex items-center gap-1">
-                            <MdTransferWithinAStation size={10} /> Transfer
-                          </span>
-                        )}
-                        {call.parent_call_id && (
-                          <span className="px-1.5 py-0.5 bg-purple-50 text-purple-600 rounded text-[9px] font-black uppercase">
-                            Follow-Back
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-8 py-6">
-                    <span className="text-xs font-black text-slate-500 uppercase tracking-[0.2em] bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
-                      {call.receive_type}
-                    </span>
-                  </td>
-
-                  {/* <td className="px-6 py-5">
-                      <div className="flex items-center gap-2 text-xs font-black text-slate-700">
-                        <MdCalendarToday className="text-slate-300" size={14} />
-                        {new Date(call.createdAt).toLocaleDateString("default", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        })}
-                      </div>
-                    </td> */}
-
-                  <td className="px-8 py-6 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all"
-                        onClick={() => setViewTarget(call)}
-                        title="View"
-                      >
-                        <MdVisibility size={20} />
-                      </button>
-
-                      <button
-                        className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-emerald-500 hover:bg-emerald-50 transition-all"
-                        onClick={() => openEdit(call)}
-                        title="Edit"
-                      >
-                        <MdEdit size={20} />
-                      </button>
-                      {/* {call.user_id === authUser?.id && (
-      <button
-        className="p-2.5 rounded-xl bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
-        onClick={() => setConfirmDelete(call)}
-        title="Delete"
-      >
-        <MdDelete size={20} />
-      </button>
-    )} */}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-         {/* <div className="flex items-center justify-between px-6 py-6 border-t border-slate-100">
-            <button
-              disabled={page === 1}
-              onClick={() => setPage(page - 1)}
-              className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50"
-            >
-              Previous
-            </button>
-            <div className="flex items-center gap-2">
-              {[...Array(totalPages)].map((_, i) => (
-                <button
-                  key={i + 1}
-                  onClick={() => setPage(i + 1)}
-                  className={`w-10 h-10 rounded-xl font-bold transition-all ${page === i + 1 ? "bg-[#132ea7] text-white" : "bg-slate-100 text-slate-700"}`}
-                >
-                  {i + 1}
-                </button>
-              ))}
-            </div>
-            <button
-              disabled={page === totalPages}
-              onClick={() => setPage(page + 1)}
-              className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div> */}
-
-        {totalPages > 1 && (
-         <Pagination />
-        )}
-      </div>
+    
 
 {/* Desktop Table */}
-<div className="hidden md:block">
+<div className="hidden md:block bg-white  rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
   <DataTable
     columns={columns}
     rows={filtered}

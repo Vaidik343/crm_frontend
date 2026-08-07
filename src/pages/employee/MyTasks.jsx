@@ -107,9 +107,9 @@ const MyTasks = () => {
 
   // States for inline remark editing
   const [editingRemarkId, setEditingRemarkId] = useState(null);
-  console.log("🚀 ~ MyTasks ~ editingRemarkId:", editingRemarkId)
+  //("🚀 ~ MyTasks ~ editingRemarkId:", editingRemarkId)
   const [editingRemarkText, setEditingRemarkText] = useState("");
-  console.log("🚀 ~ MyTasks ~ editingRemarkText:", editingRemarkText)
+  //("🚀 ~ MyTasks ~ editingRemarkText:", editingRemarkText)
 
   const [selectedProject, setSelectedProject] = useState(null);
   const [selectedCall, setSelectedCall] = useState(null);

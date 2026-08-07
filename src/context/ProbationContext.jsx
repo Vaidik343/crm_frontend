@@ -23,7 +23,7 @@ export const ProbationProvider = ({ children }) => {
       const { data } = await api.get(
         `${ENDPOINTS.PROBATION.ALL}?${params.toString()}`
       );
-      console.log("🚀 ~ ProbationProvider ~ data:", data)
+      //("🚀 ~ ProbationProvider ~ data:", data)
       setEmployees(data.employees || []);
       setPage(data.page || 1);
       setTotal(data.total || 0);
@@ -36,10 +36,10 @@ export const ProbationProvider = ({ children }) => {
   const startProbation = useCallback(async (id, payload) => {
   try {
        const { data } = await api.post(ENDPOINTS.PROBATION.START(id), payload);
-    console.log("🚀 ~ ProbationProvider ~ data:", data)
+    //("🚀 ~ ProbationProvider ~ data:", data)
     return data;
   } catch (error) {
-      console.log("🚀 ~ ProbationProvider ~ error:", error)
+      //("🚀 ~ ProbationProvider ~ error:", error)
     throw error
   }
   }, []);

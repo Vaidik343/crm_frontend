@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useLeave } from "../../context/LeaveContext";
 import { useAuth } from "../../context/AuthContext";
 import Modal from "../../components/ui/Modal";
@@ -21,6 +21,7 @@ import { FaBriefcaseMedical } from "react-icons/fa";
 
 import { formatDate, formatDateTime } from "../../utils/formatDate";
 import SearchInput from "../../components/ui/SearchInput";
+import DataTable from "../../components/shared/table";
 
 // ─────────────────────────────────────────────
 // CONSTANTS
@@ -33,7 +34,7 @@ const LEAVE_TYPE_LABELS = {
 };
 
 const REASON_TYPE_LABELS = {
-  normal:    "Casual",
+  casual:    "Casual",
   emergency: "Emergency",
 };
 
@@ -52,7 +53,7 @@ const STATUS_CONFIG = {
 
 const initialForm = {
   leave_type:          "paid",
-  reason_type:         "normal",
+  reason_type:         "casual",
   start_date:          "",
   end_date:            "",
   duration:            "full_day",
@@ -403,6 +404,114 @@ setMedicalFileError("");
     }
   };
 
+  const columns = useMemo(
+  () => [
+    {
+      field: "createdAt",
+      headerName: "Requested On",
+      width: 180,
+      renderCell: ({ row }) => (
+        <div>
+          <div className="font-black text-slate-800 text-base">
+            {formatDate(row.createdAt)}
+          </div>
+          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            {formatDateTime(row.createdAt).split(" ")[1]}
+          </div>
+        </div>
+      ),
+    },
+    {
+      field: "display_id",
+      headerName: "Display ID",
+      width: 140,
+      renderCell: ({ row }) => (
+        <span className="px-3 py-1 bg-[#132ea7]/10 text-[#132ea7] rounded-lg text-[11px] font-black uppercase tracking-widest font-mono">
+          {row.display_id || "—"}
+        </span>
+      ),
+    },
+    {
+      field: "leave_type",
+      headerName: "Leave Type",
+      width: 160,
+      renderCell: ({ row }) => (
+        <div className="flex flex-col gap-1">
+          <LeaveBadge type={row.leave_type} />
+          {row.reason_type === "emergency" && (
+            <span className="px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-widest bg-red-100 text-red-600 w-fit">
+              Emergency
+            </span>
+          )}
+        </div>
+      ),
+    },
+    {
+      field: "duration",
+      headerName: "Duration",
+      width: 140,
+      renderCell: ({ row }) => (
+        <span className="text-sm font-black text-slate-600">
+          {DURATION_LABELS[row.duration] || row.duration}
+        </span>
+      ),
+    },
+    {
+      field: "start_date",
+      headerName: "From",
+      width: 140,
+      renderCell: ({ row }) => (
+        <span className="text-sm font-black text-slate-700">
+          {formatDate(row.start_date)}
+        </span>
+      ),
+    },
+    {
+      field: "end_date",
+      headerName: "To",
+      width: 140,
+      renderCell: ({ row }) => (
+        <span className="text-sm font-black text-slate-700">
+          {formatDate(row.end_date)}
+        </span>
+      ),
+    },
+    {
+      field: "status",
+      headerName: "Status",
+      width: 140,
+      renderCell: ({ row }) => <StatusBadge status={row.status} />,
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      width: 140,
+      align: "right",
+      renderCell: ({ row }) => (
+        <div className="flex items-center justify-end gap-2">
+          <button
+            onClick={() => setViewTarget(row)}
+            title="View"
+            className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all"
+          >
+            <MdVisibility size={20} />
+          </button>
+          {row.status === "pending" && (
+            <button
+              onClick={() => setConfirmCancel(row)}
+              title="Cancel"
+              className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all"
+            >
+              <MdCancel size={20} />
+            </button>
+          )}
+        </div>
+      ),
+    },
+  ],
+  []
+);
+
   // ── Pagination ──
   const Pagination = ({ compact = false }) => (
     <div className={`flex items-center justify-between px-6 py-6 ${!compact ? "border-t border-slate-100" : ""}`}>
@@ -495,8 +604,8 @@ setMedicalFileError("");
             <div className="flex flex-wrap gap-2 justify-center md:justify-start">
             {[
               { value: "",         label: "All Types" },
-              { value: "paid",     label: "Paid"      },
-              { value: "unpaid",   label: "Unpaid"    },
+              // { value: "paid",     label: "Paid"      },
+              // { value: "unpaid",   label: "Unpaid"    },
               { value: "exchange", label: "Exchange"  },
             ].map((opt) => (
               <button key={opt.value}
@@ -515,7 +624,7 @@ setMedicalFileError("");
     <SearchInput
       value={search}
       onChange={setSearch}
-      placeholder="Search Tasks, Projects..."
+      placeholder="Display Id...."
 
     />
         </div>
@@ -524,105 +633,23 @@ setMedicalFileError("");
       <Alert type={alert.type} message={alert.message}
         onClose={() => setAlert({ type: "", message: "" })} />
 
-      {/* ── Desktop Table ── */}
-      <div className="hidden md:block">
-        <div className="bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
-          <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-200/50">
-                  {["Requested On", "Display ID", "Leave Type", "Duration", "From", "To", "Status", "Actions"].map((h) => (
-                    <th key={h} className="px-6 py-5 text-md font-black text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {leaves.length === 0 && (
-                  <tr>
-                    <td colSpan={8} className="text-center text-slate-400 py-16 font-medium italic text-lg uppercase tracking-widest">
-                      No leave requests found.
-                    </td>
-                  </tr>
-                )}
-                {leaves.filter(Boolean).map((leave) => (
-
-                  
-                  <tr key={leave.id} className="hover:bg-slate-50/80 transition-colors group">
-
-                    {/* Requested On */}
-                    <td className="px-6 py-5">
-                      <div className="font-black text-slate-800 text-base">{formatDate(leave.createdAt)}</div>
-                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                        {formatDateTime(leave.createdAt).split(" ")[1]}
-                      </div>
-                    </td>
-
-                    {/* Display ID */}
-                    <td className="px-6 py-5">
-                      <span className="px-3 py-1 bg-[#132ea7]/10 text-[#132ea7] rounded-lg text-[11px] font-black uppercase tracking-widest font-mono">
-                        {leave.display_id || "—"}
-                      </span>
-                    </td>
-
-                    {/* Leave Type + Emergency badge */}
-                    <td className="px-6 py-5">
-                      <div className="flex flex-col gap-1">
-                        <LeaveBadge type={leave.leave_type} />
-                        {leave.reason_type === "emergency" && (
-                          <span className="px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-widest bg-red-100 text-red-600 w-fit">
-                            Emergency
-                          </span>
-                        )}
-                      </div>
-                    </td>
-
-                    {/* Duration */}
-                    <td className="px-6 py-5">
-                      <span className="text-sm font-black text-slate-600">
-                        {DURATION_LABELS[leave.duration] || leave.duration}
-                      </span>
-                    </td>
-
-                    {/* From */}
-                    <td className="px-6 py-5">
-                      <span className="text-sm font-black text-slate-700">{formatDate(leave.start_date)}</span>
-                    </td>
-
-                    {/* To */}
-                    <td className="px-6 py-5">
-                      <span className="text-sm font-black text-slate-700">{formatDate(leave.end_date)}</span>
-                    </td>
-
-                    {/* Status */}
-                    <td className="px-6 py-5">
-                      <StatusBadge status={leave.status} />
-                    </td>
-
-                    {/* Actions */}
-                    <td className="px-6 py-5">
-                      <div className="flex items-center gap-2">
-                        <button onClick={() => setViewTarget(leave)} title="View"
-                          className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all">
-                          <MdVisibility size={20} />
-                        </button>
-                        {leave.status === "pending" && (
-                          <button onClick={() => setConfirmCancel(leave)} title="Cancel"
-                            className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-500 transition-all">
-                            <MdCancel size={20} />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {totalPages > 1 && <Pagination />}
-        </div>
+    {/* ── Desktop Table ── */}
+<div className="hidden md:block">
+  <div className="bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
+    {leaves.length === 0 ? (
+      <div className="text-center text-slate-400 py-16 font-medium italic text-lg uppercase tracking-widest">
+        No leave requests found.
       </div>
+    ) : (
+      <DataTable
+        columns={columns}
+        rows={leaves.filter(Boolean)}
+        rowKey="id"
+      />
+    )}
+    {totalPages > 1 && <Pagination />}
+  </div>
+</div>
 
       {/* ── Mobile Cards ── */}
       <div className="md:hidden space-y-4">
@@ -680,29 +707,28 @@ setMedicalFileError("");
         <form onSubmit={handleSubmit} noValidate className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
-            {/* Leave Type */}
-            <div className="space-y-1.5">
-              <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
-                Leave Type
-              </label>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  { value: "paid",     label: "Paid"     },
-                  { value: "unpaid",   label: "Unpaid"   },
-                  { value: "exchange", label: "Exchange" },
-                ].map((opt) => (
-                  <button key={opt.value} type="button"
-                    onClick={() => handleChange({ target: { name: "leave_type", value: opt.value } })}
-                    className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-                      form.leave_type === opt.value
-                        ? "bg-[#132ea7] text-white shadow-lg shadow-[#132ea7]/20"
-                        : "bg-slate-100 text-slate-400 hover:bg-slate-200"
-                    }`}>
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+          {/* Leave Type */}
+<div className="space-y-1.5">
+  <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
+    Leave Type
+  </label>
+  <div className="flex flex-wrap gap-2">
+    <button
+      type="button"
+      onClick={() => handleChange({ target: { name: "leave_type", value: form.leave_type === "exchange" ? "paid" : "exchange" } })}
+      className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+        form.leave_type === "exchange"
+          ? "bg-[#132ea7] text-white shadow-lg shadow-[#132ea7]/20"
+          : "bg-slate-100 text-slate-400 hover:bg-slate-200"
+      }`}
+    >
+      Exchange
+    </button>
+  </div>
+  <p className="text-[10px] font-bold text-slate-400 ml-1">
+    Leave this unselected for regular leave. Select Exchange only if using a worked Saturday.
+  </p>
+</div>
 
             {/* Reason Type */}
             <div className="space-y-1.5">
@@ -711,7 +737,7 @@ setMedicalFileError("");
               </label>
               <div className="flex flex-wrap gap-2">
                 {[
-                  { value: "normal",    label: "Casual"    },
+                  { value: "casual",    label: "Casual"    },
                   { value: "emergency", label: "Emergency" },
                 ].map((opt) => (
                   <button key={opt.value} type="button"
@@ -870,44 +896,68 @@ setMedicalFileError("");
               )}
             </div>
 
-            {/* Exchange Saturday picker */}
-            {form.leave_type === "exchange" && (
-              <div className="md:col-span-2 space-y-1.5">
-                <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
-                  Select Saturday to Exchange <span className="text-red-500">*</span>
-                </label>
-                {saturdaysLoading ? (
-                  <p className="text-xs font-bold text-slate-400 animate-pulse uppercase tracking-widest">
-                    Loading available Saturdays...
-                  </p>
-                ) : saturdays.length === 0 ? (
-                  <div className="bg-amber-50 border border-amber-100 rounded-2xl px-5 py-3">
-                    <p className="text-xs font-black text-amber-600 uppercase tracking-widest">
-                      No available worked Saturdays. Ask admin to mark your worked Saturdays first.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="flex flex-wrap gap-2">
-                    {saturdays.map((s) => (
-                      <button key={s.id} type="button"
-                        onClick={() => setForm((prev) => ({ ...prev, worked_saturday_id: s.id }))}
-                        className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-                          form.worked_saturday_id === s.id
-                            ? "bg-[#132ea7] text-white shadow-lg shadow-[#132ea7]/20"
-                            : "bg-slate-100 text-slate-400 hover:bg-slate-200"
-                        }`}>
-                        {formatDate(s.saturday_date)}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                {fieldErrors.worked_saturday_id && (
-                  <p className="text-red-500 text-[10px] font-bold uppercase ml-1 mt-1">
-                    {fieldErrors.worked_saturday_id}
-                  </p>
-                )}
-              </div>
-            )}
+         {/* Exchange Saturday picker */}
+{form.leave_type === "exchange" && (
+  <div className="md:col-span-2 space-y-1.5">
+    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
+      Select Saturday to Exchange <span className="text-red-500">*</span>
+    </label>
+
+    {(() => {
+      const currentMonthSaturdays = saturdays.filter((s) => {
+        const satDate = new Date(s.saturday_date);
+        const now = new Date();
+        return (
+          satDate.getMonth() === now.getMonth() &&
+          satDate.getFullYear() === now.getFullYear()
+        );
+      });
+
+      if (saturdaysLoading) {
+        return (
+          <p className="text-xs font-bold text-slate-400 animate-pulse uppercase tracking-widest">
+            Loading available Saturdays...
+          </p>
+        );
+      }
+
+      if (currentMonthSaturdays.length === 0) {
+        return (
+          <div className="bg-amber-50 border border-amber-100 rounded-2xl px-5 py-3">
+            <p className="text-xs font-black text-amber-600 uppercase tracking-widest">
+              No worked Saturdays available this month. Ask admin to mark your worked Saturdays first.
+            </p>
+          </div>
+        );
+      }
+
+      return (
+        <div className="flex flex-wrap gap-2">
+          {currentMonthSaturdays.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => setForm((prev) => ({ ...prev, worked_saturday_id: s.id }))}
+              className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                form.worked_saturday_id === s.id
+                  ? "bg-[#132ea7] text-white shadow-lg shadow-[#132ea7]/20"
+                  : "bg-slate-100 text-slate-400 hover:bg-slate-200"
+              }`}
+            >
+              {formatDate(s.saturday_date)}
+            </button>
+          ))}
+        </div>
+      );
+    })()}
+
+    {fieldErrors.worked_saturday_id && (
+      <p className="text-red-500 text-[10px] font-bold uppercase ml-1 mt-1">
+        {fieldErrors.worked_saturday_id}
+      </p>
+    )}
+  </div>
+)}
 
             {/* Reason */}
             <div className="md:col-span-2">

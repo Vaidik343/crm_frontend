@@ -16,7 +16,7 @@ const InternStatus = () => {
   const { checkStatus }      = useIntern();
 
   const [status, setStatus]               = useState(null); // 'pending' | 'approved' | 'rejected'
-  console.log("🚀 ~ InternStatus ~ status:", status)
+  //("🚀 ~ InternStatus ~ status:", status)
   const [message, setMessage]             = useState("");
   const [rejectionReason, setRejectionReason] = useState("");
   const [tokenExpired, setTokenExpired]   = useState(false);
@@ -26,24 +26,24 @@ const InternStatus = () => {
   const intervalRef = useRef(null);
 
   useEffect(() => {
-  console.log("Intern ID:", intern_id);
+  //("Intern ID:", intern_id);
 }, [intern_id]);
 
 
 const poll = async () => {
-  console.log("🚀 poll started");
+  //("🚀 poll started");
 
   try {
-    console.log("Polling...");
+    //("Polling...");
     const data = await checkStatus(intern_id);
 
-    console.log("✅ checkStatus response:", data);
+    //("✅ checkStatus response:", data);
 
-    console.log("Approved?", data.status);
-console.log("Token:", data.setup_token);
+    //("Approved?", data.status);
+//("Token:", data.setup_token);
 
     if (data.status === "approved") {
-       console.log("Navigating to setup page");
+       //("Navigating to setup page");
       stopPolling();
 
       if (data.setup_token) {
@@ -67,8 +67,8 @@ console.log("Token:", data.setup_token);
     }
 
   } catch (error) {
-    console.log("❌ checkStatus error:", error);
-    console.log("❌ response:", error.response);
+    //("❌ checkStatus error:", error);
+    //("❌ response:", error.response);
 
     setMessage(
       error?.response?.data?.message ||

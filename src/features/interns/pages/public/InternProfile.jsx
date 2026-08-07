@@ -144,7 +144,7 @@ const InternProfile = () => {
   const [form, setForm] = useState({});
   
   const [errors, setErrors] = useState({});
-  console.log("🚀 ~ InternProfile ~ errors:", errors)
+  //("🚀 ~ InternProfile ~ errors:", errors)
   
   const [submitting, setSubmitting] = useState(false);
 
@@ -160,7 +160,7 @@ const InternProfile = () => {
     resume: null,
     last_sem_marksheet: null,
   });
-  console.log("🚀 ~ InternProfile ~ docForm:", docForm)
+  //("🚀 ~ InternProfile ~ docForm:", docForm)
   const [docSubmitting, setDocSubmitting] = useState(false);
 
   // ── Fetch Profile ──
@@ -195,7 +195,7 @@ const InternProfile = () => {
   useEffect(() => {
     if (showDocEdit && profile) {
       const doc = profile.documents?.[0];
-      console.log("🚀 ~ InternProfile ~ doc:", doc)
+      //("🚀 ~ InternProfile ~ doc:", doc)
       setDocForm({
         document_type: doc?.document_type || "",
         college_name: doc?.college_detail?.college_name || "",
@@ -268,7 +268,7 @@ const InternProfile = () => {
       setShowEdit(false);
       getMyProfile();
     } catch (error) {
-          console.log("🚀 ~ handleSubmit ~ error:", error)
+          //("🚀 ~ handleSubmit ~ error:", error)
       toast.error(error?.response?.data?.message || "Failed to update profile.");
     } finally {
       setSubmitting(false);
@@ -290,7 +290,7 @@ const InternProfile = () => {
     try {
       setDocSubmitting(true);
       const fd = new FormData();
-      console.log("🚀 ~ handleDocSubmit ~ fd:", fd)
+      //("🚀 ~ handleDocSubmit ~ fd:", fd)
 
       if (docForm.document_type) fd.append("document_type", docForm.document_type);
       if (docForm.id_proof) fd.append("id_proof", docForm.id_proof);

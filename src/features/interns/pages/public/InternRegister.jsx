@@ -324,6 +324,8 @@ const InternRegister = () => {
     if (!step2.document_type) e.document_type = "Please select an ID proof type.";
     if (!step2.id_proof) e.id_proof = "ID proof file is required.";
     if (!step2.photo) e.photo = "Photo is required.";
+    if (!step2.resume) e.resume = "Resume is required.";
+    if (!step2.last_sem_marksheet) e.last_sem_marksheet = "Marksheet is required.";
     if (!step2.college_name.trim()) e.college_name = "College name is required.";
     if (!step2.college_address.trim())
       e.college_address = "College address is required.";
@@ -636,7 +638,8 @@ const InternRegister = () => {
                     accept=".pdf,.doc,.docx"
                     file={step2.resume}
                     onChange={handleFileChange("resume")}
-                    optional
+                      error={errors2.resume}
+                    
                   />
                   <UploadCard
                     label="Marksheet"
@@ -644,7 +647,8 @@ const InternRegister = () => {
                     accept=".pdf,image/*"
                     file={step2.last_sem_marksheet}
                     onChange={handleFileChange("last_sem_marksheet")}
-                    optional
+                      error={errors2.last_sem_marksheet}
+                    
                   />
                 </div>
 

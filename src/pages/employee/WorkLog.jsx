@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useWorkLog } from "../../context/WorkLogContext";
 import { useProject } from "../../context/ProjectContext";
 import Button from "../../components/ui/Button";
@@ -27,6 +27,8 @@ import SearchableSelect from "../../components/ui/SearchableSelect";
 import { ENDPOINTS } from "../../api/endpoints";
 
 import { formatDate, formatDateTime } from "../../utils/formatDate";
+
+import DataTable from "../../components/shared/table";
 
 
 import { useNavigate } from "react-router-dom";
@@ -206,6 +208,83 @@ useEffect(() => {
     }
   };
 
+
+  const columns = useMemo(
+  () => [
+    {
+      field: "date",
+      headerName: "Operational Date",
+      width: 220,
+      renderCell: ({ row }) => (
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-slate-50 text-[#132ea7] flex items-center justify-center shadow-inner group-hover:bg-[#132ea7] group-hover:text-white transition-all">
+            <MdCalendarToday size={18} />
+          </div>
+          <span className="text-sm font-black text-slate-700 uppercase tracking-wider">
+            {formatDate(row.date)}
+          </span>
+        </div>
+      ),
+    },
+    {
+      field: "display_id",
+      headerName: "Display ID",
+      width: 140,
+      renderCell: ({ row }) => (
+        <span className="px-3 py-1 bg-[#132ea7]/10 text-[#132ea7] rounded-lg text-[11px] font-black uppercase tracking-widest font-mono">
+          {row.display_id || "—"}
+        </span>
+      ),
+    },
+    {
+      field: "description",
+      headerName: "Work Briefing",
+      
+     width: 280,
+      renderCell: ({ row }) => (
+        <p className="text-sm font-bold truncate max-w-[500px]">
+          {row.description}
+        </p>
+      ),
+    },
+    {
+      field: "project",
+      headerName: "Projects",
+      width: 220,
+      renderCell: ({ row }) => (
+        <p className="text-sm font-bold uppercase tracking-widest mt-0.5">
+          {row.Project?.name || "No Project Assigned"}
+        </p>
+      ),
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
+      width: 140,
+      align: "right",
+      renderCell: ({ row }) => (
+        <div className="flex items-center justify-end gap-3">
+          <button
+            className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all shadow-sm"
+            onClick={() => setViewTarget(row)}
+            title="View Full Log"
+          >
+            <MdVisibility size={20} />
+          </button>
+          <button
+            onClick={() => openEdit(row)}
+            className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all shadow-sm"
+            title="Edit"
+          >
+            <MdEdit size={20} />
+          </button>
+        </div>
+      ),
+    },
+  ],
+  [] // Empty dependency array because openEdit and setViewTarget are stable state setters/functions
+);
+
   if (loading && !workLogs.length)
     return (
       <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
@@ -337,133 +416,60 @@ useEffect(() => {
       </div>
 
       {/* Table Container */}
-      <div className="bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
-        <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50/50">
-                <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
-                  Operational Date
-                </th>
-                <th className="px-6 py-5 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
-  Display ID
-</th>
-                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
-                  Work Briefing
-                </th>
-                <th className="px-8 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em]">
-                  Projects
-                </th>
-                <th className="px-10 py-6 text-xs font-black text-slate-400 uppercase tracking-[0.2em] text-right">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {workLogs.length === 0 && (
-                <tr>
-                  <td
-                    colSpan={3}
-                    className="text-center text-slate-400 py-16 font-medium italic text-lg uppercase tracking-widest"
-                  >
-                    No work logs logged yet.
-                  </td>
-                </tr>
-              )}
-              {workLogs.map((log) => (
-                <tr
-                  key={log.id}
-                  className="hover:bg-slate-50/80 transition-colors group"
-                >
-                  <td className="px-10 py-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-xl bg-slate-50 text-[#132ea7] flex items-center justify-center shadow-inner group-hover:bg-[#132ea7] group-hover:text-white transition-all">
-                        <MdCalendarToday size={18} />
-                      </div>
-                      <span className="text-sm font-black text-slate-700 uppercase tracking-wider">
-                        {formatDate(log.date)}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-5">
-  <span className="px-3 py-1 bg-[#132ea7]/10 text-[#132ea7] rounded-lg text-[11px] font-black uppercase tracking-widest font-mono">
-    {log.display_id || "—"}
-  </span>
-</td>
-                  <td className="px-8 py-6">
-                    <p className="text-sm font-bold  truncate max-w-[500px]">
-                      {log.description}
-                    </p>
-                  </td>
-                  <td className="px-8 py-6">
-                    <p className="text-sm font-bold  uppercase tracking-widest mt-0.5">
-                      {log.Project?.name || "No Project Assigned"}
-                    </p>
-                  </td>
-                  <td className="px-10 py-6 text-right">
-                    <div className="flex items-center justify-end gap-3">
-                      <button
-                        className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all shadow-sm"
-                        onClick={() => setViewTarget(log)}
-                        title="View Full Log"
-                      >
-                        <MdVisibility size={20} />
-                      </button>
-                      <button
-                        onClick={() => openEdit(log)}
-                        className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all shadow-sm"
-                        title="Edit"
-                      >
-                        <MdEdit size={20} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+  
+<div className="bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
+  {workLogs.length === 0 ? (
+    <div className="text-center text-slate-400 py-16 font-medium italic text-lg uppercase tracking-widest">
+      No work logs logged yet.
+    </div>
+  ) : (
+    <DataTable
+      columns={columns}
+      rows={workLogs}
+      rowKey="id"
+    />
+  )}
 
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between px-6 py-6 border-t border-slate-100">
+  {/* Pagination */}
+  {totalPages > 1 && (
+    <div className="flex items-center justify-between px-6 py-6 border-t border-slate-100">
+      <button
+        disabled={page === 1}
+        onClick={() => setPage(page - 1)}
+        className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50 hover:bg-slate-200 transition-all"
+      >
+        Previous
+      </button>
+
+      <div className="flex items-center gap-2">
+        {[...Array(totalPages)].map((_, i) => {
+          const pageNum = i + 1;
+          return (
             <button
-              disabled={page === 1}
-              onClick={() => setPage(page - 1)}
-              className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50"
+              key={pageNum}
+              onClick={() => setPage(pageNum)}
+              className={`w-10 h-10 rounded-xl font-bold transition-all ${
+                page === pageNum
+                  ? "bg-[#132ea7] text-white shadow-md shadow-[#132ea7]/20"
+                  : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+              }`}
             >
-              Previous
+              {pageNum}
             </button>
-
-            <div className="flex items-center gap-2">
-              {[...Array(totalPages)].map((_, i) => {
-                const pageNum = i + 1;
-                return (
-                  <button
-                    key={pageNum}
-                    onClick={() => setPage(pageNum)}
-                    className={`w-10 h-10 rounded-xl font-bold transition-all ${
-                      page === pageNum
-                        ? "bg-[#132ea7] text-white"
-                        : "bg-slate-100 text-slate-700"
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                );
-              })}
-            </div>
-
-            <button
-              disabled={page === totalPages}
-              onClick={() => setPage(page + 1)}
-              className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50"
-            >
-              Next
-            </button>
-          </div>
-        )}
+          );
+        })}
       </div>
+
+      <button
+        disabled={page === totalPages}
+        onClick={() => setPage(page + 1)}
+        className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50 hover:bg-slate-200 transition-all"
+      >
+        Next
+      </button>
+    </div>
+  )}
+</div>
       <Modal
         show={showModal}
         onClose={closeModal}

@@ -88,10 +88,10 @@ export const InternProvider = ({children}) => {
       const { data } = await internApi.post(ENDPOINTS.INTERNS.REGISTER, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      console.log("🚀 ~ InternProvider ~ data:", data)
+      // //("🚀 ~ InternProvider ~ data:", data)
       return data;
     } catch (error) {
-      console.log("🚀 ~ InternProvider ~ error:", error)
+      //("🚀 ~ InternProvider ~ error:", error)
       throw error;
     }
   }, []);
@@ -121,7 +121,7 @@ export const InternProvider = ({children}) => {
     // payload: { email, password }
     try {
       const { data } = await internApi.post(ENDPOINTS.INTERNS.LOGIN, payload);
-      console.log("🚀 ~ InternProvider ~ data:", data)
+      //("🚀 ~ InternProvider ~ data:", data)
       
       return data; // caller saves token via saveInternToken
     } catch (error) {
@@ -178,7 +178,7 @@ export const InternProvider = ({children}) => {
     try {
       setProjectLoading(true);
       const { data } = await internApi.get(ENDPOINTS.INTER_PROJECT.MY);
-      console.log("🚀 ~ InternProvider ~ data:", data)
+      //("🚀 ~ InternProvider ~ data:", data)
       setProject(data.project || data);
       return data;
     } catch (error) {
@@ -303,7 +303,7 @@ const getMyWorkLogs = useCallback(async (
       if (status)      params.set("status", status);
       if (intern_type) params.set("intern_type", intern_type);
       const { data } = await api.get(`${ENDPOINTS.INTERNS.ALL}?${params.toString()}`);
-      console.log("🚀 ~ InternProvider ~ data:", data)
+      //("🚀 ~ InternProvider ~ data:", data)
       
       setInterns(data.interns || []);
       setInternsPage(data.page || 1);
@@ -319,7 +319,7 @@ const getMyWorkLogs = useCallback(async (
   const getInternById = useCallback(async (id) => {
     try {
       const { data } = await api.get(ENDPOINTS.INTERNS.GET_BY_ID(id));
-      console.log("🚀 ~ InternProvider ~ data:", data)
+      //("🚀 ~ InternProvider ~ data:", data)
       
       return data;
     } catch (error) {
@@ -388,10 +388,10 @@ const getMyWorkLogs = useCallback(async (
   const getInternTasks = useCallback(async (internId) => {
     try {
      const { data } = await api.get(ENDPOINTS.INTER_TASKS.GET_TASK_BY_ID(internId));
-      console.log("🚀 ~ InternProvider ~ data:", data)
+      //("🚀 ~ InternProvider ~ data:", data)
       return data;
     } catch (error) {
-      console.log("🚀 ~ InternProvider ~ error:", error)
+      //("🚀 ~ InternProvider ~ error:", error)
       throw error;
     }
   }, []);
@@ -400,12 +400,12 @@ const getMyWorkLogs = useCallback(async (
   const deleteInternTask = useCallback(async (taskId) => {
   try {
     const { data } = await api.delete(ENDPOINTS.INTER_TASKS.DELETE_TASK(taskId));
-    console.log("🚀 ~ InternProvider ~ data:", data)
+    //("🚀 ~ InternProvider ~ data:", data)
     
     return data;
   } catch (error) {
     
-  console.log("🚀 ~ InternProvider ~ error:", error)
+  //("🚀 ~ InternProvider ~ error:", error)
     throw error;
   }
 }, []);
@@ -454,7 +454,7 @@ const adminUpdateProject = useCallback(async (internId, payload) => {
   const getInternProject = useCallback(async (internId) => {
     try {
       const { data } = await api.get(ENDPOINTS.INTER_PROJECT.PROJECT(internId));
-      console.log("🚀 ~ InternProvider ~ data:", data)
+      //("🚀 ~ InternProvider ~ data:", data)
       return data;
     } catch (error) {
       throw error;
@@ -478,7 +478,7 @@ const adminUpdateProject = useCallback(async (internId, payload) => {
   const workLogsTotalPages = Math.ceil(workLogsTotal / workLogsLimit);
   const internsTotalPages  = Math.ceil(internsTotal / internsLimit);
 
-    console.log("🚀 ~ InternProvider ~ tasks:", tasks)
+    //("🚀 ~ InternProvider ~ tasks:", tasks)
   const value = useMemo(() => ({
     // Socket
     socket,

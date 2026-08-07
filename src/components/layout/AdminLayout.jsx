@@ -69,7 +69,7 @@ const confirmLogout = () => { setShowLogoutModal(false); logout(); };
 const cancelLogout = () => setShowLogoutModal(false);
 
 const { isInstallable, install } = usePWAInstall();
-console.log("🚀 ~ AdminLayout ~ isInstallable:", isInstallable)
+// console.log("🚀 ~ AdminLayout ~ isInstallable:", isInstallable)
 
 
     return (

@@ -118,7 +118,7 @@ const AdminInternDetail = () => {
     adminUpdateProject,
     deleteInternTask 
   } = useIntern();
-    // console.log("🚀 ~ AdminInternDetail ~ getInternById:", getInternById)
+    // //("🚀 ~ AdminInternDetail ~ getInternById:", getInternById)
 
   // ── Core data ──────────────────────────────────────────────────────────────
   const [intern, setIntern] = useState(null);
@@ -136,7 +136,7 @@ const AdminInternDetail = () => {
   const [projectLoading, setProjectLoading] = useState(false);
 
   const [tasks, setTasks] = useState([]);
-  console.log("🚀 ~ AdminInternDetail ~ tasks:", tasks)
+  //("🚀 ~ AdminInternDetail ~ tasks:", tasks)
   const [tasksLoading, setTasksLoading] = useState(false);
   const [tasksTotal, setTasksTotal] = useState(0);
   const [tasksPage, setTasksPage] = useState(1);
@@ -213,7 +213,7 @@ const AdminInternDetail = () => {
 
 
   const [verifying, setVerifying] = useState(false);
-  console.log("🚀 ~ AdminInternDetail ~ verifying:", verifying)
+  //("🚀 ~ AdminInternDetail ~ verifying:", verifying)
 
 
 
@@ -222,7 +222,7 @@ const AdminInternDetail = () => {
     try {
       setLoading(true);
       const data = await getInternById(id);
-      console.log("🚀 ~ fetchIntern ~ data:", data)
+      //("🚀 ~ fetchIntern ~ data:", data)
 
       setIntern(data.intern || data);
     } catch {
@@ -262,7 +262,7 @@ const AdminInternDetail = () => {
     try {
       setTasksLoading(true);
       const data = await getInternTasks(id, page, status);
-      console.log("🚀 ~ fetchTasks ~ data:", data)
+      //("🚀 ~ fetchTasks ~ data:", data)
       setTasks(data.tasks || []);
       setTasksTotal(data.total || 0);
       setTasksPage(data.page || 1);
@@ -295,11 +295,11 @@ const AdminInternDetail = () => {
   try {
     setDeletingTaskId(taskId);
     await deleteInternTask(taskId);
-    console.log("🚀 ~ handleDeleteTask ~ dt:", dt)
+    //("🚀 ~ handleDeleteTask ~ dt:", dt)
     toast.success("Task deleted.");
     fetchTasks(tasksPage, taskStatusFilter);
   } catch (err) {
-      console.log("🚀 ~ handleDeleteTask ~ err:", err)
+      //("🚀 ~ handleDeleteTask ~ err:", err)
     toast.error(err?.response?.data?.message || "Failed to delete task.");
   } finally {
     setDeletingTaskId(null);
@@ -539,7 +539,7 @@ const AdminInternDetail = () => {
       setShowMentor(false);
       fetchProject();
     } catch (error) {
-      console.log("🚀 ~ handleUpdateMentor ~ error:", error)
+      //("🚀 ~ handleUpdateMentor ~ error:", error)
       toast.error(error?.response?.data?.message || "Failed to update mentors.");
     } finally {
       setUpdatingMentor(false);
@@ -583,7 +583,7 @@ const AdminInternDetail = () => {
 
   const doc = intern.documents;
 
-  // console.log("🚀 ~ AdminInternDetail ~ doc:", doc)
+  // //("🚀 ~ AdminInternDetail ~ doc:", doc)
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (

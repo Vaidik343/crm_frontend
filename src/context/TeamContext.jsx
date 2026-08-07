@@ -15,12 +15,12 @@ export const TeamProvider = ({children}) => {
             try {
                 setLoading(true);
                 const {data} = await api.get(ENDPOINTS.TEAMS.ALL);
-                console.log("🚀 ~ TeamProvider ~ data:", data)
+                //("🚀 ~ TeamProvider ~ data:", data)
                 setTeams(data.teams || []);
                 return data;
 
             } catch (error) {
-                    console.log("🚀 ~ TeamProvider ~ error:", error)
+                    //("🚀 ~ TeamProvider ~ error:", error)
                 throw error;
             } finally {
                 setLoading(false);
@@ -31,12 +31,12 @@ export const TeamProvider = ({children}) => {
 
         try {
             const {data} = await api.post(ENDPOINTS.TEAMS.CRATE, payload);
-            console.log("🚀 ~ TeamProvider ~ data:", data)
+            //("🚀 ~ TeamProvider ~ data:", data)
         setTeams((prev) => [data, ...prev]);
        await getAllTeams?.();
         return data;
         } catch (error) {
-              console.log("🚀 ~ TeamProvider ~ error:", error)
+              //("🚀 ~ TeamProvider ~ error:", error)
             throw error;
         }
     }, [])

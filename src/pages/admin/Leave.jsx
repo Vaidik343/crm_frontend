@@ -13,20 +13,24 @@ import {
   MdVisibility,
   MdCheck,
   MdClose,
-  MdTimeline,
+  MdTimeline,MdDownload, MdPictureAsPdf, MdTableChart  
 } from "react-icons/md";
 import { formatDate, formatDateTime } from "../../utils/formatDate";
 import LeaveCalculation from "../../components/leaves/LeaveCalculation";
+import toast from "react-hot-toast";
+import api from "../../api/axiosInstance";
+import { ENDPOINTS } from "../../api/endpoints";
 
 // ─────────────────────────────────────────────
 // CONSTANTS
 // ─────────────────────────────────────────────
 
 const LEAVE_TYPE_LABELS = {
-  paid: "Paid",
-  unpaid: "Unpaid",
+  paid:     "Casual",
+  unpaid:   "Casual",
   exchange: "Exchange",
 };
+
 
 const DURATION_LABELS = {
   full_day: "Full Day",
@@ -122,6 +126,71 @@ const Leaves = () => {
   const [calcEmployee, setCalcEmployee] = useState("");
   const [calcYears, setCalcYears] = useState([String(currentYear)]);
   const [calcMonth, setCalcMonth] = useState("");
+
+
+const [downloading, setDownloading] = useState(false);
+console.log("🚀 ~ Leaves ~ downloading:", downloading)
+
+
+const handleDownloadExcel = async () => {
+  try {
+    setDownloading("excel");
+    const params = new URLSearchParams();
+    console.log("🚀 ~ handleDownloadExcel ~ calcEmployee:", calcEmployee)
+    if (calcEmployee) params.set("user_id", calcEmployee);
+
+    const response = await api.get(
+      `${ENDPOINTS.EXPORT.LEAVES_EXCEL}?${params.toString()}`,
+      { responseType: "blob" }
+    );
+    const url  = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement("a");
+    link.href  = url;
+    const empLabel = calcEmployee
+      ? users.find((u) => u.id === calcEmployee)?.employee_id || "employee"
+      : "all_employees";
+    link.setAttribute("download", `${empLabel}_leaves.xlsx`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+    toast.success("Excel downloaded!");
+  } catch (err) {
+  console.log("🚀 ~ handleDownloadExcel ~ err:", err)
+    toast.error("Failed to download Excel.");
+  } finally {
+    setDownloading(false);
+  }
+};
+
+const handleDownloadPDF = async () => {
+  try {
+    setDownloading("pdf");
+    const params = new URLSearchParams();
+    if (calcEmployee) params.set("user_id", calcEmployee);
+
+    const response = await api.get(
+      `${ENDPOINTS.EXPORT.LEAVES_PDF}?${params.toString()}`,
+      { responseType: "blob" }
+    );
+    const url  = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement("a");
+    link.href  = url;
+    const empLabel = calcEmployee
+      ? users.find((u) => u.id === calcEmployee)?.employee_id || "employee"
+      : "all_employees";
+    link.setAttribute("download", `${empLabel}_leaves.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+    toast.success("PDF downloaded!");
+  } catch {
+    toast.error("Failed to download PDF.");
+  } finally {
+    setDownloading(false);
+  }
+};
 
   const handleAddYear = (yr) => {
     if (!yr) return;
@@ -283,13 +352,35 @@ const Leaves = () => {
     <div className="space-y-5 animate-in fade-in duration-700">
 
       {/* ── Header ── */}
-      <div>
-        <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-1 uppercase">
-          Leave <span className="text-[#132ea7]">Requests</span>
-        </h2>
-        <p className="text-slate-500 font-bold text-xs">Total: {total}</p>
-      </div>
+      
+<div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-6">
+  <div>
+    <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-1 uppercase">
+      Leave <span className="text-[#132ea7]">Requests</span>
+    </h2>
+    <p className="text-slate-500 font-bold text-base">Total: {total}</p>
+  </div>
 
+  {/* ← ADD THIS */}
+  <div className="flex items-center gap-2">
+    <button
+      onClick={handleDownloadExcel}
+      disabled={downloading}
+      className="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all disabled:opacity-50 shadow-lg shadow-green-600/20"
+    >
+      <MdTableChart size={16} />
+      {downloading ? "Downloading..." : "Excel"}
+    </button>
+    {/* <button
+      onClick={handleDownloadPDF}
+      disabled={downloading}
+      className="flex items-center gap-2 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all disabled:opacity-50 shadow-lg shadow-red-500/20"
+    >
+      <MdPictureAsPdf size={16} />
+      {downloading ? "Downloading..." : "PDF"}
+    </button> */}
+  </div>
+</div>
       <Alert
         type={alert.type}
         message={alert.message}
@@ -332,8 +423,9 @@ const Leaves = () => {
                   className={SELECT_CLS}
                 >
                   <option value="">All Types</option>
-                  <option value="paid">Paid</option>
-                  <option value="unpaid">Unpaid</option>
+                  {/* <option value="paid">Paid</option>
+                  <option value="unpaid">Unpaid</option> */}
+                    <option value="paid">Casual</option>
                   <option value="exchange">Exchange</option>
                 </select>
 
@@ -411,14 +503,18 @@ const Leaves = () => {
                           </div>
                         </td>
 
-                        {/* Leave Type */}
-                        <td className="px-4 py-3">
-                          <div className="flex flex-col gap-0.5 items-start">
-                            <Badge value={LEAVE_TYPE_LABELS[leave.leave_type]} overrideColor={LEAVE_TYPE_BADGE_MAP[leave.leave_type]} />
-                            {leave.reason_type === "emergency" && <Badge value="Emergency" overrideColor="danger" />}
-                          </div>
-                        </td>
-
+                      {/* Leave Type cell */}
+<td className="px-4 py-3">
+  <div className="flex flex-col gap-0.5 items-start">
+    <Badge
+      value={leave.reason_type === "emergency" ? "Emergency" : "Casual"}
+      overrideColor={leave.reason_type === "emergency" ? "danger" : "primary"}
+    />
+    {leave.leave_type === "exchange" && (
+      <Badge value="Exchange" overrideColor="ongoing" />
+    )}
+  </div>
+</td>
                         {/* Status */}
                         <td className="px-4 py-3">
                           <Badge value={leave.status} overrideColor={STATUS_BADGE_MAP[leave.status]} />
@@ -561,7 +657,9 @@ const Leaves = () => {
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-3 flex-wrap">
-                  <h3 className="text-xl font-black text-slate-800">{LEAVE_TYPE_LABELS[viewTarget.leave_type]} Leave</h3>
+                  <h3 className="text-xl font-black text-slate-800">
+  {viewTarget.reason_type === "emergency" ? "Emergency" : "Casual"} Leave
+</h3>
                   <Badge value={viewTarget.status} overrideColor={STATUS_BADGE_MAP[viewTarget.status]} />
                   {viewTarget.reason_type === "emergency" && <Badge value="Emergency" overrideColor="danger" />}
                 </div>
@@ -581,7 +679,8 @@ const Leaves = () => {
 
             <div className="grid grid-cols-2 gap-3">
               {[
-                { label: "Leave Type", value: LEAVE_TYPE_LABELS[viewTarget.leave_type] },
+                { label: "Reason Type", value: viewTarget.reason_type === "emergency" ? "Emergency" : "Casual" },
+{ label: "Leave Type",  value: viewTarget.leave_type === "exchange" ? "Exchange" : "System Assigned (Paid / Unpaid)" },
                 { label: "Duration", value: DURATION_LABELS[viewTarget.duration] },
                 { label: "From", value: formatDate(viewTarget.start_date) },
                 { label: "To", value: formatDate(viewTarget.end_date) },
