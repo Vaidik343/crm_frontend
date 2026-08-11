@@ -20,6 +20,7 @@ const navItems = [
     { to: "/employee/projects", label: "Projects", icon: <MdFolder size={18} /> },
     { to: "/employee/leaves", label: "Leaves", icon: <MdEventAvailable size={18} /> },
     { to: "/employee/holiday", label: "Holidays", icon: <MdCelebration size={18} /> },
+    { to: "/employee/events", label: "Events", icon: <MdCelebration size={20} /> }
     //   { to: "/employee/notifications", label: "Notifications", icon: <MdNotifications size={18} /> },
     //   {to: "/Team", label:"Team", }
 ];

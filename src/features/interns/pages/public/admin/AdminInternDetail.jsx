@@ -50,9 +50,11 @@ const FileLink = ({ label, url }) => {
   if (!url) {
     return (
       <div>
-        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-          {label}
-        </p>
+       {label && (
+  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+    {label}
+  </p>
+)}
         <p className="text-xs text-slate-300 font-semibold mt-0.5 italic">
           Not uploaded
         </p>
@@ -116,7 +118,8 @@ const AdminInternDetail = () => {
     getInternWorkLogs,
     getInternProject,
     adminUpdateProject,
-    deleteInternTask 
+    deleteInternTask ,
+    adminEditTask
   } = useIntern();
     // //("🚀 ~ AdminInternDetail ~ getInternById:", getInternById)
 
@@ -211,12 +214,41 @@ const AdminInternDetail = () => {
   const [selectedProjectMentorIds, setSelectedProjectMentorIds] = useState([]);
 
 
+  const [showViewTask, setShowViewTask] = useState(false);
+const [viewTaskTarget, setViewTaskTarget] = useState(null);
+
+const [showEditTask, setShowEditTask] = useState(false);
+const [editTaskTarget, setEditTaskTarget] = useState(null);
+const [editTaskForm, setEditTaskForm] = useState({ task: "", description: "", status: "", due_date: "", remark: "" });
+const [editTaskErrors, setEditTaskErrors] = useState({});
+const [editingTask, setEditingTask] = useState(false);
+
+
+
 
   const [verifying, setVerifying] = useState(false);
   //("🚀 ~ AdminInternDetail ~ verifying:", verifying)
 
 
+const [promoting, setPromoting] = useState(false);
 
+const handlePromoteDocument = async (field) => {
+  if (!window.confirm(
+    `Replace the original ${field.replace(/_/g, ' ')} with the intern's updated version? This cannot be undone.`
+  )) return;
+  try {
+    setPromoting(true);
+    await api.patch(ENDPOINTS.INTERNS.ADMIN_UPDATE(id), {
+      promote_document_fields: [field],
+    });
+    toast.success('Document promoted successfully.');
+    fetchIntern();
+  } catch (err) {
+    toast.error(err?.response?.data?.message || 'Failed to promote document.');
+  } finally {
+    setPromoting(false);
+  }
+};
   // ── Fetch intern ───────────────────────────────────────────────────────────
   const fetchIntern = async () => {
     try {
@@ -303,6 +335,33 @@ const AdminInternDetail = () => {
     toast.error(err?.response?.data?.message || "Failed to delete task.");
   } finally {
     setDeletingTaskId(null);
+  }
+};
+
+
+const handleEditTask = async (e) => {
+  e.preventDefault();
+  if (!editTaskForm.task.trim()) {
+    setEditTaskErrors({ task: "Task name is required." });
+    return;
+  }
+  try {
+    setEditingTask(true);
+    await adminEditTask(editTaskTarget.id, {
+      task:        editTaskForm.task.trim(),
+      description: editTaskForm.description.trim() || null,
+      status:      editTaskForm.status || undefined,
+      due_date:    editTaskForm.due_date || null,
+      remark:      editTaskForm.remark.trim() || null,
+    });
+    toast.success("Task updated.");
+    setShowEditTask(false);
+    setEditTaskTarget(null);
+    fetchTasks(tasksPage, taskStatusFilter);
+  } catch (err) {
+    toast.error(err?.response?.data?.message || "Failed to update task.");
+  } finally {
+    setEditingTask(false);
   }
 };
 
@@ -780,14 +839,11 @@ const AdminInternDetail = () => {
                   {/* Verify summary + Verify All button */}
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className={fieldLbl}>Verification Status</p>
-                      <p className="text-sm font-semibold text-slate-600 mt-0.5">
-                        {(doc.verified_fields || []).length} of 5 fields verified
-                      </p>
+                  
                     </div>
                     {(doc.verified_fields || []).length < 5 && (
                       <button
-                        disabled={verifying}
+                       disabled={verifying || promoting}
                         onClick={() => handleVerifyDocuments(['id_proof', 'photo', 'resume', 'last_sem_marksheet', 'document_type'])}
                         className="px-4 py-2 rounded-xl bg-green-500 text-white text-xs font-black uppercase tracking-widest hover:bg-green-600 transition disabled:opacity-60"
                       >
@@ -827,37 +883,70 @@ const AdminInternDetail = () => {
                   </div>
 
                   {/* Files grid with verify buttons */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-                    {[
-                      { field: 'id_proof', label: 'ID Proof', url: doc.id_proof },
-                      { field: 'photo', label: 'Photo', url: doc.photo },
-                      { field: 'resume', label: 'Resume', url: doc.resume },
-                      { field: 'last_sem_marksheet', label: 'Marksheet', url: doc.last_sem_marksheet },
-                    ].map(({ field, label, url }) => (
-                      <div key={field} className="flex flex-col gap-2">
-                        <FileLink label={label} url={url} />
-                        {url ? (
-                          doc.verified_fields?.includes(field) ? (
-                            <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-green-100 text-green-600 w-fit">
-                              ✓ Verified
-                            </span>
-                          ) : (
-                            <button
-                              disabled={verifying}
-                              onClick={() => handleVerifyDocuments([field])}
-                              className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-slate-200 text-slate-500 hover:border-green-500 hover:text-green-600 transition w-fit disabled:opacity-60"
-                            >
-                              Verify
-                            </button>
-                          )
-                        ) : (
-                          <span className="text-[10px] font-black uppercase tracking-widest text-slate-300 italic">
-                            Not uploaded
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+  {[
+    { field: 'id_proof',           label: 'ID Proof'   },
+    { field: 'photo',              label: 'Photo'       },
+    { field: 'resume',             label: 'Resume'      },
+    { field: 'last_sem_marksheet', label: 'Marksheet'   },
+      { field: 'noc',                label: 'NOC'        },
+  ].map(({ field, label }) => {
+    const originalUrl = doc[field];
+    const pendingUrl  = doc[`updated_${field}`];
+    const isVerified  = doc.verified_fields?.includes(field);
+
+    return (
+      <div key={field} className="rounded-xl border border-slate-100 overflow-hidden">
+
+        {/* header */}
+        <div className="flex items-center justify-between px-4 py-3 bg-slate-50">
+          <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">{label}</p>
+          {isVerified ? (
+            <span className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-green-100 text-green-600">
+              ✓ Verified
+            </span>
+          ) : (
+            originalUrl && (
+              <button
+                disabled={verifying}
+                onClick={() => handleVerifyDocuments([field])}
+                className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-slate-200 text-slate-500 hover:border-green-500 hover:text-green-600 transition disabled:opacity-60"
+              >
+                Verify
+              </button>
+            )
+          )}
+        </div>
+
+        {/* original */}
+        <div className="flex items-center justify-between px-4 py-2.5 border-t border-slate-100">
+          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Original</p>
+          <FileLink label="" url={originalUrl} />
+        </div>
+
+        {/* pending update — only shown if intern submitted one */}
+        {pendingUrl && (
+          <div className="flex items-center justify-between px-4 py-2.5 bg-amber-50 border-t border-amber-100">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-amber-600">Intern update</p>
+              <p className="text-[10px] text-amber-400 font-semibold">Pending review</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <FileLink label="" url={pendingUrl} />
+              <button
+                disabled={verifying}
+                onClick={() => handlePromoteDocument(field)}
+                className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-[#132ea7] text-white hover:bg-[#0f2490] transition disabled:opacity-60 whitespace-nowrap"
+              >
+                Promote
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  })}
+</div>
 
                   {/* College detail — unchanged */}
                   {doc.college_detail && (
@@ -995,7 +1084,7 @@ const AdminInternDetail = () => {
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b border-slate-100">
-                          {["ID", "Task", "Project", "Due Date", "Status", "Type"].map((h) => (
+                          {["ID", "Task", "Project", "Due Date", "Status", "Type", "Actions"].map((h) => (
                             <th key={h} className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">{h}</th>
                           ))}
                         </tr>
@@ -1020,15 +1109,42 @@ const AdminInternDetail = () => {
                                 {t.assigned_by ? "Admin" : "Self"}
                               </span>
                             </td>
-                            <td className="px-4 py-3">
-  <button
-    onClick={() => handleDeleteTask(t.id)}
-    disabled={deletingTaskId === t.id}
-    className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition disabled:opacity-40"
-    title="Delete task"
-  >
-    <MdClose size={16} />
-  </button>
+
+     {/* // AFTER */}
+<td className="px-4 py-3">
+  <div className="flex items-center gap-2">
+    <button
+      onClick={() => { setViewTaskTarget(t); setShowViewTask(true); }}
+      className="text-xs font-black text-[#132ea7] hover:underline uppercase tracking-widest"
+    >
+      View
+    </button>
+    <button
+      onClick={() => {
+        setEditTaskTarget(t);
+        setEditTaskForm({
+          task:        t.task        || "",
+          description: t.description || "",
+          status:      t.status      || "",
+          due_date:    t.due_date    || "",
+          remark:      "",
+        });
+        setEditTaskErrors({});
+        setShowEditTask(true);
+      }}
+      className="text-xs font-black text-[#e98937] hover:underline uppercase tracking-widest"
+    >
+      Edit
+    </button>
+    <button
+      onClick={() => handleDeleteTask(t.id)}
+      disabled={deletingTaskId === t.id}
+      className="p-1.5 rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition disabled:opacity-40"
+      title="Delete task"
+    >
+      <MdClose size={16} />
+    </button>
+  </div>
 </td>
                           </tr>
                         ))}
@@ -1056,6 +1172,49 @@ const AdminInternDetail = () => {
                             {t.assigned_by ? "Admin" : "Self"}
                           </span>
                         </div>
+
+                        {/* // AFTER the existing chips div in mobile cards, add: */}
+<div className="flex gap-3">
+  <button
+    onClick={() => { setViewTaskTarget(t); setShowViewTask(true); }}
+    className="text-xs font-black text-[#132ea7] hover:underline uppercase tracking-widest"
+  >
+    View
+  </button>
+  <button
+    onClick={() => {
+      setEditTaskTarget(t);
+      setEditTaskForm({ task: t.task || "", description: t.description || "", status: t.status || "", due_date: t.due_date || "", remark: "" });
+      setEditTaskErrors({});
+      setShowEditTask(true);
+    }}
+    className="text-xs font-black text-[#e98937] hover:underline uppercase tracking-widest"
+  >
+    Edit
+  </button>
+</div>
+
+{/* // AFTER the existing chips div in mobile cards, add: */}
+<div className="flex gap-3">
+  <button
+    onClick={() => { setViewTaskTarget(t); setShowViewTask(true); }}
+    className="text-xs font-black text-[#132ea7] hover:underline uppercase tracking-widest"
+  >
+    View
+  </button>
+  <button
+    onClick={() => {
+      setEditTaskTarget(t);
+      setEditTaskForm({ task: t.task || "", description: t.description || "", status: t.status || "", due_date: t.due_date || "", remark: "" });
+      setEditTaskErrors({});
+      setShowEditTask(true);
+    }}
+    className="text-xs font-black text-[#e98937] hover:underline uppercase tracking-widest"
+  >
+    Edit
+  </button>
+</div>
+
                       </div>
                     ))}
                   </div>
@@ -1712,6 +1871,175 @@ const AdminInternDetail = () => {
           </div>
         </div>
       )}
+
+
+      {/* ── View Task Modal ──────────────────────────────────────────────────── */}
+{showViewTask && viewTaskTarget && (
+  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 sticky top-0 bg-white rounded-t-2xl z-10">
+        <div>
+          <h2 className="text-sm font-black uppercase tracking-widest text-slate-700">{viewTaskTarget.task}</h2>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{viewTaskTarget.display_id}</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${TASK_STATUS_COLORS[viewTaskTarget.status]}`}>
+            {viewTaskTarget.status}
+          </span>
+          <button onClick={() => { setShowViewTask(false); setViewTaskTarget(null); }} className="text-slate-400 hover:text-slate-600 transition">
+            <MdClose size={20} />
+          </button>
+        </div>
+      </div>
+
+      <div className="px-6 py-6 flex flex-col gap-5">
+        {/* Details grid */}
+        <div className="grid grid-cols-2 gap-4">
+          {[
+            ["Project",  viewTaskTarget.project?.name || "—"],
+            ["Due Date", viewTaskTarget.due_date ? formatDate(viewTaskTarget.due_date) : "—"],
+            ["Type",     viewTaskTarget.assigned_by ? "Admin Assigned" : "Self Created"],
+            ["Created",  formatDate(viewTaskTarget.createdAt)],
+          ].map(([label, val]) => (
+            <div key={label} className="bg-slate-50 rounded-xl p-3">
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{label}</p>
+              <p className="text-sm font-semibold text-slate-700">{val}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Description */}
+        {viewTaskTarget.description && (
+          <div className="bg-[#132ea7] rounded-xl p-5 text-white">
+            <p className="text-[10px] font-black uppercase tracking-widest text-white/50 mb-2">Description</p>
+            <p className="text-sm font-medium leading-relaxed opacity-90">{viewTaskTarget.description}</p>
+          </div>
+        )}
+
+        {/* Remarks */}
+        {Array.isArray(viewTaskTarget.remarks) && viewTaskTarget.remarks.length > 0 && (
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">
+              Remarks ({viewTaskTarget.remarks.length})
+            </p>
+            <div className="flex flex-col gap-3 max-h-[200px] overflow-y-auto">
+              {[...viewTaskTarget.remarks].reverse().map((r, i) => (
+                <div key={i} className="bg-slate-50 rounded-xl border border-slate-100 p-3.5">
+                  <p className="text-sm font-semibold text-slate-700">{r.text}</p>
+                  <div className="flex items-center justify-between mt-2">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{r.added_by_name}</p>
+                    <p className="text-[10px] text-slate-300 font-semibold">
+                      {r.created_at ? new Date(r.created_at).toLocaleDateString() : ""}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="flex gap-3 pt-2 border-t border-slate-100">
+          <button
+            onClick={() => { setShowViewTask(false); setViewTaskTarget(null); }}
+            className="flex-1 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-black text-sm uppercase tracking-widest hover:bg-slate-50 transition"
+          >
+            Close
+          </button>
+          <button
+            onClick={() => {
+              setShowViewTask(false);
+              setEditTaskTarget(viewTaskTarget);
+              setEditTaskForm({ task: viewTaskTarget.task || "", description: viewTaskTarget.description || "", status: viewTaskTarget.status || "", due_date: viewTaskTarget.due_date || "", remark: "" });
+              setEditTaskErrors({});
+              setShowEditTask(true);
+            }}
+            className="flex-1 py-3 rounded-xl bg-[#e98937] text-white font-black text-sm uppercase tracking-widest hover:bg-[#d4782a] transition"
+          >
+            Edit Task
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+{/* ── Edit Task Modal ──────────────────────────────────────────────────── */}
+{showEditTask && editTaskTarget && (
+  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 sticky top-0 bg-white rounded-t-2xl z-10">
+        <h2 className="text-sm font-black uppercase tracking-widest text-slate-700">Edit Task</h2>
+        <button onClick={() => { setShowEditTask(false); setEditTaskTarget(null); }} className="text-slate-400 hover:text-slate-600 transition">
+          <MdClose size={20} />
+        </button>
+      </div>
+      <form onSubmit={handleEditTask} className="px-6 py-6 flex flex-col gap-5">
+
+        <div>
+          <label className={labelCls}>Task Name <span className="text-red-400">*</span></label>
+          <input
+            value={editTaskForm.task}
+            onChange={(e) => { setEditTaskForm((p) => ({ ...p, task: e.target.value })); setEditTaskErrors({}); }}
+            className={inputCls(editTaskErrors.task)}
+          />
+          {editTaskErrors.task && <p className={errCls}>{editTaskErrors.task}</p>}
+        </div>
+
+        <div>
+          <label className={labelCls}>Description <span className="text-slate-400 font-medium normal-case tracking-normal">(optional)</span></label>
+          <textarea
+            value={editTaskForm.description}
+            onChange={(e) => setEditTaskForm((p) => ({ ...p, description: e.target.value }))}
+            rows={3} className={inputCls(false)}
+          />
+        </div>
+
+        <div>
+          <label className={labelCls}>Status</label>
+          <select
+            value={editTaskForm.status}
+            onChange={(e) => setEditTaskForm((p) => ({ ...p, status: e.target.value }))}
+            className={inputCls(false)}
+          >
+            {["open", "ongoing", "hold", "closed"].map((s) => (
+              <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className={labelCls}>Due Date <span className="text-slate-400 font-medium normal-case tracking-normal">(optional)</span></label>
+          <input
+            type="date"
+            value={editTaskForm.due_date}
+            onChange={(e) => setEditTaskForm((p) => ({ ...p, due_date: e.target.value }))}
+            className={inputCls(false)}
+          />
+        </div>
+
+        <div>
+          <label className={labelCls}>Add Remark <span className="text-slate-400 font-medium normal-case tracking-normal">(optional)</span></label>
+          <textarea
+            value={editTaskForm.remark}
+            onChange={(e) => setEditTaskForm((p) => ({ ...p, remark: e.target.value }))}
+            rows={2} placeholder="Add a note..." className={inputCls(false)}
+          />
+        </div>
+
+        <div className="flex gap-3 pt-2">
+          <button type="button" onClick={() => { setShowEditTask(false); setEditTaskTarget(null); }}
+            className="flex-1 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-black text-sm uppercase tracking-widest hover:bg-slate-50 transition">
+            Cancel
+          </button>
+          <button type="submit" disabled={editingTask}
+            className="flex-1 py-3 rounded-xl bg-[#132ea7] text-white font-black text-sm uppercase tracking-widest hover:bg-[#0f2490] transition disabled:opacity-60">
+            {editingTask ? "Saving..." : "Save Changes"}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
     </div>
   );
 };

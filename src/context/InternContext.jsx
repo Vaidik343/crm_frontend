@@ -134,13 +134,16 @@ export const InternProvider = ({children}) => {
   // API — Intern-authenticated
   // ─────────────────────────────────────────────────────────────────────────
 
+  
   const getMyProfile = useCallback(async () => {
     try {
       setProfileLoading(true);
       const { data } = await internApi.get(ENDPOINTS.INTERNS.ME);
+      console.log("🚀 ~ InternProvider ~ data:", data)
       setProfile(data.intern || data);
       return data;
     } catch (error) {
+        console.log("🚀 ~ InternProvider ~ error:", error) 
       throw error;
     } finally {
       setProfileLoading(false);
@@ -160,18 +163,21 @@ export const InternProvider = ({children}) => {
   }, []);
 
 
-  const updateMyDocuments = useCallback(async (formData) => {
- 
-    try {
-       const { data } = await internApi.patch(
-    ENDPOINTS.INTERNS.UPDATE_MY_DOCUMENTS,
-    formData,
-    { headers: { "Content-Type": "multipart/form-data" } }
-  );
-  return data;
-    } catch (error) {
-       throw error;
-    }
+const updateMyDocuments = useCallback(async (formData) => {
+  try {
+    const { data } = await internApi.patch(
+      ENDPOINTS.INTERNS.UPDATE_MY_DOCUMENTS,
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } }
+    );
+    console.log("🚀 ~ InternProvider ~ data:", data)
+    // refresh profile so updated_* fields appear immediately
+    const refreshed = await internApi.get(ENDPOINTS.INTERNS.ME);
+    setProfile(refreshed.data.intern || refreshed.data);
+    return data;
+  } catch (error) {
+    throw error;
+  }
 }, []);
 
   const getMyProject = useCallback(async () => {
@@ -384,6 +390,17 @@ const getMyWorkLogs = useCallback(async (
     }
   }, []);
 
+
+  const adminEditTask = useCallback(async(id, payload) => {
+    try {
+      const {data} = await api.put(ENDPOINTS.INTER_TASKS.UPDATE_TASKS(id), payload);
+      const updated = data.tasks || data.task;
+      setTasks((prev) => prev.map((t) => (t.id === id? updated: t)));
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  },[])
     
   const getInternTasks = useCallback(async (internId) => {
     try {
@@ -506,7 +523,7 @@ createProject, updateProject,
     setInternsPage,
     getAllInterns, getInternById,
     approveIntern, rejectIntern, extendInternship,
-    regenerateSetupToken, adminAssignTask,
+    regenerateSetupToken, adminAssignTask,adminEditTask,
     getInternTasks, getInternWorkLogs, getInternProject, adminUpdateProject,deactivateIntern,
 
     // Public auth
@@ -524,7 +541,7 @@ createProject, updateProject,
     approveIntern, rejectIntern, extendInternship,
     regenerateSetupToken, adminAssignTask,
     getInternTasks, getInternWorkLogs, getInternProject,
-    registerIntern, checkStatus, setupPassword, loginIntern,createProject, updateProject, adminUpdateProject, deactivateIntern
+    registerIntern, checkStatus, setupPassword, loginIntern,createProject, updateProject, adminUpdateProject, deactivateIntern,adminEditTask
   ]);
 
   return (

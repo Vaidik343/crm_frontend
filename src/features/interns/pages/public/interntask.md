@@ -523,173 +523,71 @@ const InternTasks = () => {
       )}
 
       {/* ── View Modal (remarks timeline) ────────────────────────────────────── */}
-  {/* View Details Modal */}
-<Modal
-  show={!!viewTarget}
-  onClose={() => setViewTarget(null)}
-  title="Task Details"
-  size="lg"
->
-  {viewTarget && (
-    <div className="space-y-5 py-2">
-      {/* Header Info */}
-      <div className="flex items-start gap-4 pb-5 border-b border-slate-100">
-        <div className="w-14 h-14 rounded-2xl bg-[#132ea7] text-white flex items-center justify-center shrink-0 shadow-xl shadow-[#132ea7]/20">
-          <MdAssignment size={26} />
-        </div>
-        <div className="flex-1">
-          <div className="flex items-center gap-3 flex-wrap">
-            <h3 className="text-xl font-black text-slate-800">
-              {viewTarget.task}
-            </h3>
-            <Badge value={viewTarget.status} />
-          </div>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 font-mono">
-            {viewTarget.display_id || "—"}
-          </p>
-        </div>
-      </div>
+      {showView && viewTarget && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 sticky top-0 bg-white rounded-t-2xl z-10">
+              <h2 className="text-sm font-black uppercase tracking-widest text-slate-700">Task Detail</h2>
+              <button onClick={() => setShowView(false)} className="text-slate-400 hover:text-slate-600 transition">
+                <MdClose size={20} />
+              </button>
+            </div>
+            <div className="px-6 py-6 flex flex-col gap-5">
 
-      {/* Grid Details */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {[
-          {
-            label: "Assigned To",
-            value: viewTarget.assignee?.name || "—",
-          },
-          {
-            label: "Assigned By",
-            value: viewTarget.assigner?.name || "—",
-          },
-          { label: "Project", value: viewTarget.project?.name || "—" },
-          {
-            label: "Due Date",
-            value: formatDate(viewTarget.due_date),
-          },
-          {
-            label: "Start Date",
-            value: formatDate(viewTarget.start_date),
-          },
-          {
-            label: "Update Date",
-            value: formatDate(viewTarget.updatedAt),
-          },
-          {
-            label: "Completed",
-            value: formatDate(viewTarget.completedAt),
-          },
-        ].map((item) => (
-          <div key={item.label} className="bg-slate-50 rounded-2xl p-4">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
-              {item.label}
-            </p>
-            <p className="font-black text-slate-700 text-sm">
-              {item.value}
-            </p>
-          </div>
-        ))}
-      </div>
+              {/* Basic info */}
+              <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                {[
+                  ["Task ID",    viewTarget.display_id],
+                  ["Status",     viewTarget.status],
+                  ["Project",    viewTarget.project?.name   || "—"],
+                  ["Assigned By", viewTarget.assigner?.name || "Self"],
+                  ["Due Date",   viewTarget.due_date ? formatDate(viewTarget.due_date) : "—"],
+                  ["Completed",  viewTarget.completed_at ? formatDate(viewTarget.completed_at) : "—"],
+                ].map(([label, val]) => (
+                  <div key={label}>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</p>
+                    <p className="text-sm font-semibold text-slate-700 mt-0.5">{val}</p>
+                  </div>
+                ))}
+              </div>
 
-      {/* Description List */}
-      {viewTarget.description && (
-        <div className="bg-[#132ea7] rounded-2xl p-6 text-white">
-          <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-2">
-            Description
-          </p>
-          <ul className="space-y-1 list-disc list-inside opacity-90">
-            {viewTarget.description
-              .split("\n")
-              .filter((line) => line.trim() !== "")
-              .map((line, i) => (
-                <li key={i} className="font-medium leading-relaxed">
-                  {line}
-                </li>
-              ))}
-          </ul>
+              {/* Description */}
+              {viewTarget.description && (
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">Description</p>
+                  <p className="text-sm font-medium text-slate-600">{viewTarget.description}</p>
+                </div>
+              )}
+
+              {/* Remarks timeline */}
+              {viewTarget.remarks?.length > 0 && (
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">Activity</p>
+                  <div className="flex flex-col gap-3">
+                    {viewTarget.remarks.map((r, idx) => (
+                      <div key={idx} className="flex gap-3">
+                        <div className="w-7 h-7 rounded-full bg-[#132ea7]/10 flex items-center justify-center shrink-0 text-[#132ea7] font-black text-xs">
+                          {r.user_name?.charAt(0) || "?"}
+                        </div>
+                        <div className="flex-1 bg-slate-50 rounded-xl px-4 py-3">
+                          <div className="flex items-center justify-between gap-2 mb-1">
+                            <p className="text-xs font-black text-slate-700">{r.user_name}</p>
+                            <p className="text-[10px] text-slate-400 font-semibold">
+                              {r.created_at ? formatDate(r.created_at) : ""}
+                            </p>
+                          </div>
+                          <p className="text-sm text-slate-600 font-medium">{r.text}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+            </div>
+          </div>
         </div>
       )}
-
-      {/* Sub Tasks / Remarks History Timeline */}
-      {viewTarget?.remarks &&
-        Array.isArray(viewTarget.remarks) &&
-        viewTarget.remarks.length > 0 && (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-              <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">
-                Sub Tasks History ({viewTarget.remarks.length})
-              </p>
-            </div>
-
-            <div className="relative pl-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-2 py-1">
-              <div className="absolute left-[11px] top-2 bottom-2 w-[2px] bg-slate-200 rounded-full" />
-
-              {[...viewTarget.remarks].reverse().map((r, i) => {
-                const isLatest = i === 0;
-                return (
-                  <div key={i} className="relative mb-3.5 last:mb-0 group">
-                    <div className="flex items-center gap-2 z-10 relative">
-                      <div
-                        className={`w-3 h-3 rounded-full border-2 border-white ring-2 transition-transform duration-200 group-hover:scale-125 ${
-                          isLatest
-                            ? "bg-indigo-600 ring-indigo-200"
-                            : "bg-slate-400 ring-slate-100"
-                        }`}
-                      />
-                      <span
-                        className={`text-[11px] font-black uppercase tracking-wider ${
-                          isLatest ? "text-indigo-600" : "text-slate-500"
-                        }`}
-                      >
-                        {formatTimelineDate(r.created_at)}
-                      </span>
-                    </div>
-
-                    <div className="pl-6 pt-1.5 relative">
-                      <div className="absolute left-[11px] -top-1 w-3.5 h-5 border-l-2 border-b-2 border-slate-200 rounded-bl-md" />
-
-                      <div
-                        className={`p-3.5 rounded-xl transition-all duration-200 ${
-                          isLatest
-                            ? "bg-indigo-50/50 border border-indigo-100 shadow-xs"
-                            : "bg-slate-50 border border-slate-200/80 hover:bg-white hover:border-slate-300"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-extrabold text-slate-800 tracking-wide">
-                            {r.added_by_name}
-                          </span>
-                          {r.updated_at && (
-                            <span className="text-[9px] text-slate-400 italic">
-                              (edited)
-                            </span>
-                          )}
-                        </div>
-
-                        <p className="text-sm text-slate-700 leading-relaxed font-medium break-words [overflow-wrap:anywhere] whitespace-pre-wrap">
-                          {r.text}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-      {/* Modal Actions */}
-      <div className="flex justify-end pt-2">
-        <Button
-          variant="ghost"
-          onClick={() => setViewTarget(null)}
-          className="font-black uppercase tracking-widest text-xs"
-        >
-          Close
-        </Button>
-      </div>
-    </div>
-  )}
-</Modal>
 
     </div>
   );

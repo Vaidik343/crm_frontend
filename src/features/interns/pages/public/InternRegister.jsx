@@ -48,6 +48,7 @@ const DOCUMENT_TYPE_OPTIONS = [
   { label: "Voter Card", value: "voter_card" },
   { label: "Passport", value: "passport" },
   { label: "Driving Licence", value: "driving_licence" },
+  { label: "NOC", value: "noc" },
 ];
 
 const INTERN_TYPE_OPTIONS = [
@@ -74,6 +75,7 @@ const initialStep2 = {
   photo: null,
   resume: null,
   last_sem_marksheet: null,
+  noc: null,
   college_name: "",
   college_address: "",
   branch: "",
@@ -105,7 +107,9 @@ const Label = ({ children }) => (
 
 const Required = () => <span className="text-red-400 ml-0.5">*</span>;
 const FieldError = ({ msg }) =>
-  msg ? <p className="text-[11px] text-red-500 font-semibold mt-1">{msg}</p> : null;
+  msg ? (
+    <p className="text-[11px] text-red-500 font-semibold mt-1">{msg}</p>
+  ) : null;
 
 const inputCls = (err) =>
   `w-full px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl border-[1.5px] text-sm text-slate-800 font-medium bg-white transition focus:outline-none focus:border-[#132ea7] ${
@@ -131,20 +135,28 @@ const UploadDropzone = ({ file, onChange, error }) => {
           error
             ? "border-red-400 bg-red-50"
             : file
-            ? "border-[#132ea7] bg-[#f0f3ff]"
-            : "border-indigo-200 bg-[#f8f9ff] hover:border-[#132ea7] hover:bg-[#eef0ff]"
+              ? "border-[#132ea7] bg-[#f0f3ff]"
+              : "border-indigo-200 bg-[#f8f9ff] hover:border-[#132ea7] hover:bg-[#eef0ff]"
         }`}
       >
         <MdCloudUpload className="text-3xl sm:text-4xl mb-1 text-[#132ea7]" />
         {file ? (
           <>
-            <p className="text-xs sm:text-sm font-bold text-[#132ea7] break-all">{file.name}</p>
-            <p className="text-[11px] text-slate-400 mt-1">Click to change file</p>
+            <p className="text-xs sm:text-sm font-bold text-[#132ea7] break-all">
+              {file.name}
+            </p>
+            <p className="text-[11px] text-slate-400 mt-1">
+              Click to change file
+            </p>
           </>
         ) : (
           <>
-            <p className="text-xs sm:text-sm font-bold text-slate-700">Click to upload</p>
-            <p className="text-[11px] text-slate-400 mt-1">PDF, PNG or JPG (max. 5MB)</p>
+            <p className="text-xs sm:text-sm font-bold text-slate-700">
+              Click to upload
+            </p>
+            <p className="text-[11px] text-slate-400 mt-1">
+              PDF, PNG or JPG (max. 5MB)
+            </p>
           </>
         )}
       </div>
@@ -155,7 +167,15 @@ const UploadDropzone = ({ file, onChange, error }) => {
 
 // ── Upload Mini Card (Photo / Resume / Marksheet) ─────────────────────────────
 
-const UploadCard = ({ label, optional, accept, file, onChange, error, icon: Icon }) => {
+const UploadCard = ({
+  label,
+  optional,
+  accept,
+  file,
+  onChange,
+  error,
+  icon: Icon,
+}) => {
   const ref = useRef();
   return (
     <div>
@@ -174,7 +194,9 @@ const UploadCard = ({ label, optional, accept, file, onChange, error, icon: Icon
             : "border-slate-200 bg-slate-50 hover:border-[#132ea7] hover:bg-[#f0f3ff]"
         }`}
       >
-        <div className={`text-xl sm:text-2xl mb-1 ${file ? "text-[#132ea7]" : "text-slate-400"}`}>
+        <div
+          className={`text-xl sm:text-2xl mb-1 ${file ? "text-[#132ea7]" : "text-slate-400"}`}
+        >
           {Icon}
         </div>
         <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">
@@ -202,7 +224,9 @@ const UploadCard = ({ label, optional, accept, file, onChange, error, icon: Icon
 const SectionHead = ({ children }) => (
   <div className="flex items-center gap-2 mt-5 mb-3">
     <div className="w-1 h-4 bg-[#132ea7] rounded-full" />
-    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{children}</p>
+    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+      {children}
+    </p>
   </div>
 );
 
@@ -227,7 +251,8 @@ const LeftPanel = ({ step }) => (
         Start your journey with BBCSPL
       </p>
       <p className="text-white/60 text-xs leading-relaxed mb-8">
-        Complete the registration form to apply for an internship or trainee position.
+        Complete the registration form to apply for an internship or trainee
+        position.
       </p>
 
       {/* Vertical stepper */}
@@ -248,8 +273,8 @@ const LeftPanel = ({ step }) => (
                 idx < step
                   ? "bg-[#e98937] text-white"
                   : idx === step
-                  ? "bg-white text-[#132ea7]"
-                  : "bg-white/15 text-white/50"
+                    ? "bg-white text-[#132ea7]"
+                    : "bg-white/15 text-white/50"
               }`}
             >
               {idx < step ? <MdCheck size={16} /> : idx + 1}
@@ -262,7 +287,9 @@ const LeftPanel = ({ step }) => (
               >
                 {s.label}
               </p>
-              <p className="text-[10px] text-white/50 mt-0.5 leading-relaxed">{s.desc}</p>
+              <p className="text-[10px] text-white/50 mt-0.5 leading-relaxed">
+                {s.desc}
+              </p>
             </div>
           </div>
         ))}
@@ -321,12 +348,15 @@ const InternRegister = () => {
 
   const validateStep2 = () => {
     const e = {};
-    if (!step2.document_type) e.document_type = "Please select an ID proof type.";
+    if (!step2.document_type)
+      e.document_type = "Please select an ID proof type.";
     if (!step2.id_proof) e.id_proof = "ID proof file is required.";
     if (!step2.photo) e.photo = "Photo is required.";
-    if (!step2.resume) e.resume = "Resume is required.";
-    if (!step2.last_sem_marksheet) e.last_sem_marksheet = "Marksheet is required.";
-    if (!step2.college_name.trim()) e.college_name = "College name is required.";
+    // if (!step2.resume) e.resume = "Resume is required.";
+    if (!step2.last_sem_marksheet)
+      e.last_sem_marksheet = "Marksheet is required.";
+    if (!step2.college_name.trim())
+      e.college_name = "College name is required.";
     if (!step2.college_address.trim())
       e.college_address = "College address is required.";
     if (!step2.branch.trim()) e.branch = "Branch / Degree name is required.";
@@ -353,6 +383,7 @@ const InternRegister = () => {
       if (step2.id_proof) formData.append("id_proof", step2.id_proof);
       if (step2.photo) formData.append("photo", step2.photo);
       if (step2.resume) formData.append("resume", step2.resume);
+      if (step2.noc) formData.append("noc", step2.noc);
       if (step2.last_sem_marksheet)
         formData.append("last_sem_marksheet", step2.last_sem_marksheet);
       formData.append(
@@ -362,14 +393,15 @@ const InternRegister = () => {
           college_address: step2.college_address,
           branch: step2.branch,
           current_year: step2.current_year,
-        })
+        }),
       );
       const data = await registerIntern(formData);
       toast.success("Registration submitted! Please wait for approval.");
       navigate(`/intern/status/${data.intern_id}`);
     } catch (error) {
       toast.error(
-        error?.response?.data?.message || "Registration failed. Please try again."
+        error?.response?.data?.message ||
+          "Registration failed. Please try again.",
       );
     } finally {
       setSubmitting(false);
@@ -385,13 +417,11 @@ const InternRegister = () => {
 
       {/* Main Container: Fixed height h-[92vh] sm:h-[90vh] forces accurate overflow calculation */}
       <div className="w-full max-w-6xl flex flex-col lg:flex-row bg-white rounded-2xl shadow-2xl overflow-hidden relative z-10 h-[92vh] sm:h-[90vh] my-auto">
-        
         {/* Desktop Left Sidebar */}
         <LeftPanel step={step} />
 
         {/* Form Main Area */}
         <div className="bg-white flex-1 flex flex-col h-full min-h-0 overflow-hidden">
-          
           {/* Mobile & Tablet Header Progress Bar (Hidden on Desktop) */}
           <div className="lg:hidden bg-slate-50 border-b border-slate-100 p-4 shrink-0">
             <div className="flex items-center justify-between mb-2">
@@ -511,7 +541,9 @@ const InternRegister = () => {
                   </div>
 
                   <div>
-                    <Label>Degree Type <Required /></Label>
+                    <Label>
+                      Degree Type <Required />
+                    </Label>
                     <select
                       name="degree_type"
                       value={step1.degree_type}
@@ -592,7 +624,8 @@ const InternRegister = () => {
                   Documents & College Details
                 </h2>
                 <p className="text-xs text-slate-400 mb-5">
-                  Upload your ID and provide college information for verification.
+                  Upload your ID and provide college information for
+                  verification.
                 </p>
 
                 <SectionHead>Identity Verification</SectionHead>
@@ -623,7 +656,8 @@ const InternRegister = () => {
                 />
 
                 <SectionHead>Other Documents</SectionHead>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                
                   <UploadCard
                     label="Photo"
                     icon={<MdPhotoCamera />}
@@ -638,8 +672,8 @@ const InternRegister = () => {
                     accept=".pdf,.doc,.docx"
                     file={step2.resume}
                     onChange={handleFileChange("resume")}
-                      error={errors2.resume}
-                    
+                    // error={errors2.resume}
+                    optional
                   />
                   <UploadCard
                     label="Marksheet"
@@ -647,8 +681,16 @@ const InternRegister = () => {
                     accept=".pdf,image/*"
                     file={step2.last_sem_marksheet}
                     onChange={handleFileChange("last_sem_marksheet")}
-                      error={errors2.last_sem_marksheet}
-                    
+                    error={errors2.last_sem_marksheet}
+                  />
+
+                  <UploadCard
+                    label="NOC"
+                    icon={<MdAttachFile />}
+                    accept=".pdf,.doc,.docx,image/*"
+                    file={step2.noc}
+                    onChange={handleFileChange("noc")}
+                    optional
                   />
                 </div>
 
@@ -717,7 +759,8 @@ const InternRegister = () => {
                   Final Review
                 </h2>
                 <p className="text-xs text-slate-400 mb-5">
-                  Confirm all details before submitting. You won't be able to edit after submission.
+                  Confirm all details before submitting. You won't be able to
+                  edit after submission.
                 </p>
 
                 {/* Personal Info Summary */}
@@ -746,9 +789,15 @@ const InternRegister = () => {
                       ["Degree Type", formatLabel(step1.degree_type)],
                       ...(step1.reference_type
                         ? [
-                            ["Reference Type", formatLabel(step1.reference_type)],
+                            [
+                              "Reference Type",
+                              formatLabel(step1.reference_type),
+                            ],
                             ["Reference Name", step1.reference_name || "—"],
-                            ["Reference Contact", step1.reference_contact || "—"],
+                            [
+                              "Reference Contact",
+                              step1.reference_contact || "—",
+                            ],
                           ]
                         : []),
                     ].map(([label, val]) => (
@@ -851,6 +900,13 @@ const InternRegister = () => {
                         icon: <MdAssignment className="text-slate-500" />,
                         required: false,
                       },
+                      {
+  file: step2.noc,
+  label: "NOC",
+  sub: "PDF / Image",
+  icon: <MdAttachFile className="text-slate-500" />,
+  required: false,
+},
                     ].map(({ file, label, sub, icon, required }) => (
                       <div
                         key={label}
@@ -875,8 +931,8 @@ const InternRegister = () => {
                             {file
                               ? sub
                               : required
-                              ? "Required — not uploaded"
-                              : "Optional — not uploaded"}
+                                ? "Required — not uploaded"
+                                : "Optional — not uploaded"}
                           </p>
                         </div>
                         {file ? (
@@ -901,7 +957,8 @@ const InternRegister = () => {
                 <div className="flex items-start gap-3 bg-indigo-50 border border-indigo-100 rounded-2xl px-4 sm:px-5 py-3.5 mt-2">
                   <MdInfo className="text-[#132ea7] text-base sm:text-lg shrink-0 mt-0.5" />
                   <p className="text-[11px] sm:text-xs text-indigo-800 leading-relaxed font-medium">
-                    By submitting, you confirm that all information provided is accurate and complete.
+                    By submitting, you confirm that all information provided is
+                    accurate and complete.
                   </p>
                 </div>
               </>
@@ -945,7 +1002,6 @@ const InternRegister = () => {
               </button>
             )}
           </div>
-
         </div>
       </div>
     </div>

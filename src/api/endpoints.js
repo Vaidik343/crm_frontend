@@ -199,6 +199,17 @@ ADMIN_UPDATE: (id) => `/admin/interns/${id}`,
         ADMIN_WORKLOGS: (intern_id) => `/admin/interns/${intern_id}/worklogs`,
     },
 
+    EVENTS: {
+  CREATE:      "/events",
+  ADMIN_ALL:   "/events/admin",
+  EMPLOYEE_ALL:"/events",
+  BY_ID:       (id) => `/events/${id}`,
+  DELETE:      (id) => `/events/${id}`,
+  EXPORT_PNG:  (id) => `/events/${id}/export/png`,
+  AI_PREVIEW:  "/events/ai-preview",
+},
+
+
     //probation
      PROBATION: {
         ALL: '/probation',

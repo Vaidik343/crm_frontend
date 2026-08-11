@@ -53,6 +53,8 @@ const DOCUMENT_TYPE_OPTIONS = [
   { label: "Voter Card", value: "voter_card" },
   { label: "Passport", value: "passport" },
   { label: "Driving Licence", value: "driving_licence" },
+    { label: "NOC", value: "noc" },
+
 ];
 
 // ── Mentor Chips Sub-component ───────────────────────────────────────────────
@@ -138,12 +140,14 @@ const CustomFileUpload = ({ label, name, accept, file, onChange, existingUrl }) 
 
 const InternProfile = () => {
   const { profile, profileLoading, getMyProfile, updateMyProfile, updateMyDocuments  } = useIntern();
+  console.log("🚀 ~ InternProfile ~ profile:", profile)
 
   // ── Modals State ──
   const [showEdit, setShowEdit] = useState(false);
   const [form, setForm] = useState({});
   
   const [errors, setErrors] = useState({});
+  console.log("🚀 ~ InternProfile ~ errors:", errors)
   //("🚀 ~ InternProfile ~ errors:", errors)
   
   const [submitting, setSubmitting] = useState(false);
@@ -159,6 +163,7 @@ const InternProfile = () => {
     photo: null,
     resume: null,
     last_sem_marksheet: null,
+      noc: null,      
   });
   //("🚀 ~ InternProfile ~ docForm:", docForm)
   const [docSubmitting, setDocSubmitting] = useState(false);
@@ -171,7 +176,10 @@ const InternProfile = () => {
   // ── Populate Profile Form ──
   useEffect(() => {
     if (showEdit && profile) {
-      const doc = profile.documents?.[0];
+    const doc = Array.isArray(profile?.documents)
+  ? profile.documents[0]
+  : profile?.documents || null;
+      console.log("🚀 ~ InternProfile ~ doc:", doc)
       setForm({
         name: profile.name || "",
         email: profile.email || "",
@@ -194,8 +202,10 @@ const InternProfile = () => {
   // ── Populate Document Form ──
   useEffect(() => {
     if (showDocEdit && profile) {
-      const doc = profile.documents?.[0];
-      //("🚀 ~ InternProfile ~ doc:", doc)
+const doc = Array.isArray(profile?.documents)
+  ? profile.documents[0]
+  : profile?.documents || null;
+      ("🚀 ~ InternProfile ~ doc:", doc)
       setDocForm({
         document_type: doc?.document_type || "",
         college_name: doc?.college_detail?.college_name || "",
@@ -206,6 +216,7 @@ const InternProfile = () => {
         photo: null,
         resume: null,
         last_sem_marksheet: null,
+         noc: null, 
       });
     }
   }, [showDocEdit, profile]);
@@ -298,6 +309,7 @@ const InternProfile = () => {
       if (docForm.resume) fd.append("resume", docForm.resume);
       if (docForm.last_sem_marksheet)
         fd.append("last_sem_marksheet", docForm.last_sem_marksheet);
+      if (docForm.noc) fd.append("noc", docForm.noc);
 
       const college_detail = JSON.stringify({
         college_name: docForm.college_name.trim(),
@@ -330,7 +342,10 @@ const InternProfile = () => {
   const errCls = "text-xs text-red-500 font-semibold mt-1";
   const cardCls = "bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 transition hover:shadow-md";
 
-  const doc = profile?.documents?.[0];
+const doc = Array.isArray(profile?.documents)
+  ? profile.documents[0]
+  : profile?.documents || null;
+  console.log("🚀 ~ InternProfile ~ doc:", doc)
 
   return (
     <div className="max-w-6xl mx-auto flex flex-col gap-6 pb-12">
@@ -566,46 +581,83 @@ const InternProfile = () => {
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {[
-                      { label: "ID Proof", url: doc.id_proof, icon: MdBadge },
-                      { label: "Photo", url: doc.photo, icon: MdPhoto },
-                      { label: "Resume", url: doc.resume, icon: MdDescription },
-                      { label: "Marksheet", url: doc.last_sem_marksheet, icon: MdInsertDriveFile },
-                    ].map(({ label, url, icon: Icon }) => (
-                      <div
-                        key={label}
-                        className="p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/30 flex items-center justify-between hover:bg-white hover:shadow-sm transition"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-white border border-slate-200 text-slate-600">
-                            <Icon size={18} />
-                          </div>
-                          <div>
-                            <p className="text-xs font-bold text-slate-700">{label}</p>
-                            <p className="text-[10px] font-medium text-slate-400">
-                              {url ? "Available" : "Not uploaded"}
-                            </p>
-                          </div>
-                        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+  {[
+    { label: "ID Proof",   field: "id_proof",           icon: MdBadge },
+    { label: "Photo",      field: "photo",              icon: MdPhoto },
+    { label: "Resume",     field: "resume",             icon: MdDescription },
+    { label: "Marksheet",  field: "last_sem_marksheet", icon: MdInsertDriveFile },
+    { label: "NOC",        field: "noc"},
+  ].map(({ label, field, icon: Icon }) => {
+    const originalUrl = doc[field];
+    console.log("🚀 ~ InternProfile ~ originalUrl:", originalUrl)
+    const pendingUrl  = doc[`updated_${field}`];
+    const isVerified  = (doc.verified_fields || []).includes(field);
 
-                        {url ? (
-                          <a
-                            href={url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#132ea7] text-white text-[10px] font-bold uppercase tracking-wider hover:bg-[#0f2490] transition shrink-0"
-                          >
-                            <MdLink size={12} /> View
-                          </a>
-                        ) : (
-                          <span className="text-[10px] text-slate-400 font-bold italic px-2 py-1">
-                            Missing
-                          </span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+    return (
+      <div key={field} className="rounded-xl border border-slate-200/80 bg-slate-50/30 overflow-hidden hover:shadow-sm transition">
+        {/* header row */}
+        <div className="flex items-center justify-between px-3.5 pt-3.5 pb-2">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-white border border-slate-200 text-slate-600">
+              <Icon size={18} />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-slate-700">{label}</p>
+              <p className="text-[10px] font-medium text-slate-400">
+                {originalUrl ? "Uploaded" : "Not uploaded"}
+              </p>
+            </div>
+          </div>
+          {isVerified && (
+            <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+              <MdCheckCircle size={11} /> Verified
+            </span>
+          )}
+        </div>
+
+        {/* original doc row */}
+        <div className="flex items-center justify-between px-3.5 py-2 border-t border-slate-100">
+          <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Original</p>
+          {originalUrl ? (
+            
+            <a
+          href={`${import.meta.env.VITE_API_URL?.replace("/api/", "")
+  .replace("/api", "")}${originalUrl}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#132ea7] text-white text-[10px] font-bold uppercase tracking-wider hover:bg-[#0f2490] transition"
+            >
+              <MdLink size={12} /> View
+            </a>
+          ) : (
+            <span className="text-[10px] text-slate-400 font-bold italic">Missing</span>
+          )}
+        </div>
+
+        {/* pending doc row — only shown if intern uploaded an update */}
+        {pendingUrl && (
+          <div className="flex items-center justify-between px-3.5 py-2 bg-amber-50 border-t border-amber-100">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-amber-600">Pending review</p>
+              <p className="text-[10px] text-amber-500 font-medium">Awaiting admin approval</p>
+            </div>
+            
+              <a
+               href={`${import.meta.env.VITE_API_URL?.replace("/api/", "")
+  .replace("/api", "")}${pendingUrl}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-amber-500 text-white text-[10px] font-bold uppercase tracking-wider hover:bg-amber-600 transition"
+            >
+              <MdLink size={12} /> View
+            </a>
+          </div>
+        )}
+      </div>
+    );
+  })}
+</div>
                 </div>
               )}
             </div>
@@ -618,6 +670,8 @@ const InternProfile = () => {
           </div>
         </div>
       )}
+
+      
 
       {/* ── Edit Profile Modal ──────────────────────────────────────────────── */}
       {showEdit && (
@@ -936,6 +990,10 @@ const InternProfile = () => {
                   onChange={handleDocFileChange}
                     existingUrl={doc?.last_sem_marksheet}
                 />
+
+  <CustomFileUpload label="NOC" name="noc"
+    accept=".pdf,.doc,.docx,image/*" file={docForm.noc}
+    onChange={handleDocFileChange} existingUrl={doc?.noc} />
               </div>
 
               {/* College detail */}

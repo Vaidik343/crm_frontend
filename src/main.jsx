@@ -20,6 +20,7 @@ import { ClientProvider } from './context/ClientContext.jsx'
 import { LeaveProvider } from './context/LeaveContext.jsx'
 import { ProbationProvider } from './context/ProbationContext.jsx'
 import { InternProvider } from './context/InternContext.jsx'
+import { EventProvider } from "./context/EventContext";
 import { NotificationProvider } from './context/NotificationContext';
 
 
@@ -39,6 +40,7 @@ createRoot(document.getElementById('root')).render(
                 <LeaveProvider>
                   <ProbationProvider>
                     <InternProvider>
+                      <EventProvider>
                   
                 <TeamProvider>
                   <TeamMemberProvider>
@@ -50,6 +52,8 @@ createRoot(document.getElementById('root')).render(
                 </PermissionProvider>
                 </TeamMemberProvider>
                 </TeamProvider>
+
+                </EventProvider>
 
 </InternProvider>
                 </ProbationProvider>
