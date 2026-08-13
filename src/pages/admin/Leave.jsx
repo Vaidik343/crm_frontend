@@ -266,21 +266,26 @@ const handleDownloadPDF = async () => {
   }, [viewTarget?.id]);
 
   // ── Approve ──
-  const handleApprove = async () => {
-    if (!confirmApprove) return;
-    try {
-      setApproving(true);
-      await approveLeave(confirmApprove.id);
-      setAlert({ type: "success", message: `Leave ${confirmApprove.display_id} approved.` });
-      if (viewTarget?.id === confirmApprove.id)
-        setViewTarget((prev) => ({ ...prev, status: "approved" }));
-    } catch (err) {
-      setAlert({ type: "danger", message: err?.response?.data?.message || "Failed to approve." });
-    } finally {
-      setApproving(false);
-      setConfirmApprove(null);
+const handleApprove = async () => {
+  if (!confirmApprove) return;
+  try {
+    setApproving(true);
+    const result = await approveLeave(confirmApprove.id);
+    setAlert({ type: "success", message: `Leave ${confirmApprove.display_id} approved.` });
+    if (viewTarget?.id === confirmApprove.id) {
+      setViewTarget((prev) => ({
+        ...prev,
+        status: "approved",
+        leave_type: result?.leave_type || prev.leave_type, // ← add this
+      }));
     }
-  };
+  } catch (err) {
+    setAlert({ type: "danger", message: err?.response?.data?.message || "Failed to approve." });
+  } finally {
+    setApproving(false);
+    setConfirmApprove(null);
+  }
+};
 
   // ── Reject ──
   const openReject = (leave) => {
@@ -504,6 +509,18 @@ const handleDownloadPDF = async () => {
                         </td>
 
                       {/* Leave Type cell */}
+{/* <td className="px-4 py-3">
+  <div className="flex flex-col gap-0.5 items-start">
+    <Badge
+      value={leave.reason_type === "emergency" ? "Emergency" : "Casual"}
+      overrideColor={leave.reason_type === "emergency" ? "danger" : "primary"}
+    />
+    {leave.leave_type === "exchange" && (
+      <Badge value="Exchange" overrideColor="ongoing" />
+    )}
+  </div>
+</td> */}
+
 <td className="px-4 py-3">
   <div className="flex flex-col gap-0.5 items-start">
     <Badge
@@ -513,6 +530,12 @@ const handleDownloadPDF = async () => {
     {leave.leave_type === "exchange" && (
       <Badge value="Exchange" overrideColor="ongoing" />
     )}
+    {/* {leave.leave_type !== "exchange" && leave.status === "approved" && (
+      <Badge
+        value={leave.leave_type === "unpaid" ? "Unpaid" : "Paid"}
+        overrideColor={leave.leave_type === "unpaid" ? "secondary" : "primary"}
+      />
+    )} */}
   </div>
 </td>
                         {/* Status */}
@@ -582,7 +605,15 @@ const handleDownloadPDF = async () => {
                   </div>
                   <div className="space-y-1.5 text-sm">
                     {[
-                      { label: "Leave Type", value: LEAVE_TYPE_LABELS[leave.leave_type] },
+                      
+{
+  label: "Leave Type",
+  value: leave.leave_type === "exchange"
+    ? "Exchange"
+    : leave.status === "approved"
+      ? (leave.leave_type === "paid" ? "Paid" : "Unpaid")
+      : "—"
+},
                       { label: "Duration", value: DURATION_LABELS[leave.duration] },
                       { label: "From", value: formatDate(leave.start_date) },
                       { label: "To", value: formatDate(leave.end_date) },
@@ -701,7 +732,7 @@ const handleDownloadPDF = async () => {
             </div>
 
 
-            {viewTarget?.reason_type === "emergency" && (
+  {viewTarget?.reason_type === "emergency" && (
   <div className="bg-red-50 border border-red-100 rounded-2xl p-4 space-y-3">
     <div>
       <p className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">
@@ -712,23 +743,41 @@ const handleDownloadPDF = async () => {
       </p>
     </div>
 
-      {viewTarget?.medical_document?.url && (
-  <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">
-      Medical Document
-    </p>
-    
-    <a
-    href={`${import.meta.env.VITE_API_URL?.replace("/api/", "")
-  .replace("/api", "")}${viewTarget.medical_document.url}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="text-xs font-black text-[#132ea7] hover:underline flex items-center gap-1.5"
-    >
-      View Document
-    </a>
-  </div>
-)}
+    {(() => {
+      const docUrl = typeof viewTarget.medical_document === "string"
+        ? viewTarget.medical_document
+        : viewTarget.medical_document?.url || null;
+
+      const baseUrl = import.meta.env.VITE_API_URL?.replace("/api/", "").replace("/api", "");
+
+      return docUrl ? (
+        <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">
+              Medical Document
+            </p>
+            <p className="text-[10px] font-bold text-green-600 uppercase tracking-widest">
+              ✓ Submitted
+            </p>
+          </div>
+          
+          <a
+            href={`${baseUrl}${docUrl}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs font-black text-[#132ea7] hover:underline flex items-center gap-1.5"
+          >
+            View Document
+          </a>
+        </div>
+      ) : (
+        <div className="bg-amber-50 rounded-xl p-3 border border-amber-100">
+          <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest">
+            ⚠️ Document not yet uploaded by employee
+          </p>
+        </div>
+      );
+    })()}
   </div>
 )}
 

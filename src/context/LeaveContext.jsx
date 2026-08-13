@@ -107,7 +107,34 @@ const cancelLeave = useCallback(async (id) => {
     }
   }, []);
 
+ 
+const uploadLeaveDocument = useCallback(async (id, file) => {
+  try {
+    const formData = new FormData();
+    formData.append("medical_document", file);
 
+    const { data } = await api.patch(
+      ENDPOINTS.LEAVES.UPLOAD_DOCUMENT(id),
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } }
+    );
+    console.log("🚀 ~ LeaveProvider ~ data:", data)
+
+    // Update local leaves state so UI reflects uploaded doc immediately
+    setLeaves((prev) =>
+      prev.map((l) =>
+        l.id === id
+          ? { ...l, medical_document: data.medical_document, document_uploaded_at: new Date().toISOString() }
+          : l
+      )
+    );
+
+    return data;
+  } catch (error) {
+     console.log("🚀 ~ LeaveProvider ~ error:", error)
+    throw error;
+  }
+}, []);
   
   // admin
 
@@ -145,18 +172,22 @@ const { data } = await api.get(`${ENDPOINTS.LEAVES.ALL}?${params.toString()}`)
     }
   }, []);
 
-  const approveLeave = useCallback(async (id) => {
-    try {
-      const { data } = await api.patch(ENDPOINTS.LEAVES.APPROVE(id));
-      setLeaves((prev) =>
-        prev.map((l) => (l.id === id ? { ...l, status: "approved" } : l))
-      );
-      return data;
-    } catch (error) {
-      throw error;
-    }
-  }, []);
-
+  
+const approveLeave = useCallback(async (id) => {
+  try {
+    const { data } = await api.patch(ENDPOINTS.LEAVES.APPROVE(id));
+    setLeaves((prev) =>
+      prev.map((l) =>
+        l.id === id
+          ? { ...l, status: "approved", leave_type: data.leave_type || l.leave_type }
+          : l
+      )
+    );
+    return data;
+  } catch (error) {
+    throw error;
+  }
+}, []);
   const rejectLeave = useCallback(async (id, rejection_reason) => {
     try {
       const { data } = await api.patch(ENDPOINTS.LEAVES.REJECT(id), {
@@ -366,6 +397,7 @@ const value = useMemo(() => ({
     getAllLeaves,
     approveLeave,
     rejectLeave,
+    uploadLeaveDocument,
     getLeaveLogs,
     getWorkedSaturdays,
     markWorkedSaturday,
@@ -390,6 +422,7 @@ const value = useMemo(() => ({
     getAllLeaves,
     approveLeave,
     rejectLeave,
+    uploadLeaveDocument,
     getLeaveLogs,
     getWorkedSaturdays,
     markWorkedSaturday,

@@ -59,6 +59,8 @@ import AdminInternDetail from './features/interns/pages/public/admin/AdminIntern
 import AdminEvents from "./features/events/AdminEvents";
 import Events from "./features/events/Events";
 
+
+import Applications from './pages/admin/AdminEmployeeApplications.jsx'
 const App = () => {
 
   const {isAuthenticated, isAdmin} = useAuth();
@@ -107,6 +109,7 @@ const App = () => {
   <Route path='work-logs' element={<AdminWorkLogs />} />
   <Route path='leaves' element={<Leaves />} />
   <Route path="holidays"  element={<PublicHolidays />} />
+  <Route path="employee-applications" element={<Applications />}  />
   <Route path="events" element={<AdminEvents />} />
   <Route path="settings"  element={<Settings />} />
   <Route
@@ -160,7 +163,7 @@ const App = () => {
   <Route path="work-logs" element={<WorkLog />} />
   <Route path="leaves" element={<MyLeaves />} />
   <Route path="holiday" element={<Holiday />} />
-  <Route path="events" element={<Events />} />
+  {/* <Route path="events" element={<Events />} /> */}
 
   {/* <Route path="password" element={<ChangePassword />} /> */}
   <Route path="/employee/profile" element={<EmployeeProfile />} />

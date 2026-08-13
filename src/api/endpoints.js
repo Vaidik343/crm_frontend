@@ -115,6 +115,7 @@ export const ENDPOINTS = {
       APPROVE: (id) => `/leaves/approve/${id}`,
       REJECT: (id) => `/leaves/reject/${id}`,
       SATURDAY_MARK: '/leaves/saturday/mark',
+      UPLOAD_DOCUMENT: (id) => `/leaves/${id}/upload-document`,
 
       
       //both
@@ -208,6 +209,17 @@ ADMIN_UPDATE: (id) => `/admin/interns/${id}`,
   EXPORT_PNG:  (id) => `/events/${id}/export/png`,
   AI_PREVIEW:  "/events/ai-preview",
 },
+
+
+EMPLOYEE_APPLICATIONS: {
+  REGISTER:   '/employee-applications/register',
+  LIST:       '/employee-applications',
+  BY_ID:      (id) => `/employee-applications/${id}`,
+  APPROVE:    (id) => `/employee-applications/${id}/approve`,
+  REJECT:     (id) => `/employee-applications/${id}/reject`,
+  DELETE:     (id) => `/employee-applications/${id}`,
+},
+
 
 
     //probation

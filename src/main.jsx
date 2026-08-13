@@ -20,7 +20,8 @@ import { ClientProvider } from './context/ClientContext.jsx'
 import { LeaveProvider } from './context/LeaveContext.jsx'
 import { ProbationProvider } from './context/ProbationContext.jsx'
 import { InternProvider } from './context/InternContext.jsx'
-import { EventProvider } from "./context/EventContext";
+import { EventProvider } from "./context/EventContext.jsx";
+import { EmployeeApplicationProvider } from './context/EmployeeApplicationContext.jsx'
 import { NotificationProvider } from './context/NotificationContext';
 
 
@@ -41,6 +42,7 @@ createRoot(document.getElementById('root')).render(
                   <ProbationProvider>
                     <InternProvider>
                       <EventProvider>
+                        <EmployeeApplicationProvider>
                   
                 <TeamProvider>
                   <TeamMemberProvider>
@@ -53,6 +55,7 @@ createRoot(document.getElementById('root')).render(
                 </TeamMemberProvider>
                 </TeamProvider>
 
+</EmployeeApplicationProvider>
                 </EventProvider>
 
 </InternProvider>

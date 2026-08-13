@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { useNotification } from "../context/NotificationContext";
 import api from "../api/axiosInstance";
 import Spinner from "../components/ui/Spinner";
-import { MdAssignment, MdPhone, MdFolder, MdComment, MdCheckCircle, MdBeachAccess, MdCelebration } from "react-icons/md";
+import { MdAssignment, MdPhone, MdFolder, MdComment, MdCheckCircle, MdBeachAccess, MdCelebration ,MdPerson} from "react-icons/md";
 
 const TYPE_META = {
   TASK_ASSIGNED:    { label: "Task Assigned",      icon: MdAssignment,  color: "text-blue-600 bg-blue-100"   },
@@ -23,6 +23,12 @@ const TYPE_META = {
   INTERN_REGISTERED:{ label: "Intern Registered",  icon: MdComment,     color: "text-pink-600 bg-pink-100"   },
   INTERN_ACTIVATED: { label: "Intern Activated",   icon: MdComment,     color: "text-teal-600 bg-teal-100"   },
   EVENT:            { label: "Event",              icon: MdCelebration, color: "text-purple-600 bg-purple-100"},
+  EMPLOYEE_APPLICATION: {
+  label: 'Employee Application',
+  icon: MdPerson,
+  color: 'text-[#132ea7]',
+  bg: 'bg-[#132ea7]/10',
+},
 };
 
 const TYPE_FILTERS = [
@@ -43,6 +49,7 @@ const TYPE_FILTERS = [
   { value: "INTERN_REGISTERED", label: "Intern Registered"},
   { value: "INTERN_ACTIVATED",  label: "Intern Activated" },
   { value: "EVENT",             label: "Event"            },
+  { value: 'EMPLOYEE_APPLICATION', label: 'Employee Application' },
 ];
 
 const buildLink = (notification, isAdmin) => {
@@ -56,6 +63,8 @@ const buildLink = (notification, isAdmin) => {
   if (type === "WORKLOG_CREATED") return `${prefix}/work-logs`;
   if (type === "MEETING_ATTENDEE")return `${prefix}/calls`;
   if (type === "EVENT")           return `${prefix}/events`;
+  if (type === "EMPLOYEE_APPLICATION")           return `${prefix}/employee-applications`;
+  
   return null;
 };
 
