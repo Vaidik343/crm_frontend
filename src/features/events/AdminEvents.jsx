@@ -7,28 +7,56 @@ import Spinner from "../../components/ui/Spinner";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
 import SearchInput from "../../components/ui/SearchInput";
 import { formatDate } from "../../utils/formatDate";
-import { MdAdd, MdDownload, MdDelete, MdVisibility } from "react-icons/md";
+import { MdAdd, MdDownload, MdDelete, MdVisibility, MdCampaign } from "react-icons/md";
 import toast from "react-hot-toast";
 import EventCreate from "./EventCreate";
 
 // ─────────────────────────────────────────────
-// CONSTANTS
+// CONSTANTS & BADGES
 // ─────────────────────────────────────────────
 
 const EVENT_TYPE_CONFIG = {
-  birthday:  { label: "Birthday",   color: "bg-pink-100 text-pink-700",     emoji: "🎂" },
-  promotion: { label: "Promotion",  color: "bg-amber-100 text-amber-700",   emoji: "🏆" },
-  office:    { label: "Office",     color: "bg-blue-100 text-blue-700",     emoji: "🏢" },
-  trip:      { label: "Trip",       color: "bg-green-100 text-green-700",   emoji: "✈️" },
-  fun_game:  { label: "Fun & Games",color: "bg-purple-100 text-purple-700", emoji: "🎮" },
+  birthday:  { label: "Birthday",    color: "bg-pink-100 text-pink-700",    emoji: "🎂" },
+  promotion: { label: "Promotion",   color: "bg-amber-100 text-amber-700",  emoji: "🏆" },
+  office:    { label: "Office",      color: "bg-blue-100 text-blue-700",    emoji: "🏢" },
+  trip:      { label: "Trip",        color: "bg-green-100 text-green-700",  emoji: "✈️" },
+  fun_game:  { label: "Fun & Games", color: "bg-purple-100 text-purple-700", emoji: "🎮" },
 };
 
 const EventTypeBadge = ({ type }) => {
   const cfg = EVENT_TYPE_CONFIG[type] || { label: type, color: "bg-slate-100 text-slate-600", emoji: "📅" };
   return (
-    <span className={`px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-widest ${cfg.color}`}>
+    <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider ${cfg.color}`}>
       {cfg.emoji} {cfg.label}
     </span>
+  );
+};
+
+// ─────────────────────────────────────────────
+// SEAMLESS CARD THUMBNAIL (No Black Lines)
+// ─────────────────────────────────────────────
+
+const CardThumbnail = ({ html, onClick }) => {
+  return (
+    <div 
+      className="relative w-full aspect-[16/9] overflow-hidden rounded-t-2xl bg-slate-50 cursor-pointer group select-none"
+      onClick={onClick}
+    >
+      {/* Mathematical ratio scale ensuring 100% gapless canvas fit */}
+      <div className="absolute inset-0 w-full h-full flex items-center justify-center overflow-hidden">
+        <div 
+          className="w-[140%] h-[140%] origin-top-left scale-[0.714] shrink-0 pointer-events-none [&>*]:w-full [&>*]:h-full [&>*]:object-cover [&>*]:rounded-none"
+          dangerouslySetInnerHTML={{ __html: html }}
+        />
+      </div>
+
+      {/* Hover Overlay */}
+      <div className="absolute inset-0 bg-slate-900/20 opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center backdrop-blur-[1px]">
+        <span className="bg-white/95 text-slate-800 rounded-xl px-3.5 py-1.5 font-extrabold text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-md transform translate-y-1 group-hover:translate-y-0 transition-all">
+          <MdVisibility size={15} /> View Card
+        </span>
+      </div>
+    </div>
   );
 };
 
@@ -40,9 +68,9 @@ const CardPreviewModal = ({ event, onClose, onExport, exporting }) => {
   if (!event) return null;
   return (
     <Modal show={!!event} onClose={onClose} title="Card Preview" size="lg">
-      <div className="space-y-6">
+      <div className="space-y-5">
         <div
-          className="rounded-2xl overflow-hidden shadow-xl"
+          className="rounded-xl overflow-hidden border border-slate-200 shadow-sm flex items-center justify-center bg-slate-50"
           dangerouslySetInnerHTML={{ __html: event.card_html }}
         />
         <div className="grid grid-cols-2 gap-3">
@@ -54,29 +82,29 @@ const CardPreviewModal = ({ event, onClose, onExport, exporting }) => {
             { label: "Created By", value: event.creator?.name || "—" },
             { label: "Display ID", value: event.display_id },
           ].map((item) => (
-            <div key={item.label} className="bg-slate-50 rounded-2xl p-4">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{item.label}</p>
-              <p className="font-black text-slate-700 text-sm">{item.value}</p>
+            <div key={item.label} className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider mb-0.5">{item.label}</p>
+              <p className="font-bold text-slate-800 text-xs truncate">{item.value}</p>
             </div>
           ))}
         </div>
         {event.message && (
-          <div className="bg-[#132ea7] rounded-2xl p-5 text-white">
-            <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-2">Message</p>
-            <p className="text-sm leading-relaxed opacity-90">{event.message}</p>
+          <div className="bg-[#132ea7] rounded-xl p-4 text-white">
+            <p className="text-[9px] font-black text-white/60 uppercase tracking-wider mb-1">Message</p>
+            <p className="text-xs leading-relaxed text-white/90">{event.message}</p>
           </div>
         )}
-        <div className="flex gap-3 pt-2">
-          <Button variant="ghost" onClick={onClose} className="flex-1 font-black uppercase tracking-widest text-xs">
+        <div className="flex gap-2 pt-1">
+          <Button variant="ghost" onClick={onClose} className="flex-1 font-bold uppercase tracking-wider text-xs h-10">
             Close
           </Button>
           <Button
             variant="primary"
             onClick={() => onExport(event.id, event.display_id)}
             loading={exporting}
-            className="flex-[2] font-black uppercase tracking-widest text-xs"
+            className="flex-[2] font-bold uppercase tracking-wider text-xs h-10"
           >
-            <MdDownload size={16} className="mr-1" /> Download PNG
+            <MdDownload size={16} className="mr-1.5" /> Download PNG
           </Button>
         </div>
       </div>
@@ -85,23 +113,24 @@ const CardPreviewModal = ({ event, onClose, onExport, exporting }) => {
 };
 
 // ─────────────────────────────────────────────
-// MAIN COMPONENT
+// MAIN ADMIN EVENTS COMPONENT
 // ─────────────────────────────────────────────
 
 const AdminEvents = () => {
   const {
     events, loading, page, limit, total, totalPages,
-    setPage, getAllEvents, deleteEvent, exportPNG,
+    setPage, getAllEvents, deleteEvent, exportPNG, announceEvent 
   } = useEvent();
 
-  const [showCreate,    setShowCreate]    = useState(false);
-  const [viewTarget,    setViewTarget]    = useState(null);
-  const [deleteTarget,  setDeleteTarget]  = useState(null);
-  const [deleting,      setDeleting]      = useState(false);
-  const [exporting,     setExporting]     = useState(false);
-  const [alert,         setAlert]         = useState({ type: "", message: "" });
-  const [search,        setSearch]        = useState("");
-  const [typeFilter,    setTypeFilter]    = useState("");
+  const [showCreate,   setShowCreate]   = useState(false);
+  const [viewTarget,   setViewTarget]   = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting,     setDeleting]     = useState(false);
+  const [exporting,    setExporting]    = useState(false);
+  const [alert,        setAlert]        = useState({ type: "", message: "" });
+  const [search,       setSearch]       = useState("");
+  const [typeFilter,   setTypeFilter]   = useState("");
+  const [announcing,   setAnnouncing]   = useState(null);
 
   // ── Effects ──
   useEffect(() => {
@@ -149,213 +178,202 @@ const AdminEvents = () => {
     toast.success("Event created successfully!");
   };
 
+  const handleAnnounce = async (event) => {
+    try {
+      setAnnouncing(event.id);
+      await announceEvent(event.id);
+      toast.success(`"${event.employee_name}" event announced to all employees!`);
+    } catch {
+      toast.error("Failed to announce event.");
+    } finally {
+      setAnnouncing(null);
+    }
+  };
+
   // ── Pagination ──
-  const Pagination = ({ compact = false }) => (
-    <div className={`flex items-center justify-between px-6 py-6 ${!compact ? "border-t border-slate-100" : ""}`}>
-      <button disabled={page === 1} onClick={() => setPage(page - 1)}
-        className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50">
-        {compact ? "Prev" : "Previous"}
+  const Pagination = () => (
+    <div className="flex items-center justify-between px-6 py-4 border-t border-slate-100">
+      <button 
+        disabled={page === 1} 
+        onClick={() => setPage(page - 1)}
+        className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs disabled:opacity-40 hover:bg-slate-200 transition-all">
+        Previous
       </button>
-      {compact ? (
-        <span className="text-sm font-bold text-slate-500">{page} / {totalPages}</span>
-      ) : (
-        <div className="flex items-center gap-2">
-          {[...Array(totalPages)].map((_, i) => (
-            <button key={i + 1} onClick={() => setPage(i + 1)}
-              className={`w-10 h-10 rounded-xl font-bold transition-all ${page === i + 1 ? "bg-[#132ea7] text-white" : "bg-slate-100 text-slate-700"}`}>
-              {i + 1}
-            </button>
-          ))}
-        </div>
-      )}
-      <button disabled={page === totalPages} onClick={() => setPage(page + 1)}
-        className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50">
+      <div className="flex items-center gap-1.5">
+        {[...Array(totalPages)].map((_, i) => (
+          <button 
+            key={i + 1} 
+            onClick={() => setPage(i + 1)}
+            className={`w-9 h-9 rounded-xl text-xs font-extrabold transition-all ${
+              page === i + 1 ? "bg-[#132ea7] text-white shadow-md shadow-[#132ea7]/20" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+            }`}>
+            {i + 1}
+          </button>
+        ))}
+      </div>
+      <button 
+        disabled={page === totalPages} 
+        onClick={() => setPage(page + 1)}
+        className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs disabled:opacity-40 hover:bg-slate-200 transition-all">
         Next
       </button>
     </div>
   );
 
   return (
-    <div className="space-y-8 px-4 animate-in fade-in duration-700">
+    <div className="space-y-6 px-4 max-w-7xl mx-auto py-4">
 
       {/* ── Header ── */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-1 uppercase">
-              <span className="text-[#132ea7]">Events</span>
-            </h2>
-            <p className="text-slate-500 font-bold text-base">Total: {total}</p>
-          </div>
-          <Button
-            variant="primary"
-            className="shadow-lg shadow-[#132ea7]/20 px-8 rounded-xl h-[52px] font-black uppercase tracking-widest text-sm"
-            onClick={() => setShowCreate(true)}
-          >
-            <MdAdd size={22} className="mr-1" /> Create Event
-          </Button>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-slate-200/60">
+        <div>
+          <h2 className="text-2xl font-black text-slate-800 tracking-tight uppercase">
+            Manage <span className="text-[#132ea7]">Events</span>
+          </h2>
+          <p className="text-slate-400 font-bold text-xs mt-0.5">Total Events: {total}</p>
         </div>
 
-        {/* ── Filters ── */}
-        <div className="flex flex-wrap gap-3 items-center justify-between">
-          <div className="flex flex-wrap gap-2">
-            {[
-              { value: "",          label: "All"        },
-              { value: "birthday",  label: "🎂 Birthday"  },
-              { value: "promotion", label: "🏆 Promotion" },
-              { value: "office",    label: "🏢 Office"    },
-              { value: "trip",      label: "✈️ Trip"      },
-              { value: "fun_game",  label: "🎮 Fun & Games"},
-            ].map((opt) => (
-              <button key={opt.value}
-                onClick={() => { setPage(1); setTypeFilter(opt.value); }}
-                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${
-                  typeFilter === opt.value
-                    ? "bg-[#132ea7] text-white shadow-lg shadow-[#132ea7]/20"
-                    : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                }`}>
-                {opt.label}
-              </button>
-            ))}
-          </div>
+        <Button
+          variant="primary"
+          className="shadow-md shadow-[#132ea7]/20 px-6 rounded-xl h-11 font-black uppercase tracking-wider text-xs"
+          onClick={() => setShowCreate(true)}
+        >
+          <MdAdd size={20} className="mr-1" /> Create Event
+        </Button>
+      </div>
+
+      {/* ── Filters & Search ── */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-2">
+          {[
+            { value: "",          label: "All"          },
+            { value: "birthday",  label: "🎂 Birthday"  },
+            { value: "promotion", label: "🏆 Promotion" },
+            { value: "office",    label: "🏢 Office"    },
+            { value: "trip",      label: "✈️ Trip"      },
+            { value: "fun_game",  label: "🎮 Fun & Games"},
+          ].map((opt) => (
+            <button key={opt.value}
+              onClick={() => { setPage(1); setTypeFilter(opt.value); }}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all whitespace-nowrap ${
+                typeFilter === opt.value
+                  ? "bg-[#132ea7] text-white shadow-md shadow-[#132ea7]/20"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+              }`}>
+              {opt.label}
+            </button>
+          ))}
+        </div>
+        <div className="w-full lg:w-72">
           <SearchInput value={search} onChange={setSearch} placeholder="Search by name..." />
         </div>
       </div>
 
       <Alert type={alert.type} message={alert.message} onClose={() => setAlert({ type: "", message: "" })} />
 
-      {/* ── Desktop Table ── */}
-      <div className="hidden md:block">
-        <div className="bg-white rounded-[2rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
-          <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-200/50">
-                  {["Display ID", "Employee", "Event Type", "Mode", "Event Date", "Created By", "Actions"].map((h) => (
-                    <th key={h} className="px-6 py-5 text-md font-black text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {loading ? (
-                  <tr>
-                    <td colSpan={7} className="text-center py-16">
-                      <Spinner size="lg" />
-                    </td>
-                  </tr>
-                ) : events.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="text-center text-slate-400 py-16 font-medium italic text-lg uppercase tracking-widest">
-                      No events found.
-                    </td>
-                  </tr>
-                ) : events.filter(Boolean).map((event) => (
-                  <tr key={event.id} className="hover:bg-slate-50/80 transition-colors group">
-                    <td className="px-6 py-5">
-                      <span className="px-3 py-1 bg-[#132ea7]/10 text-[#132ea7] rounded-lg text-[11px] font-black uppercase tracking-widest font-mono">
-                        {event.display_id}
-                      </span>
-                    </td>
-                    <td className="px-6 py-5">
-                      <p className="font-black text-slate-800">{event.employee_name}</p>
-                    </td>
-                    <td className="px-6 py-5">
-                      <EventTypeBadge type={event.event_type} />
-                    </td>
-                    <td className="px-6 py-5">
-                      <span className={`px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-widest ${
-                        event.mode === "ai"
-                          ? "bg-purple-100 text-purple-700"
-                          : "bg-slate-100 text-slate-600"
-                      }`}>
-                        {event.mode === "ai" ? "✨ AI" : "Manual"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-5">
-                      <span className="font-black text-slate-700 text-sm">{formatDate(event.event_date)}</span>
-                    </td>
-                    <td className="px-6 py-5">
-                      <span className="font-bold text-slate-600 text-sm">{event.creator?.name || "—"}</span>
-                    </td>
-                    <td className="px-6 py-5">
-                      <div className="flex items-center gap-2">
-                        <button onClick={() => setViewTarget(event)} title="Preview"
-                          className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:text-[#132ea7] hover:bg-[#132ea7]/10 transition-all">
-                          <MdVisibility size={20} />
-                        </button>
-                        <button onClick={() => handleExport(event.id, event.display_id)} title="Download PNG"
-                          className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:text-green-600 hover:bg-green-50 transition-all">
-                          <MdDownload size={20} />
-                        </button>
-                        <button onClick={() => setDeleteTarget(event)} title="Delete"
-                          className="p-3 rounded-xl bg-slate-50 text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all">
-                          <MdDelete size={20} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {totalPages > 1 && <Pagination />}
+      {/* ── 3-Card Grid Layout ── */}
+      {loading ? (
+        <div className="flex justify-center py-20"><Spinner size="lg" /></div>
+      ) : events.length === 0 ? (
+        <div className="bg-white rounded-2xl p-12 text-center border border-slate-200/80 shadow-sm">
+          <div className="text-4xl mb-3">🎉</div>
+          <p className="text-slate-400 font-extrabold uppercase tracking-widest text-xs">No events found</p>
         </div>
-      </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {events.filter(Boolean).map((event) => (
+            <div 
+              key={event.id}
+              className="bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-lg hover:border-slate-300 transition-all duration-200 flex flex-col justify-between overflow-hidden group"
+            >
 
-      {/* ── Mobile Cards ── */}
-      <div className="md:hidden space-y-4">
-        {loading ? (
-          <div className="flex justify-center py-12"><Spinner size="lg" /></div>
-        ) : events.length === 0 ? (
-          <div className="bg-white rounded-2xl p-8 text-center text-slate-400 font-bold">No events found.</div>
-        ) : events.filter(Boolean).map((event) => (
-          <div key={event.id} className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm space-y-3">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="font-black text-slate-800">{event.employee_name}</p>
-                <p className="text-[10px] font-black text-slate-400 font-mono mt-0.5">{event.display_id}</p>
-              </div>
-              <EventTypeBadge type={event.event_type} />
-            </div>
-            <div className="space-y-2 text-sm">
-              {[
-                { label: "Event Date", value: formatDate(event.event_date) },
-                { label: "Mode",       value: event.mode === "ai" ? "✨ AI" : "Manual" },
-                { label: "Created By", value: event.creator?.name || "—" },
-              ].map((item) => (
-                <div key={item.label} className="flex justify-between items-center">
-                  <span className="text-slate-400 font-bold uppercase text-[10px]">{item.label}</span>
-                  <span className="font-bold text-slate-700 text-xs">{item.value}</span>
+              {/* Card Banner Preview */}
+              <CardThumbnail 
+                html={event.card_html} 
+                onClick={() => setViewTarget(event)} 
+              />
+
+              {/* Card Info */}
+              <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                
+                {/* Employee Name & Type Badge */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-black text-slate-800 text-base leading-tight truncate" title={event.employee_name}>
+                      {event.employee_name}
+                    </h3>
+                    <p className="text-[11px] font-mono font-semibold text-slate-400 mt-0.5">{event.display_id}</p>
+                  </div>
+                  <EventTypeBadge type={event.event_type} />
                 </div>
-              ))}
-            </div>
-            <div className="flex gap-2 pt-3 border-t border-slate-100">
-              <button onClick={() => setViewTarget(event)}
-                className="flex-1 h-10 rounded-xl bg-slate-50 text-slate-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all">
-                <MdVisibility size={16} /> View
-              </button>
-              <button onClick={() => handleExport(event.id, event.display_id)}
-                className="flex-1 h-10 rounded-xl bg-green-50 text-green-600 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-green-100 transition-all">
-                <MdDownload size={16} /> PNG
-              </button>
-              <button onClick={() => setDeleteTarget(event)}
-                className="flex-1 h-10 rounded-xl bg-red-50 text-red-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-red-100 transition-all">
-                <MdDelete size={16} /> Delete
-              </button>
-            </div>
-          </div>
-        ))}
-        {totalPages > 1 && <Pagination compact />}
-      </div>
 
-      {/* ── Create Modal ── */}
+                {/* Details Meta */}
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                  <div>
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Event Date</p>
+                    <p className="font-extrabold text-slate-700 text-xs mt-0.5">{formatDate(event.event_date)}</p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">Created By</p>
+                    <p className="font-extrabold text-slate-700 text-xs mt-0.5 text-right truncate max-w-[100px]">{event.creator?.name || "—"}</p>
+                  </div>
+                </div>
+
+                {/* Admin Action Row */}
+                <div className="flex items-center gap-1.5 pt-1">
+                  <button 
+                    onClick={() => setViewTarget(event)}
+                    title="Preview"
+                    className="flex-1 h-9 rounded-xl bg-slate-50 text-slate-600 font-bold flex items-center justify-center gap-1 text-xs hover:bg-slate-100 transition-all border border-slate-200/60">
+                    <MdVisibility size={15} /> View
+                  </button>
+
+                  <button 
+                    onClick={() => handleExport(event.id, event.display_id)}
+                    title="Download PNG"
+                    className="p-2 w-9 h-9 rounded-xl bg-emerald-50 text-emerald-700 font-bold flex items-center justify-center hover:bg-emerald-100 transition-all border border-emerald-200/50">
+                    <MdDownload size={16} />
+                  </button>
+
+                  {!event.is_announced ? (
+                    <button
+                      onClick={() => handleAnnounce(event)}
+                      disabled={announcing === event.id}
+                      title="Announce to all employees"
+                      className="p-2 w-9 h-9 rounded-xl bg-orange-50 text-[#e98937] font-bold flex items-center justify-center hover:bg-orange-100 transition-all border border-orange-200/50 disabled:opacity-50">
+                      {announcing === event.id ? <Spinner size="xs" /> : <MdCampaign size={18} />}
+                    </button>
+                  ) : (
+                    <span className="px-2 py-1 rounded-xl text-[9px] font-black uppercase tracking-wider bg-green-100 text-green-700 h-9 flex items-center">
+                      Announced ✓
+                    </span>
+                  )}
+
+                  <button 
+                    onClick={() => setDeleteTarget(event)}
+                    title="Delete Event"
+                    className="p-2 w-9 h-9 rounded-xl bg-red-50 text-red-500 font-bold flex items-center justify-center hover:bg-red-100 transition-all border border-red-200/50">
+                    <MdDelete size={16} />
+                  </button>
+                </div>
+
+              </div>
+
+            </div>
+          ))}
+        </div>
+      )}
+
+      {totalPages > 1 && (
+        <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm mt-6">
+          <Pagination />
+        </div>
+      )}
+
+      {/* ── Modals & Dialogs ── */}
       <Modal show={showCreate} onClose={() => setShowCreate(false)} title="Create Event" size="xl">
         <EventCreate onSuccess={handleCreated} onCancel={() => setShowCreate(false)} />
       </Modal>
 
-      {/* ── Preview Modal ── */}
       <CardPreviewModal
         event={viewTarget}
         onClose={() => setViewTarget(null)}
@@ -363,7 +381,6 @@ const AdminEvents = () => {
         exporting={exporting}
       />
 
-      {/* ── Delete Confirm ── */}
       <ConfirmDialog
         show={!!deleteTarget}
         message={`Delete event "${deleteTarget?.display_id}" for ${deleteTarget?.employee_name}? This cannot be undone.`}

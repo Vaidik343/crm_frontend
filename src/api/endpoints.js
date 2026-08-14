@@ -125,6 +125,9 @@ export const ENDPOINTS = {
 
       LEAVES_LOGS: (id) => `/leaves/${id}/logs` ,
 
+      ADJACENT_CHECK: '/leaves/adjacent-check',
+REVERSE: (id) => `/leaves/${id}/reverse`,
+
     
     //   Balance
     BALANCE_MY:        '/leaves/balance/my',
@@ -202,11 +205,12 @@ ADMIN_UPDATE: (id) => `/admin/interns/${id}`,
 
     EVENTS: {
   CREATE:      "/events",
-  ADMIN_ALL:   "/events/admin",
-  EMPLOYEE_ALL:"/events",
+  ADMIN_ALL:   "/events/admin/all",
+  EMPLOYEE_ALL:"/events/shared",
   BY_ID:       (id) => `/events/${id}`,
   DELETE:      (id) => `/events/${id}`,
-  EXPORT_PNG:  (id) => `/events/${id}/export/png`,
+  EXPORT_PNG:  (id) => `/events/shared/${id}/export/png`,
+  ANNOUNCE: (id) => `/events/${id}/announce`,
   AI_PREVIEW:  "/events/ai-preview",
 },
 

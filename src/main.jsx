@@ -23,6 +23,7 @@ import { InternProvider } from './context/InternContext.jsx'
 import { EventProvider } from "./context/EventContext.jsx";
 import { EmployeeApplicationProvider } from './context/EmployeeApplicationContext.jsx'
 import { NotificationProvider } from './context/NotificationContext';
+import { AnnouncementProvider } from './context/AnnouncementContext.jsx'
 
 
 createRoot(document.getElementById('root')).render(
@@ -42,6 +43,7 @@ createRoot(document.getElementById('root')).render(
                   <ProbationProvider>
                     <InternProvider>
                       <EventProvider>
+                        <AnnouncementProvider>
                         <EmployeeApplicationProvider>
                   
                 <TeamProvider>
@@ -56,6 +58,7 @@ createRoot(document.getElementById('root')).render(
                 </TeamProvider>
 
 </EmployeeApplicationProvider>
+</AnnouncementProvider>
                 </EventProvider>
 
 </InternProvider>

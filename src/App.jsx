@@ -163,7 +163,7 @@ const App = () => {
   <Route path="work-logs" element={<WorkLog />} />
   <Route path="leaves" element={<MyLeaves />} />
   <Route path="holiday" element={<Holiday />} />
-  {/* <Route path="events" element={<Events />} /> */}
+  <Route path="events" element={<Events />} />
 
   {/* <Route path="password" element={<ChangePassword />} /> */}
   <Route path="/employee/profile" element={<EmployeeProfile />} />

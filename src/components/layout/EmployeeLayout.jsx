@@ -9,7 +9,8 @@ import {
 import { useState } from "react";
 import NotificationBell from "../NotificationBell";
 import HeaderLogo from "../common/HeaderLogo";
-
+import AnnouncementBell from "../ui/AnnouncementBell";
+import AnnouncementPopup from "../ui/AnnouncementPopup";
 
 const navItems = [
     { to: "/employee/myDashboard", label: "Dashboard", icon: <MdDashboard size={18} /> },
@@ -99,6 +100,7 @@ const cancelLogout = () => setShowLogoutModal(false);
             </div>
 
             {/* Avatar */}
+            <AnnouncementBell isEmployee={true} />
             <NotificationBell />
           <NavLink
     to="/employee/profile"
@@ -175,6 +177,7 @@ const cancelLogout = () => setShowLogoutModal(false);
                 <div className="max-w-auto mx-auto">
                     <Outlet />
                 </div>
+                <AnnouncementPopup isEmployee={true} />
             </main>
 
 

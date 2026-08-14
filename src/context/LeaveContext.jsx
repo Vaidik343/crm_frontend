@@ -381,7 +381,27 @@ const deletePublicHoliday = useCallback(async (id) => {
 }, []);
 
 
+const checkAdjacentLeaves = useCallback(async ({ start_date, end_date, duration }) => {
+  try {
+    const params = new URLSearchParams({ start_date, end_date, duration });
+    const { data } = await api.get(`${ENDPOINTS.LEAVES.ADJACENT_CHECK}?${params.toString()}`);
+    return data;
+  } catch (error) {
+    throw error;
+  }
+}, []);
 
+const reverseLeave = useCallback(async (id, reason) => {
+  try {
+    const { data } = await api.patch(ENDPOINTS.LEAVES.REVERSE(id), { reason });
+    setLeaves((prev) =>
+      prev.map((l) => (l.id === id ? { ...l, status: 'cancelled' } : l))
+    );
+    return data;
+  } catch (error) {
+    throw error;
+  }
+}, []);
 
 const value = useMemo(() => ({
     leaves,
@@ -409,6 +429,8 @@ const value = useMemo(() => ({
   addPublicHoliday,
   updatePublicHoliday,
   deletePublicHoliday,
+  checkAdjacentLeaves ,
+  reverseLeave ,
   }), [
     leaves,
     loading,
@@ -434,6 +456,8 @@ const value = useMemo(() => ({
   addPublicHoliday,
   updatePublicHoliday,
   deletePublicHoliday,
+  checkAdjacentLeaves ,
+  reverseLeave ,
   ]);
   return (
     <LeaveContext.Provider value={value}>{children}</LeaveContext.Provider>

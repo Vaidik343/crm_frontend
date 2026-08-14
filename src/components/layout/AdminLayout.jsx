@@ -33,6 +33,9 @@ import { usePWAInstall } from "../../hooks/usePWAInstall";
 
 import HeaderLogo from "../common/HeaderLogo";
 
+import AnnouncementBell from "../ui/AnnouncementBell";
+import AnnouncementPopup from "../ui/AnnouncementPopup";
+
 const navItems = [
     { to: "/admin/dashboard", label: "Dashboard", icon: <MdDashboard size={20} /> },
     { to: "/admin/employees", label: "Employees", icon: <MdPeople size={20} /> },
@@ -180,6 +183,7 @@ const { isInstallable, install } = usePWAInstall();
                             <span className="text-sm font-medium text-slate-700 leading-none">{user?.name}</span>
                             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1">{user?.role || "Administrator"}</span>
                         </div>
+                        <AnnouncementBell isEmployee={false} />
                         <NotificationBell />
                         <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold shadow-md ring-2 ring-white" style={{ backgroundColor: "#132ea7" }}>
                             {user?.name?.charAt(0) || "A"}
@@ -194,6 +198,7 @@ const { isInstallable, install } = usePWAInstall();
                         <Outlet />
                     </div>
                 </main>
+                <AnnouncementPopup isEmployee={false} />
             </div>
             {/* Logout Confirmation Modal */}
 {showLogoutModal && (

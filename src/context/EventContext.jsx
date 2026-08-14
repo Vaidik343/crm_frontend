@@ -60,12 +60,15 @@ export const EventProvider = ({ children }) => {
     }
   }, []);
 
+  
   const deleteEvent = useCallback(async (id) => {
     try {
       const { data } = await api.delete(ENDPOINTS.EVENTS.DELETE(id));
+      console.log("🚀 ~ EventProvider ~ data:", data)
       setEvents((prev) => prev.filter((e) => e.id !== id));
       return data;
     } catch (error) {
+        console.log("🚀 ~ EventProvider ~ error:", error)
       throw error;
     }
   }, []);
@@ -78,6 +81,20 @@ export const EventProvider = ({ children }) => {
       throw error;
     }
   }, []);
+
+
+  const announceEvent = useCallback(async (id) => {
+  try {
+    const { data } = await api.patch(ENDPOINTS.EVENTS.ANNOUNCE(id));
+    setEvents((prev) =>
+      prev.map((e) => e.id === id ? { ...e, is_announced: true } : e)
+    );
+    return data;
+  } catch (error) {
+    throw error;
+  }
+}, []);
+
 
   const exportPNG = useCallback(async (id, displayId) => {
     try {
@@ -110,10 +127,11 @@ export const EventProvider = ({ children }) => {
     createEvent,
     deleteEvent,
     previewAICard,
+    announceEvent,
     exportPNG,
   }), [
     events, loading, page, limit, total, totalPages,
-    getAllEvents, getEmployeeEvents, createEvent, deleteEvent, previewAICard, exportPNG,
+    getAllEvents, getEmployeeEvents, createEvent, deleteEvent, previewAICard,announceEvent, exportPNG,
   ]);
 
   return <EventContext.Provider value={value}>{children}</EventContext.Provider>;

@@ -13,6 +13,7 @@ import {
   MdVisibility,
   MdCheck,
   MdClose,
+  MdUndo ,
   MdTimeline,MdDownload, MdPictureAsPdf, MdTableChart  
 } from "react-icons/md";
 import { formatDate, formatDateTime } from "../../utils/formatDate";
@@ -93,6 +94,7 @@ const Leaves = () => {
     rejectLeave,
     getLeaveLogs,
     getLeaveCalculation,
+    reverseLeave
   } = useLeave();
 
   const { users, getAllUsers } = useUser();
@@ -130,6 +132,17 @@ const Leaves = () => {
 
 const [downloading, setDownloading] = useState(false);
 console.log("🚀 ~ Leaves ~ downloading:", downloading)
+
+
+const [reverseTarget, setReverseTarget] = useState(null);
+console.log("🚀 ~ Leaves ~ reverseTarget:", reverseTarget)
+const [reverseReason, setReverseReason] = useState('');
+const [reverseError, setReverseError]   = useState('');
+console.log("🚀 ~ Leaves ~ reverseError:", reverseError)
+const [reversing, setReversing]         = useState(false);
+console.log("🚀 ~ Leaves ~ reversing:", reversing)
+
+
 
 
 const handleDownloadExcel = async () => {
@@ -271,16 +284,14 @@ const handleApprove = async () => {
   try {
     setApproving(true);
     const result = await approveLeave(confirmApprove.id);
-    setAlert({ type: "success", message: `Leave ${confirmApprove.display_id} approved.` });
-    if (viewTarget?.id === confirmApprove.id) {
-      setViewTarget((prev) => ({
-        ...prev,
-        status: "approved",
-        leave_type: result?.leave_type || prev.leave_type, // ← add this
-      }));
-    }
+    const sandwichMsg = result?.sandwich_days > 0
+      ? ` (+ ${result.sandwich_days} sandwich day(s) charged)`
+      : '';
+    setAlert({ type: 'success', message: `Leave ${confirmApprove.display_id} approved.${sandwichMsg}` });
+    if (viewTarget?.id === confirmApprove.id)
+      setViewTarget((prev) => ({ ...prev, status: 'approved' }));
   } catch (err) {
-    setAlert({ type: "danger", message: err?.response?.data?.message || "Failed to approve." });
+    setAlert({ type: 'danger', message: err?.response?.data?.message || 'Failed to approve.' });
   } finally {
     setApproving(false);
     setConfirmApprove(null);
@@ -299,7 +310,8 @@ const handleApprove = async () => {
     if (rejectionReason.trim().length < 5) { setRejectionError("Must be at least 5 characters."); return; }
     try {
       setRejecting(true);
-      await rejectLeave(rejectTarget.id, rejectionReason.trim());
+     const rl =  await rejectLeave(rejectTarget.id, rejectionReason.trim());
+      console.log("🚀 ~ handleReject ~ rl:", rl)
       setAlert({ type: "success", message: `Leave ${rejectTarget.display_id} rejected.` });
       if (viewTarget?.id === rejectTarget.id)
         setViewTarget((prev) => ({ ...prev, status: "rejected", rejection_reason: rejectionReason.trim() }));
@@ -553,6 +565,17 @@ const handleApprove = async () => {
                             >
                               <MdVisibility size={16} />
                             </button>
+
+                            {leave.status === 'approved' && (
+  <button
+    onClick={() => { setReverseTarget(leave); setReverseReason(''); setReverseError(''); }}
+    title="Reverse Approval"
+    className="p-1.5 rounded-lg bg-slate-50 text-slate-400 hover:bg-orange-50 hover:text-orange-500 transition-all"
+  >
+    <MdUndo size={16} />
+  </button>
+)}
+
                             {leave.status === "pending" && (
                               <>
                                 <button
@@ -801,6 +824,19 @@ const handleApprove = async () => {
               </div>
             )}
 
+
+            {viewTarget.status === 'approved' && (
+  <div className="flex gap-3 pt-2">
+    <Button
+      variant="ghost"
+      className="flex-1 h-12 font-black uppercase tracking-widest text-sm border border-orange-200 text-orange-500 hover:bg-orange-50"
+      onClick={() => { setReverseTarget(viewTarget); setReverseReason(''); setReverseError(''); setViewTarget(null); }}
+    >
+      <MdUndo size={18} className="mr-1" /> Reverse Approval
+    </Button>
+  </div>
+)}
+
             {/* Activity Logs */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
@@ -882,6 +918,8 @@ const handleApprove = async () => {
           </div>
         )}
       </Modal>
+
+      
 
       {/* ── Approve Confirm ── */}
       <ConfirmDialog

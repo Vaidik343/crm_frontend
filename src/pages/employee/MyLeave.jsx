@@ -15,6 +15,7 @@ import {
   MdCancel,
   MdClose,
   MdTimeline,
+  MdInfoOutline 
 } from "react-icons/md";
 import { FaBriefcaseMedical } from "react-icons/fa";
 
@@ -50,14 +51,17 @@ const STATUS_CONFIG = {
   cancelled: { label: "Cancelled", classes: "bg-slate-100 text-slate-500" },
 };
 
+const initialBlock = {
+  start_date: '',
+  end_date:   '',
+  duration:   'full_day',
+};
+
 const initialForm = {
-  leave_type: "paid",
-  reason_type: "casual",
-  start_date: "",
-  end_date: "",
-  duration: "full_day",
-  reason: "",
-  worked_saturday_id: "",
+  leave_type:  'paid',
+  reason_type: 'casual',
+  reason:      '',
+  worked_saturday_id: '',
 };
 
 // ─────────────────────────────────────────────
@@ -225,6 +229,7 @@ const MyLeaves = () => {
     getLeaveLogs,
     getWorkedSaturdays,
     uploadLeaveDocument,
+    checkAdjacentLeaves
   } = useLeave();
   console.log("🚀 ~ MyLeaves ~ leaves:", leaves);
 
@@ -239,8 +244,10 @@ const MyLeaves = () => {
   const [confirmCancel, setConfirmCancel] = useState(null);
 
   // ── Form state ──
-  const [form, setForm] = useState(initialForm);
-  const [fieldErrors, setFieldErrors] = useState({});
+const [form, setForm]             = useState(initialForm);
+const [leaveBlocks, setLeaveBlocks] = useState([{ ...initialBlock }]);
+const [fieldErrors, setFieldErrors] = useState({});
+const [blockErrors, setBlockErrors] = useState([]); // per-block errors
   const [submitting, setSubmitting] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [alert, setAlert] = useState({ type: "", message: "" });
@@ -270,6 +277,8 @@ const MyLeaves = () => {
   const [uploadError, setUploadError] = useState("");
   console.log("🚀 ~ MyLeaves ~ uploadError:", uploadError);
   const [uploading, setUploading] = useState(false);
+
+const [sandwichWarnings, setSandwichWarnings] = useState([]);
 
   // ── Effects ──
   useEffect(() => {
@@ -326,6 +335,27 @@ const MyLeaves = () => {
       .finally(() => setBalanceLoading(false));
   }, []);
 
+
+useEffect(() => {
+  setSandwichWarnings([]);
+  const firstBlock = leaveBlocks[0];
+  if (!firstBlock?.start_date || !firstBlock?.end_date || !firstBlock?.duration) return;
+  const timer = setTimeout(async () => {
+    try {
+      const result = await checkAdjacentLeaves({
+        start_date: firstBlock.start_date,
+        end_date:   firstBlock.end_date,
+        duration:   firstBlock.duration,
+      });
+      if (result.has_warning) setSandwichWarnings(result.warnings);
+    } catch {
+      // silently ignore
+    }
+  }, 600);
+  return () => clearTimeout(timer);
+}, [leaveBlocks[0]?.start_date, leaveBlocks[0]?.end_date, leaveBlocks[0]?.duration]);
+
+
   // ── Form handlers ──
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -355,86 +385,173 @@ const MyLeaves = () => {
     if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  const validate = () => {
-    const errors = {};
-    if (!form.start_date) errors.start_date = "Start date is required.";
-    if (!form.end_date) errors.end_date = "End date is required.";
-    if (!form.reason.trim()) errors.reason = "Reason is required.";
-    if (form.leave_type === "exchange" && !form.worked_saturday_id) {
-      errors.worked_saturday_id = "Please select a Saturday to exchange.";
-    }
-    if (form.reason_type === "emergency") {
-      if (!emergencySubType) {
-        errors.emergency_sub_type = "Please select Medical or Other.";
-      }
-      // if (!medicalFile) {
-      //   errors.medical_file = "Supporting document is required for emergency leave.";
-      // }
-    }
-    return errors;
-  };
 
-  const openForm = () => {
-    setForm(initialForm);
-    setFieldErrors({});
-    setShowForm(true);
-  };
+  const handleBlockChange = (idx, field, value) => {
+  setLeaveBlocks((prev) => {
+    const updated = [...prev];
+    updated[idx] = { ...updated[idx], [field]: value };
 
-  const closeForm = () => {
-    setShowForm(false);
-    setForm(initialForm);
-    setFieldErrors({});
-    setEmergencySubType("");
-    setMedicalFile(null);
-    setMedicalFileError("");
-  };
+    // If duration becomes half-day, sync end_date to start_date
+    if (
+      field === 'duration' &&
+      (value === 'first_half' || value === 'second_half')
+    ) {
+      updated[idx].end_date = updated[idx].start_date;
+    }
+
+    // If start_date changes and duration is half-day, sync end_date too
+    if (field === 'start_date' && updated[idx].duration !== 'full_day') {
+      updated[idx].end_date = value;
+    }
+
+    return updated;
+  });
+
+  // Clear block error for this field
+  setBlockErrors((prev) => {
+    const updated = [...prev];
+    if (updated[idx]) updated[idx] = { ...updated[idx], [field]: '' };
+    return updated;
+  });
+};
+
+const addBlock = () => {
+  setLeaveBlocks((prev) => [...prev, { ...initialBlock }]);
+  setBlockErrors((prev) => [...prev, {}]);
+};
+
+const removeBlock = (idx) => {
+  if (leaveBlocks.length === 1) return; // always keep at least one
+  setLeaveBlocks((prev) => prev.filter((_, i) => i !== idx));
+  setBlockErrors((prev) => prev.filter((_, i) => i !== idx));
+};
+
+
+
+const validate = () => {
+  const errors = {};
+  if (!form.reason.trim()) errors.reason = 'Reason is required.';
+  if (form.leave_type === 'exchange' && !form.worked_saturday_id)
+    errors.worked_saturday_id = 'Please select a Saturday to exchange.';
+  if (form.reason_type === 'emergency' && !emergencySubType)
+    errors.emergency_sub_type = 'Please select Medical or Other.';
+
+  const bErrors = leaveBlocks.map((block) => {
+    const e = {};
+    if (!block.start_date) e.start_date = 'Start date is required.';
+    if (!block.end_date)   e.end_date   = 'End date is required.';
+    return e;
+  });
+
+  setBlockErrors(bErrors);
+  const hasBlockErrors = bErrors.some((e) => Object.keys(e).length > 0);
+
+  return { formErrors: errors, hasBlockErrors };
+};
+
+
+const openForm = () => {
+  setForm(initialForm);
+  setLeaveBlocks([{ ...initialBlock }]);
+  setFieldErrors({});
+  setBlockErrors([]);
+  setSandwichWarnings([]);
+  setShowForm(true);
+};
+
+const closeForm = () => {
+  setShowForm(false);
+  setForm(initialForm);
+  setLeaveBlocks([{ ...initialBlock }]);
+  setFieldErrors({});
+  setBlockErrors([]);
+  setEmergencySubType('');
+  setMedicalFile(null);
+  setMedicalFileError('');
+  setSandwichWarnings([]);
+};
+
+
+
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    const errors = validate();
-    if (Object.keys(errors).length) {
-      setFieldErrors(errors);
-      return;
-    }
+  e.preventDefault();
+  const { formErrors, hasBlockErrors } = validate();
+  if (Object.keys(formErrors).length || hasBlockErrors) {
+    setFieldErrors(formErrors);
+    return;
+  }
 
-    try {
-      setSubmitting(true);
+  try {
+    setSubmitting(true);
+    const results = [];
+
+    for (let i = 0; i < leaveBlocks.length; i++) {
+      const block = leaveBlocks[i];
       const payload = {
-        leave_type: form.leave_type,
-        reason_type: form.reason_type,
-        start_date: form.start_date,
-        end_date: form.end_date,
-        duration: form.duration,
-        reason: form.reason,
-        ...(form.leave_type === "exchange" && {
+        leave_type:   form.leave_type,
+        reason_type:  form.reason_type,
+        reason:       form.reason,
+        start_date:   block.start_date,
+        end_date:     block.end_date,
+        duration:     block.duration,
+        ...(form.leave_type === 'exchange' && {
           worked_saturday_id: form.worked_saturday_id,
         }),
-        ...(form.reason_type === "emergency" && {
+        ...(form.reason_type === 'emergency' && {
           emergency_sub_type: emergencySubType,
         }),
       };
-      const cl = await createLeave(
-        payload,
-        form.reason_type === "emergency" ? medicalFile : null,
-      );
 
-      console.log("🚀 ~ handleSubmit ~ cl:", cl);
+      try {
+        const result = await createLeave(
+          payload,
+          // only attach file to first block for emergency
+          i === 0 && form.reason_type === 'emergency' ? medicalFile : null
+        );
+        results.push({ index: i, success: true, display_id: result?.leave?.display_id });
+      } catch (err) {
+        results.push({
+          index: i,
+          success: false,
+          error: err?.response?.data?.message || 'Failed to submit.',
+          block,
+        });
+      }
+    }
+
+    const succeeded = results.filter((r) => r.success);
+    const failed    = results.filter((r) => !r.success);
+
+    if (succeeded.length > 0 && failed.length === 0) {
       setAlert({
-        type: "success",
-        message: "Leave request submitted successfully.",
+        type: 'success',
+        message: leaveBlocks.length > 1
+          ? `${succeeded.length} leave request(s) submitted successfully.`
+          : 'Leave request submitted successfully.',
       });
       closeForm();
       getMyLeaves(1, limit, {});
-    } catch (err) {
+    } else if (succeeded.length > 0 && failed.length > 0) {
+      // Partial success
       setAlert({
-        type: "danger",
-        message:
-          err?.response?.data?.message || "Failed to submit leave request.",
+        type: 'danger',
+        message: `${succeeded.length} submitted, ${failed.length} failed: ${failed.map((f) => f.error).join('; ')}`,
       });
-    } finally {
-      setSubmitting(false);
+      // Remove succeeded blocks, keep failed ones for retry
+      setLeaveBlocks(failed.map((f) => f.block));
+      setBlockErrors(failed.map(() => ({})));
+      getMyLeaves(1, limit, {});
+    } else {
+      setAlert({
+        type: 'danger',
+        message: failed.map((f) => f.error).join('; '),
+      });
     }
-  };
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   const handleCancel = async () => {
     if (!confirmCancel) return;
@@ -648,6 +765,23 @@ const MyLeaves = () => {
                 <MdCancel size={20} />
               </button>
             )}
+
+
+
+            
+{/* {false && leave.status === 'approved' && (() => {
+  const now = new Date(); now.setHours(0,0,0,0);
+  const leaveStart = new Date(leave.start_date); leaveStart.setHours(0,0,0,0);
+  return now < leaveStart;
+})() && (
+  <button
+    onClick={() => setConfirmCancel(leave)}
+    title="Cancel Approved Leave"
+    className="p-3 rounded-xl bg-orange-50 text-orange-500 hover:bg-orange-100 transition-all"
+  >
+    <MdCancel size={20} />
+  </button>
+)} */}
           </div>
         ),
       },
@@ -887,6 +1021,15 @@ const MyLeaves = () => {
                   </button>
                 )}
 
+   {/* remove {false && when needed */}
+{/* {false && leave.status === 'approved' && (
+  <button
+    onClick={() => setConfirmCancel(leave)}
+    className="flex-1 h-10 rounded-xl bg-orange-50 text-orange-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-orange-100 transition-all"
+  >
+    <MdCancel size={16} /> Cancel Leave
+  </button>
+)} */}
                 {/* {leave.reason_type === "emergency" && !leave.medical_document && (
   <button
     onClick={() => { setUploadTarget(leave); setUploadFile(null); setUploadError(""); }}
@@ -1113,7 +1256,7 @@ const MyLeaves = () => {
             </div>
 
             {/* Start Date */}
-            <div>
+            {/* <div>
               <Input
                 label="Start Date"
                 name="start_date"
@@ -1133,10 +1276,10 @@ const MyLeaves = () => {
                 error={fieldErrors.start_date}
                 required
               />
-            </div>
+            </div> */}
 
             {/* End Date */}
-            <div>
+            {/* <div>
               <Input
                 label="End Date"
                 name="end_date"
@@ -1156,7 +1299,107 @@ const MyLeaves = () => {
                   Auto-set to match start date for half day
                 </p>
               )}
-            </div>
+            </div> */}
+
+
+            {/* ── Leave Date Blocks ── */}
+<div className="md:col-span-2 space-y-4">
+  <div className="flex items-center justify-between">
+    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
+      Leave Dates
+    </label>
+    <button
+      type="button"
+      onClick={addBlock}
+      className="flex items-center gap-1 px-3 py-1.5 bg-[#132ea7]/10 text-[#132ea7] rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#132ea7]/20 transition-all"
+    >
+      <MdAdd size={14} /> Add Date Block
+    </button>
+  </div>
+
+  {leaveBlocks.map((block, idx) => (
+    <div
+      key={idx}
+      className="border border-slate-100 rounded-2xl p-4 space-y-3 bg-slate-50/50 relative"
+    >
+      {/* Block header */}
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+          {leaveBlocks.length > 1 ? `Block ${idx + 1}` : 'Date Range'}
+        </span>
+        {leaveBlocks.length > 1 && (
+          <button
+            type="button"
+            onClick={() => removeBlock(idx)}
+            className="p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
+          >
+            <MdClose size={14} />
+          </button>
+        )}
+      </div>
+
+      {/* Duration selector per block */}
+      <div className="space-y-1.5">
+        <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block">
+          Duration
+        </label>
+        <div className="flex flex-wrap gap-2">
+          {[
+            { value: 'full_day',    label: 'Full Day' },
+            { value: 'first_half',  label: 'First Half' },
+            { value: 'second_half', label: 'Second Half' },
+          ].map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => handleBlockChange(idx, 'duration', opt.value)}
+              className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                block.duration === opt.value
+                  ? 'bg-[#132ea7] text-white shadow-lg shadow-[#132ea7]/20'
+                  : 'bg-white text-slate-400 border border-slate-200 hover:bg-slate-100'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Date inputs */}
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <Input
+            label="Start Date"
+            name={`start_date_${idx}`}
+            type="date"
+            value={block.start_date}
+            onChange={(e) => handleBlockChange(idx, 'start_date', e.target.value)}
+            error={blockErrors[idx]?.start_date}
+            required
+          />
+        </div>
+        <div>
+          <Input
+            label="End Date"
+            name={`end_date_${idx}`}
+            type="date"
+            value={block.end_date}
+            onChange={(e) => handleBlockChange(idx, 'end_date', e.target.value)}
+            disabled={block.duration === 'first_half' || block.duration === 'second_half'}
+            error={blockErrors[idx]?.end_date}
+            required
+          />
+        </div>
+      </div>
+
+      {(block.duration === 'first_half' || block.duration === 'second_half') && (
+        <p className="text-[10px] font-black text-[#132ea7] uppercase tracking-widest">
+          Half day — end date auto-set to match start date
+        </p>
+      )}
+    </div>
+  ))}
+</div>
 
             {/* Exchange Saturday picker */}
             {form.leave_type === "exchange" && (
@@ -1242,6 +1485,25 @@ const MyLeaves = () => {
               />
             </div>
           </div>
+
+
+          {sandwichWarnings.length > 0 && (
+  <div className="rounded-2xl bg-amber-50 border border-amber-200 px-5 py-4 space-y-2">
+    <p className="text-xs font-black text-amber-700 uppercase tracking-widest flex items-center gap-1.5">
+      <MdInfoOutline size={14} /> Sandwich Rule Warning
+    </p>
+    {sandwichWarnings.map((w, i) => (
+      <p key={i} className="text-xs font-bold text-amber-600 leading-relaxed">
+        {w.message}
+      </p>
+    ))}
+    <p className="text-[10px] font-bold text-amber-500">
+      These days will be automatically deducted when this leave is approved.
+    </p>
+  </div>
+)}
+
+
 
           {/* Notice period info banner */}
           {form.reason_type !== "emergency" && (
@@ -1523,6 +1785,18 @@ const MyLeaves = () => {
       </Modal>
 
       {/* ── Cancel Confirm ── */}
+
+      {/* <ConfirmDialog
+  show={!!confirmCancel}
+  message={
+    confirmCancel?.status === 'approved'
+      ? `Cancel your approved leave "${confirmCancel?.display_id}"? Your balance will be restored automatically.`
+      : `Cancel leave request "${confirmCancel?.display_id}"? This cannot be undone.`
+  }
+  onConfirm={handleCancel}
+  onCancel={() => setConfirmCancel(null)}
+  loading={cancelling}
+/> */}
       <ConfirmDialog
         show={!!confirmCancel}
         message={`Cancel leave request "${confirmCancel?.display_id}"? This cannot be undone.`}
