@@ -222,15 +222,25 @@ const approveLeave = useCallback(async (id) => {
   // WORKED SATURDAYS
   // ─────────────────────────────────────────────
 
-  const getWorkedSaturdays = useCallback(async (user_id) => {
-    try {
-      const { data } = await api.get(ENDPOINTS.LEAVES.GET_MARKED_SATURDAY(user_id));
-      return data;
-    } catch (error) {
-      throw error;
-    }
-  }, []);
+  // const getWorkedSaturdays = useCallback(async (user_id) => {
+  //   try {
+  //     const { data } = await api.get(ENDPOINTS.LEAVES.GET_MARKED_SATURDAY(user_id));
+  //     return data;
+  //   } catch (error) {
+  //     throw error;
+  //   }
+  // }, []);
 
+
+  const getWorkedSaturdays = useCallback(async (user_id, start_date = null) => {
+  try {
+    const params = start_date ? `?start_date=${start_date}` : '';
+    const { data } = await api.get(`${ENDPOINTS.LEAVES.GET_MARKED_SATURDAY(user_id)}${params}`);
+    return data;
+  } catch (error) {
+    throw error;
+  }
+}, []);
     
   const markWorkedSaturday = useCallback(async (payload) => {
     try {

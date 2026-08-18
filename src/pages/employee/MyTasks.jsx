@@ -5,6 +5,8 @@ import { useCall } from "../../context/CallContext";
 import { useTeam } from "../../context/TeamContext";
 import { useAuth } from "../../context/AuthContext";
 
+import { useLocation } from "react-router-dom";
+
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
@@ -89,6 +91,8 @@ const MyTasks = () => {
     updateTask,
     deleteTask,
   } = useTask();
+
+  const location = useLocation();
   const { projects, getAllProjects } = useProject();
   const { calls, getAllCalls } = useCall();
   const { user: authUser } = useAuth();
@@ -121,6 +125,25 @@ const MyTasks = () => {
     d.setDate(d.getDate() - 7);
     return d.toISOString().split("T")[0];
   })();
+
+
+
+  const targetTaskId = location.state?.selectedTaskId;
+  const taskCreatedAt = location.state?.taskCreatedAt;
+
+
+  // Adjust dateFrom if task creation date is older than 7 days
+  const initialDateFrom = useMemo(() => {
+    if (taskCreatedAt) {
+      const createdDate = taskCreatedAt.split("T")[0];
+      if (createdDate < sevenDaysAgo) {
+        return createdDate;
+      }
+    }
+    return sevenDaysAgo;
+  }, [taskCreatedAt, sevenDaysAgo]);
+
+  
 
   const [dateFrom, setDateFrom] = useState(sevenDaysAgo);
   const [dateTo, setDateTo] = useState(today);

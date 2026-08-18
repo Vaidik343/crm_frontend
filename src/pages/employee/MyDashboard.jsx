@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axiosInstance";
 import Spinner from "../../components/ui/Spinner";
@@ -9,6 +9,7 @@ import {
   MdCalendarToday, MdPerson,MdAssignment 
 } from "react-icons/md";
 
+import { useLocation } from "react-router-dom";
 
 import { formatDate } from "../../utils/formatDate";
 
@@ -46,16 +47,24 @@ const ProgressBar = ({ open, ongoing, closed, total }) => {
 };
 
 // ── Task Row ──────────────────────────────────────────────────────────────────
-const TaskRow = ({ task }) => {
+// ── Task Row ──────────────────────────────────────────────────────────────────
+const TaskRow = ({ task, onClick }) => {
   const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== "closed";
   return (
-    <div className="flex items-center justify-between gap-4 py-3 border-b border-slate-50 last:border-0 group hover:bg-slate-50/50 px-2 rounded-2xl transition-all">
+    <div 
+      onClick={onClick} 
+      className="flex items-center justify-between gap-4 py-3 border-b border-slate-50 last:border-0 group hover:bg-slate-50/50 px-2 rounded-2xl transition-all cursor-pointer"
+    >
       <div className="flex items-start gap-4 flex-1 min-w-0">
-        <div className={`w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 shadow-sm ${task.status === "closed" ? "bg-emerald-400" :
+        <div className={`w-2.5 h-2.5 rounded-full mt-1.5 flex-shrink-0 shadow-sm ${
+            task.status === "closed" ? "bg-emerald-400" :
             task.status === "ongoing" ? "bg-[#132ea7]" : "bg-slate-300"
-          }`} />
+          }`} 
+        />
         <div className="min-w-0 flex-1">
-          <p className="font-black text-slate-800 text-md truncate group-hover:text-[#132ea7] transition-colors">{task.task}</p>
+          <p className="font-black text-slate-800 text-md truncate group-hover:text-[#132ea7] transition-colors">
+            {task.task}
+          </p>
           <div className="flex items-center gap-3 mt-1 flex-wrap">
             {task.project?.name && (
               <span className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
@@ -66,7 +75,8 @@ const TaskRow = ({ task }) => {
             {task.due_date && (
               <>
                 <span className="text-slate-200 text-xs">•</span>
-                <span className={`text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 ${isOverdue ? "text-red-500" : "text-slate-400"
+                <span className={`text-xs font-bold uppercase tracking-widest flex items-center gap-1.5 ${
+                    isOverdue ? "text-red-500" : "text-slate-400"
                   }`}>
                   <MdCalendarToday size={12} />
                   {isOverdue ? "Overdue" : `Due ${formatDate(task.due_date)}`}
@@ -88,6 +98,7 @@ const MyDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const location = useLocation();
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -103,6 +114,11 @@ const MyDashboard = () => {
     };
     fetchDashboard();
   }, []);
+
+  // MyTasks.jsx initial state
+
+
+
 
   if (loading) return (
     <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
@@ -278,7 +294,18 @@ const MyDashboard = () => {
             ) : (
               <div className="max-h-[380px] overflow-y-auto custom-scrollbar pr-1">
                 {my_tasks.slice(0, 10).map((task) => (
-                  <TaskRow key={task.id} task={task} />
+                  <TaskRow 
+  key={task.id} 
+  task={task} 
+  onClick={() => 
+    navigate('/employee/tasks', { 
+      state: { 
+        selectedTaskId: task.id, 
+        taskCreatedAt: task.createdAt 
+      } 
+    })
+  } 
+/>
                 ))}
               </div>
             )}
@@ -406,7 +433,7 @@ const MyDashboard = () => {
                         <p className="text-sm font-black text-slate-700">{call.caller_name}</p>
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
                           <MdFolder size={10} className="text-slate-300" />
-                          {call.Project?.name || "No project"}
+                          {call.project?.name || "No project"}
                         </p>
                       </div>
                     </div>

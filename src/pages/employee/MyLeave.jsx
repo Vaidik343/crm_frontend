@@ -327,17 +327,18 @@ const [sandwichWarnings, setSandwichWarnings] = useState([]);
   }, [viewTarget?.id]);
 
   // Fetch available saturdays when exchange is selected
-  useEffect(() => {
-    if (form.leave_type !== "exchange" || !authUser?.id) {
-      setSaturdays([]);
-      return;
-    }
-    setSaturdaysLoading(true);
-    getWorkedSaturdays(authUser.id)
-      .then((res) => setSaturdays(res.saturdays || []))
-      .catch(() => setSaturdays([]))
-      .finally(() => setSaturdaysLoading(false));
-  }, [form.leave_type]);
+ // Replace the existing saturdays useEffect
+useEffect(() => {
+  if (form.leave_type !== "exchange" || !authUser?.id) {
+    setSaturdays([]);
+    return;
+  }
+  setSaturdaysLoading(true);
+  getWorkedSaturdays(authUser.id)
+    .then((res) => setSaturdays(res.saturdays || []))
+    .catch(() => setSaturdays([]))
+    .finally(() => setSaturdaysLoading(false));
+}, [form.leave_type]); // no date dependency
 
   useEffect(() => {
     setBalanceLoading(true);
@@ -381,6 +382,11 @@ useEffect(() => {
         worked_saturday_id: "",
       }));
     }
+
+    if (name === "leave_type" && value === "exchange") {
+  setLeaveBlocks([{ ...initialBlock }]);
+  setBlockErrors([]);
+}
 
     // when duration changes to half day, sync end_date = start_date
     if (
@@ -448,15 +454,18 @@ const validate = () => {
   if (form.reason_type === 'emergency' && !emergencySubType)
     errors.emergency_sub_type = 'Please select Medical or Other.';
 
-  const bErrors = leaveBlocks.map((block) => {
-    const e = {};
-    if (!block.start_date) e.start_date = 'Start date is required.';
-    if (!block.end_date)   e.end_date   = 'End date is required.';
-    return e;
-  });
-
-  setBlockErrors(bErrors);
-  const hasBlockErrors = bErrors.some((e) => Object.keys(e).length > 0);
+  // ── Skip date block validation for exchange leave ──
+  let hasBlockErrors = false;
+  if (form.leave_type !== 'exchange') {
+    const bErrors = leaveBlocks.map((block) => {
+      const e = {};
+      if (!block.start_date) e.start_date = 'Start date is required.';
+      if (!block.end_date)   e.end_date   = 'End date is required.';
+      return e;
+    });
+    setBlockErrors(bErrors);
+    hasBlockErrors = bErrors.some((e) => Object.keys(e).length > 0);
+  }
 
   return { formErrors: errors, hasBlockErrors };
 };
@@ -498,22 +507,25 @@ const closeForm = () => {
     setSubmitting(true);
     const results = [];
 
-    for (let i = 0; i < leaveBlocks.length; i++) {
-      const block = leaveBlocks[i];
-      const payload = {
-        leave_type:   form.leave_type,
-        reason_type:  form.reason_type,
-        reason:       form.reason,
-        start_date:   block.start_date,
-        end_date:     block.end_date,
-        duration:     block.duration,
-        ...(form.leave_type === 'exchange' && {
-          worked_saturday_id: form.worked_saturday_id,
-        }),
-        ...(form.reason_type === 'emergency' && {
-          emergency_sub_type: emergencySubType,
-        }),
-      };
+ for (let i = 0; i < leaveBlocks.length; i++) {
+  const block = leaveBlocks[i];
+
+  // For exchange, derive start/end from the selected Saturday
+  const isExchange = form.leave_type === 'exchange';
+  const selectedSaturday = isExchange
+    ? saturdays.find((s) => s.id === form.worked_saturday_id)
+    : null;
+
+  const payload = {
+    leave_type:  form.leave_type,
+    reason_type: form.reason_type,
+    reason:      form.reason,
+    start_date:  isExchange ? selectedSaturday?.saturday_date : block.start_date,
+    end_date:    isExchange ? selectedSaturday?.saturday_date : block.end_date,
+    duration:    isExchange ? 'full_day' : block.duration,
+    ...(isExchange && { worked_saturday_id: form.worked_saturday_id }),
+    ...(form.reason_type === 'emergency' && { emergency_sub_type: emergencySubType }),
+  };
 
       try {
         const result = await createLeave(
@@ -1314,72 +1326,115 @@ const closeForm = () => {
             </div> */}
 
 
-            {/* ── Leave Date Blocks ── */}
-<div className="md:col-span-2 space-y-4">
-  <div className="flex items-center justify-between">
-    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
-      Leave Dates
+            {/* Exchange Saturday picker */}
+{/* ── Leave Date Blocks — hidden for exchange ── */}
+{/* ── Saturday picker — only for exchange ── */}
+{form.leave_type === 'exchange' && (
+  <div className="md:col-span-2 space-y-1.5">
+    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
+      Select Saturday to Exchange <span className="text-red-500">*</span>
     </label>
-    <button
-      type="button"
-      onClick={addBlock}
-      className="flex items-center gap-1 px-3 py-1.5 bg-[#132ea7]/10 text-[#132ea7] rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#132ea7]/20 transition-all"
-    >
-      <MdAdd size={14} /> Add Date Block
-    </button>
-  </div>
 
-  {leaveBlocks.map((block, idx) => (
-    <div
-      key={idx}
-      className="border border-slate-100 rounded-2xl p-4 space-y-3 bg-slate-50/50 relative"
-    >
-      {/* Block header */}
-      <div className="flex items-center justify-between">
-        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-          {leaveBlocks.length > 1 ? `Block ${idx + 1}` : 'Date Range'}
-        </span>
-        {leaveBlocks.length > 1 && (
+    {saturdaysLoading ? (
+      <p className="text-xs font-bold text-slate-400 animate-pulse uppercase tracking-widest">
+        Loading available Saturdays...
+      </p>
+    ) : saturdays.length === 0 ? (
+      <div className="bg-amber-50 border border-amber-100 rounded-2xl px-5 py-3">
+        <p className="text-xs font-black text-amber-600 uppercase tracking-widest">
+          No worked Saturdays available. Ask admin to mark your worked Saturdays first.
+        </p>
+      </div>
+    ) : (
+      <div className="flex flex-wrap gap-2">
+        {saturdays.map((s) => (
           <button
+            key={s.id}
             type="button"
-            onClick={() => removeBlock(idx)}
-            className="p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
+            onClick={() => setForm((prev) => ({ ...prev, worked_saturday_id: s.id }))}
+            className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+              form.worked_saturday_id === s.id
+                ? 'bg-[#132ea7] text-white shadow-lg shadow-[#132ea7]/20'
+                : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
+            }`}
           >
-            <MdClose size={14} />
+            {formatDate(s.saturday_date)}
           </button>
-        )}
+        ))}
       </div>
+    )}
 
-      {/* Duration selector per block */}
-      <div className="space-y-1.5">
-        <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block">
-          Duration
-        </label>
-        <div className="flex flex-wrap gap-2">
-          {[
-            { value: 'full_day',    label: 'Full Day' },
-            { value: 'first_half',  label: 'First Half' },
-            { value: 'second_half', label: 'Second Half' },
-          ].map((opt) => (
+    {fieldErrors.worked_saturday_id && (
+      <p className="text-red-500 text-[10px] font-bold uppercase ml-1 mt-1">
+        {fieldErrors.worked_saturday_id}
+      </p>
+    )}
+  </div>
+)}
+
+{/* ── Leave Date Blocks — only for non-exchange ── */}
+{form.leave_type !== 'exchange' && (
+  <div className="md:col-span-2 space-y-4">
+    <div className="flex items-center justify-between">
+      <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">
+        Leave Dates
+      </label>
+      <button
+        type="button"
+        onClick={addBlock}
+        className="flex items-center gap-1 px-3 py-1.5 bg-[#132ea7]/10 text-[#132ea7] rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#132ea7]/20 transition-all"
+      >
+        <MdAdd size={14} /> Add Date Block
+      </button>
+    </div>
+
+    {leaveBlocks.map((block, idx) => (
+      <div
+        key={idx}
+        className="border border-slate-100 rounded-2xl p-4 space-y-3 bg-slate-50/50 relative"
+      >
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            {leaveBlocks.length > 1 ? `Block ${idx + 1}` : 'Date Range'}
+          </span>
+          {leaveBlocks.length > 1 && (
             <button
-              key={opt.value}
               type="button"
-              onClick={() => handleBlockChange(idx, 'duration', opt.value)}
-              className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-                block.duration === opt.value
-                  ? 'bg-[#132ea7] text-white shadow-lg shadow-[#132ea7]/20'
-                  : 'bg-white text-slate-400 border border-slate-200 hover:bg-slate-100'
-              }`}
+              onClick={() => removeBlock(idx)}
+              className="p-1 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all"
             >
-              {opt.label}
+              <MdClose size={14} />
             </button>
-          ))}
+          )}
         </div>
-      </div>
 
-      {/* Date inputs */}
-      <div className="grid grid-cols-2 gap-3">
-        <div>
+        <div className="space-y-1.5">
+          <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block">
+            Duration
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {[
+              { value: 'full_day',    label: 'Full Day' },
+              { value: 'first_half',  label: 'First Half' },
+              { value: 'second_half', label: 'Second Half' },
+            ].map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => handleBlockChange(idx, 'duration', opt.value)}
+                className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                  block.duration === opt.value
+                    ? 'bg-[#132ea7] text-white shadow-lg shadow-[#132ea7]/20'
+                    : 'bg-white text-slate-400 border border-slate-200 hover:bg-slate-100'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
           <Input
             label="Start Date"
             name={`start_date_${idx}`}
@@ -1389,8 +1444,6 @@ const closeForm = () => {
             error={blockErrors[idx]?.start_date}
             required
           />
-        </div>
-        <div>
           <Input
             label="End Date"
             name={`end_date_${idx}`}
@@ -1402,87 +1455,16 @@ const closeForm = () => {
             required
           />
         </div>
+
+        {(block.duration === 'first_half' || block.duration === 'second_half') && (
+          <p className="text-[10px] font-black text-[#132ea7] uppercase tracking-widest">
+            Half day — end date auto-set to match start date
+          </p>
+        )}
       </div>
-
-      {(block.duration === 'first_half' || block.duration === 'second_half') && (
-        <p className="text-[10px] font-black text-[#132ea7] uppercase tracking-widest">
-          Half day — end date auto-set to match start date
-        </p>
-      )}
-    </div>
-  ))}
-</div>
-
-            {/* Exchange Saturday picker */}
-            {form.leave_type === "exchange" && (
-              <div className="md:col-span-2 space-y-1.5">
-                <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
-                  Select Saturday to Exchange{" "}
-                  <span className="text-red-500">*</span>
-                </label>
-
-                {(() => {
-                  const currentMonthSaturdays = saturdays.filter((s) => {
-                    const satDate = new Date(s.saturday_date);
-                    const now = new Date();
-                    return (
-                      satDate.getMonth() === now.getMonth() &&
-                      satDate.getFullYear() === now.getFullYear()
-                    );
-                  });
-
-                  if (saturdaysLoading) {
-                    return (
-                      <p className="text-xs font-bold text-slate-400 animate-pulse uppercase tracking-widest">
-                        Loading available Saturdays...
-                      </p>
-                    );
-                  }
-
-                  if (currentMonthSaturdays.length === 0) {
-                    return (
-                      <div className="bg-amber-50 border border-amber-100 rounded-2xl px-5 py-3">
-                        <p className="text-xs font-black text-amber-600 uppercase tracking-widest">
-                          No worked Saturdays available this month. Ask admin to
-                          mark your worked Saturdays first.
-                        </p>
-                      </div>
-                    );
-                  }
-
-                  return (
-                    <div className="flex flex-wrap gap-2">
-                      {currentMonthSaturdays.map((s) => (
-                        <button
-                          key={s.id}
-                          type="button"
-                          onClick={() =>
-                            setForm((prev) => ({
-                              ...prev,
-                              worked_saturday_id: s.id,
-                            }))
-                          }
-                          className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-                            form.worked_saturday_id === s.id
-                              ? "bg-[#132ea7] text-white shadow-lg shadow-[#132ea7]/20"
-                              : "bg-slate-100 text-slate-400 hover:bg-slate-200"
-                          }`}
-                        >
-                          {formatDate(s.saturday_date)}
-                        </button>
-                      ))}
-                    </div>
-                  );
-                })()}
-
-                {fieldErrors.worked_saturday_id && (
-                  <p className="text-red-500 text-[10px] font-bold uppercase ml-1 mt-1">
-                    {fieldErrors.worked_saturday_id}
-                  </p>
-                )}
-              </div>
-            )}
-
+    ))}
+  </div>
+)}
             {/* Reason */}
             <div className="md:col-span-2">
               <Textarea

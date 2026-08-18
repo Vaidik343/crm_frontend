@@ -1,3 +1,5 @@
+import { formatDate } from "../../utils/formatDate";
+import { MdClose } from "react-icons/md";
 // ── Work Log View Modal Component ─────────────────────────────────────────────
 const WorkLogViewModal = ({ workLog, onClose }) => {
   if (!workLog) return null;
@@ -97,3 +99,6 @@ const WorkLogViewModal = ({ workLog, onClose }) => {
     </div>
   );
 };
+
+
+export default WorkLogViewModal

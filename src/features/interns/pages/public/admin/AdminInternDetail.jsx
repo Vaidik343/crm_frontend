@@ -14,6 +14,7 @@ import {
 } from "react-icons/md";
 import { formatDate } from "../../../../../utils/formatDate";
 
+import WorkLogViewModal  from "../../../../../components/worklogs/WorkLogViewModal"
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -2189,7 +2190,7 @@ const handleEditTask = async (e) => {
 
 {/* ── View Work Log Modal ── */}
 {showView && (
-  <WorkLogViewModal
+  <WorkLogViewModal 
     workLog={viewTarget}
     onClose={() => {
       setShowView(false);
