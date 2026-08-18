@@ -402,9 +402,9 @@ const getMyWorkLogs = useCallback(async (
     }
   },[])
     
-  const getInternTasks = useCallback(async (internId) => {
+  const getInternTasks = useCallback(async (intern_id) => {
     try {
-     const { data } = await api.get(ENDPOINTS.INTER_TASKS.GET_TASK_BY_ID(internId));
+     const { data } = await api.get(ENDPOINTS.INTER_TASKS.GET_TASK_BY_ID(intern_id));
       //("🚀 ~ InternProvider ~ data:", data)
       return data;
     } catch (error) {
@@ -443,12 +443,33 @@ const updateProject = useCallback(async (payload) => {
 
 
 
-
-// and add adminUpdateProject too:
-const adminUpdateProject = useCallback(async (internId, payload) => {
-  const { data } = await api.patch(ENDPOINTS.INTER_PROJECT.UPDATE_MENTOR(internId), payload);
+const adminUpdateProject = useCallback(async (intern_id, payload) => {
+  // payload can include: { mentor_ids, title, description, tech_stack, start_date, end_date, status }
+    try {
+        const { data } = await api.put(ENDPOINTS.INTER_PROJECT.ADMIN_UPDATE(intern_id), payload);
   return data;
+    } catch (error) {
+      throw error
+    }
 }, []);
+
+
+
+// Add this new function:
+
+const adminCreateProject = useCallback(async (intern_id, payload) => {
+  // payload: { title, description, tech_stack?, start_date?, end_date?, mentor_ids? }
+  try {
+    const { data } = await api.post(ENDPOINTS.INTER_PROJECT.ADMIN_CREATE(intern_id), payload);
+    console.log("🚀 ~ InternProvider ~ data:", data)
+  return data;
+  } catch (error) {
+      console.log("🚀 ~ InternProvider ~ error:", error)
+    console.error(error)
+    throw error
+  }
+}, []);
+
 
   const getInternWorkLogs = useCallback(async (internId) => {
     try {
@@ -507,7 +528,8 @@ const adminUpdateProject = useCallback(async (internId, payload) => {
     // Project
     project, projectLoading,
     getMyProject,
-createProject, updateProject,
+createProject, updateProject,adminCreateProject, adminUpdateProject,
+
     // Tasks (intern-side)
     tasks, tasksLoading, tasksPage, tasksLimit, tasksTotal, tasksTotalPages,
     setTasksPage,
@@ -531,7 +553,7 @@ createProject, updateProject,
   }), [
     socket,
     profile, profileLoading, getMyProfile, updateMyProfile, updateMyDocuments ,
-    project, projectLoading, getMyProject,
+    project, projectLoading, getMyProject,adminCreateProject,
     tasks, tasksLoading, tasksPage, tasksLimit, tasksTotal, tasksTotalPages,
     getMyTasks, createTask, updateTask,deleteInternTask,
     workLogs, workLogsLoading, workLogsPage, workLogsLimit, workLogsTotal, workLogsTotalPages,

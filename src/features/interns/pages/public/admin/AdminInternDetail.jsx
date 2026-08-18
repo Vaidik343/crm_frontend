@@ -101,6 +101,17 @@ const MentorChips = ({ mentors }) => {
   );
 };
 
+const formatTechDetailsText = (data) => {
+  if (!data) return "";
+  if (typeof data === "string") return data;
+  if (typeof data === "object") {
+    // If wrapped as { details: "..." }, extract directly
+    if (data.details) return data.details;
+    // Otherwise join values cleanly
+    return Object.values(data).filter(Boolean).join(", ");
+  }
+  return "";
+};
 
 // ── Component ──────────────────────────────────────────────────────────────────
 
@@ -119,7 +130,7 @@ const AdminInternDetail = () => {
     getInternProject,
     adminUpdateProject,
     deleteInternTask ,
-    adminEditTask
+    adminEditTask,adminCreateProject,
   } = useIntern();
     // //("🚀 ~ AdminInternDetail ~ getInternById:", getInternById)
 
@@ -231,6 +242,140 @@ const [editingTask, setEditingTask] = useState(false);
 
 
 const [promoting, setPromoting] = useState(false);
+
+
+// State for Create/Update Project Modal
+const [showProjectModal, setShowProjectModal] = useState(false);
+const [projectForm, setProjectForm] = useState({
+  name: "",
+  description: "",
+  tech_details: "",
+});
+const [projectFormErrors, setProjectFormErrors] = useState({});
+const [savingProject, setSavingProject] = useState(false);
+
+
+// ── View modal ───────────────────────────────────────────────────────────────
+const [showView, setShowView] = useState(false);
+const [viewTarget, setViewTarget] = useState(null);
+
+const openView = (w) => {
+  setViewTarget(w);
+  setShowView(true);
+};
+
+
+// Open Modal (Pre-fills if editing existing project)
+// Open Modal (Extract clean text for input)
+const handleOpenProjectModal = () => {
+  if (project) {
+    setProjectForm({
+      name: project.name || "",
+      description: project.description || "",
+      tech_details: formatTechDetailsText(project.tech_details),
+    });
+    setSelectedProjectMentorIds(project.mentor_ids || []);
+  } else {
+    setProjectForm({
+      name: "",
+      description: "",
+      tech_details: "",
+    });
+    setSelectedProjectMentorIds([]);
+  }
+  setProjectFormErrors({});
+  setShowProjectModal(true);
+};
+
+// Handle Form Submission
+
+const handleSaveProjectForm = async (e) => {
+  e.preventDefault();
+
+  const errs = {};
+  if (!projectForm.name.trim()) errs.name = "Project name is required.";
+  if (!projectForm.description.trim()) errs.description = "Description is required.";
+
+  setProjectFormErrors(errs);
+  if (Object.keys(errs).length > 0) return;
+
+  const payload = {
+    name: projectForm.name.trim(),
+    description: projectForm.description.trim(),
+    // Wrap as object for JSONB column or send string directly
+    tech_details: projectForm.tech_details.trim()
+      ? { details: projectForm.tech_details.trim() }
+      : {},
+    mentor_ids: selectedProjectMentorIds,
+  };
+
+  try {
+    setSavingProject(true);
+    if (project) {
+      await adminUpdateProject(id, payload);
+      toast.success("Project updated successfully!");
+    } else {
+      await adminCreateProject(id, payload);
+      toast.success("Project created successfully!");
+    }
+    setShowProjectModal(false);
+    fetchProject();
+  } catch (err) {
+      console.log("🚀 ~ handleSaveProjectForm ~ err:", err)
+    toast.error(err?.response?.data?.message || "Failed to save project.");
+  } finally {
+    setSavingProject(false);
+  }
+};
+
+// // Handle Form Submission
+// const handleSaveProjectForm = async (e) => {
+//   e.preventDefault();
+
+//   const errs = {};
+//   if (!projectForm.name.trim()) errs.name = "Project name is required.";
+//   if (!projectForm.description.trim()) errs.description = "Description is required.";
+
+//   // Optional JSON validation for tech_details if entered as JSON
+//   let parsedTechDetails = {};
+//   if (projectForm.tech_details.trim()) {
+//     try {
+//       parsedTechDetails = JSON.parse(projectForm.tech_details);
+//     } catch (err) {
+//       // If not valid JSON, send standard object format
+//       parsedTechDetails = { details: projectForm.tech_details.trim() };
+//     }
+//   }
+
+//   setProjectFormErrors(errs);
+//   if (Object.keys(errs).length > 0) return;
+
+//   const payload = {
+//     name: projectForm.name.trim(),
+//     description: projectForm.description.trim(),
+//     tech_details: parsedTechDetails,
+//     mentor_ids: selectedProjectMentorIds,
+//   };
+
+//   try {
+//     setSavingProject(true);
+//     if (project) {
+//       await adminUpdateProject(id, payload);
+//       toast.success("Project updated successfully!");
+//     } else {
+//       await adminCreateProject(id, payload);
+//       toast.success("Project created successfully!");
+//     }
+//     setShowProjectModal(false);
+//     fetchProject(); // Refresh project tab data
+//   } catch (err) {
+//     toast.error(err?.response?.data?.message || "Failed to save project.");
+//   } finally {
+//     setSavingProject(false);
+//   }
+// };
+
+
 
 const handlePromoteDocument = async (field) => {
   if (!window.confirm(
@@ -606,6 +751,20 @@ const handleEditTask = async (e) => {
   };
 
 
+  const handleSaveProject = async (formData) => {
+  try {
+    if (intern.project) {
+      await adminUpdateProject(intern.id, formData);
+    } else {
+      await adminCreateProject(intern.id, formData);
+    }
+    toast.success('Project saved.');
+  } catch (err) {
+    toast.error(err.response?.data?.message || 'Failed to save project.');
+  }
+};
+
+
   const handleVerifyDocuments = async (fields) => {
     try {
       setVerifying(true);
@@ -929,17 +1088,17 @@ const handleEditTask = async (e) => {
           <div className="flex items-center justify-between px-4 py-2.5 bg-amber-50 border-t border-amber-100">
             <div>
               <p className="text-[10px] font-black uppercase tracking-widest text-amber-600">Intern update</p>
-              <p className="text-[10px] text-amber-400 font-semibold">Pending review</p>
+              {/* <p className="text-[10px] text-amber-400 font-semibold">Pending review</p> */}
             </div>
             <div className="flex items-center gap-2">
               <FileLink label="" url={pendingUrl} />
-              <button
+              {/* <button
                 disabled={verifying}
                 onClick={() => handlePromoteDocument(field)}
                 className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-[#132ea7] text-white hover:bg-[#0f2490] transition disabled:opacity-60 whitespace-nowrap"
               >
                 Promote
-              </button>
+              </button> */}
             </div>
           </div>
         )}
@@ -974,80 +1133,82 @@ const handleEditTask = async (e) => {
             </div>
           )}
 
-          {/* ── Project tab ───────────────────────────────────────────────── */}
-          {activeTab === "Project" && (
-            <div className="flex flex-col gap-5">
-              {projectLoading ? (
-                <p className="text-sm text-slate-400 font-medium">Loading...</p>
-              ) : !project ? (
-                <p className="text-sm text-slate-400 font-medium italic">
-                  No project defined yet.
-                </p>
-              ) : (
-                <>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
-                    <div>
-                      <p className={fieldLbl}>Project Name</p>
-                      <p className={fieldVal}>{project.name}</p>
-                    </div>
-                    <div>
-                      <p className={fieldLbl}>Project ID</p>
-                      <p className={fieldVal}>{project.display_id || "—"}</p>
-                    </div>
-                    {project.description && (
-                      <div className="col-span-2">
-                        <p className={fieldLbl}>Description</p>
-                        <p className={fieldVal}>{project.description}</p>
-                      </div>
-                    )}
-                  </div>
+        
+         {/* ── Project tab ───────────────────────────────────────────────── */}
+{activeTab === "Project" && (
+  <div className="flex flex-col gap-5">
+    {projectLoading ? (
+      <p className="text-sm text-slate-400 font-medium">Loading...</p>
+    ) : !project ? (
+      <div className="flex flex-col items-center justify-center py-10 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+        <p className="text-sm text-slate-400 font-medium italic mb-3">
+          No project defined for this intern yet.
+        </p>
+        <button
+          onClick={handleOpenProjectModal}
+          className="px-4 py-2.5 rounded-xl bg-[#132ea7] text-white text-xs font-black uppercase tracking-widest hover:bg-[#0f2490] transition"
+        >
+          + Create Project
+        </button>
+      </div>
+    ) : (
+      <>
+        {/* Header & Edit Action */}
+        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+          <div>
+            <p className={fieldLbl}>Project ID</p>
+            <p className={fieldVal}>{project.display_id || "—"}</p>
+          </div>
+          <button
+            onClick={handleOpenProjectModal}
+            className="px-4 py-2 rounded-xl border-2 border-[#132ea7] text-[#132ea7] text-xs font-black uppercase tracking-widest hover:bg-[#132ea7] hover:text-white transition"
+          >
+            Edit Definition
+          </button>
+        </div>
 
-                  {/* Tech stack */}
-                  {project.tech_details && Object.values(project.tech_details).some(Boolean) && (
-                    <div>
-                      <p className="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">
-                        Tech Stack
-                      </p>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-4 bg-slate-50 rounded-xl p-4">
-                        {[
-                          ["Languages", project.tech_details.languages],
-                          ["Frameworks", project.tech_details.frameworks],
-                          ["Database", project.tech_details.database],
-                          ["Others", project.tech_details.others],
-                        ].map(([label, val]) => (
-                          <div key={label}>
-                            <p className={fieldLbl}>{label}</p>
-                            <p className={fieldVal}>{val || "—"}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Mentor */}
-                  {/* // in Project tab mentor section: */}
-                  <div className="flex items-center justify-between gap-4 pt-4 border-t border-slate-100">
-                    <div className="flex-1">
-                      <p className={fieldLbl}>Mentors</p>
-                      <div className="mt-2">
-                        <MentorChips mentors={project.mentors} />
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => {
-                        setSelectedProjectMentorIds(project.mentor_ids || []);
-                        setShowMentor(true);
-                      }}
-                      className="px-4 py-2.5 rounded-xl bg-[#132ea7] text-white text-xs font-black uppercase tracking-widest hover:bg-[#0f2490] transition shrink-0"
-                    >
-                      Update Mentors
-                    </button>
-                  </div>
-                </>
-              )}
+        {/* Project Details */}
+        <div className="grid grid-cols-1 gap-y-5">
+          <div>
+            <p className={fieldLbl}>Project Name</p>
+            <p className="text-base font-black text-slate-800 mt-0.5">{project.name}</p>
+          </div>
+          <div>
+            <p className={fieldLbl}>Description</p>
+            <p className="text-sm font-semibold text-slate-600 mt-0.5 whitespace-pre-line">
+              {project.description || "—"}
+            </p>
+          </div>
+          <div>
+            <p className={fieldLbl}>Tech Details</p>
+            <div className="mt-1 bg-slate-50 p-3 rounded-xl border border-slate-200 font-mono text-xs text-slate-700">
+              {formatTechDetailsText(project.tech_details)}
             </div>
-          )}
+          </div>
+        </div>
 
+        {/* Mentors Section */}
+        <div className="flex items-center justify-between gap-4 pt-4 border-t border-slate-100">
+          <div className="flex-1">
+            <p className={fieldLbl}>Mentors</p>
+            <div className="mt-2">
+              <MentorChips mentors={project.mentors} />
+            </div>
+          </div>
+          <button
+            onClick={() => {
+              setSelectedProjectMentorIds(project.mentor_ids || []);
+              setShowMentor(true);
+            }}
+            className="px-4 py-2.5 rounded-xl bg-[#132ea7] text-white text-xs font-black uppercase tracking-widest hover:bg-[#0f2490] transition shrink-0"
+          >
+            Update Mentors
+          </button>
+        </div>
+      </>
+    )}
+  </div>
+)}
           {/* ── Tasks tab ─────────────────────────────────────────────────── */}
           {activeTab === "Tasks" && (
             <div className="flex flex-col gap-4">
@@ -1244,95 +1405,80 @@ const handleEditTask = async (e) => {
             </div>
           )}
 
-          {/* ── Work Logs tab ─────────────────────────────────────────────── */}
-          {activeTab === "Work Logs" && (
-            <div className="flex flex-col gap-4">
+       {/* ── Work Logs Tab ───────────────────────────────────────────────────────── */}
+{activeTab === "Work Logs" && (
+  <div className="flex flex-col gap-4">
+    
+    {/* Date Filters */}
+    <div className="flex flex-wrap items-center gap-3">
+      <div>
+        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">From</label>
+        <input
+          type="date"
+          value={wlFrom}
+          onChange={(e) => setWlFrom(e.target.value)}
+          className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#132ea7]/30"
+        />
+      </div>
+      <div>
+        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">To</label>
+        <input
+          type="date"
+          value={wlTo}
+          onChange={(e) => setWlTo(e.target.value)}
+          className="px-3 py-1.5 rounded-xl border border-slate-200 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#132ea7]/30"
+        />
+      </div>
+      {(wlFrom || wlTo) && (
+        <button
+          onClick={() => { setWlFrom(""); setWlTo(""); }}
+          className="mt-5 text-xs font-bold text-red-500 hover:underline"
+        >
+          Clear
+        </button>
+      )}
+    </div>
 
-              {/* Filters */}
-              <div className="grid grid-cols-2 gap-3">
-                <input type="date" value={wlFrom} onChange={(e) => setWlFrom(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#132ea7]/30" />
-                <input type="date" value={wlTo} onChange={(e) => setWlTo(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-[#132ea7]/30" />
+    {/* Work Logs List */}
+    {workLogsLoading ? (
+      <p className="text-sm text-slate-400 font-medium py-4">Loading work logs...</p>
+    ) : workLogs.length === 0 ? (
+      <div className="py-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+        <p className="text-sm text-slate-400 font-medium italic">No work logs recorded.</p>
+      </div>
+    ) : (
+      <div className="divide-y divide-slate-100 border border-slate-100 rounded-2xl overflow-hidden bg-white shadow-sm">
+        {workLogs.map((log) => (
+          <div key={log.id} className="p-4 flex items-center justify-between gap-4 hover:bg-slate-50/80 transition">
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-bold text-slate-400">
+                  {log.date ? formatDate(log.date) : "—"}
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-[#132ea7]/10 text-[#132ea7] text-[10px] font-black">
+                  {log.hours_worked || log.hours || 0} hrs
+                </span>
               </div>
-
-              {workLogsLoading ? (
-                <p className="text-sm text-slate-400 font-medium py-8 text-center">Loading...</p>
-              ) : workLogs.length === 0 ? (
-                <p className="text-sm text-slate-400 font-medium py-8 text-center">No work logs found.</p>
-              ) : (
-                <>
-                  {/* Desktop */}
-                  <div className="hidden md:block overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-slate-100">
-                          {["ID", "Description", "Project", "Task", "Date", "Hours"].map((h) => (
-                            <th key={h} className="px-4 py-3 text-left text-[10px] font-black uppercase tracking-widest text-slate-400">{h}</th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {workLogs.map((w) => (
-                          <tr key={w.id} className="border-b border-slate-50 hover:bg-slate-50 transition">
-                            <td className="px-4 py-3 text-xs font-black text-slate-400">{w.display_id}</td>
-                            <td className="px-4 py-3 font-semibold text-slate-700 truncate max-w-[200px]">{w.description}</td>
-                            <td className="px-4 py-3 text-xs font-semibold text-slate-500">{w.project?.name || "—"}</td>
-                            <td className="px-4 py-3 text-xs font-semibold text-slate-500">{w.task?.display_id || "—"}</td>
-                            <td className="px-4 py-3 text-xs font-semibold text-slate-500 whitespace-nowrap">{formatDate(w.log_date)}</td>
-                            <td className="px-4 py-3">
-                              <span className="text-sm font-black text-[#132ea7]">{parseFloat(w.hours).toFixed(1)} hrs</span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Mobile */}
-                  <div className="md:hidden flex flex-col divide-y divide-slate-100">
-                    {workLogs.map((w) => (
-                      <div key={w.id} className="py-3 flex flex-col gap-2">
-                        <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{w.display_id}</p>
-                            <p className="font-semibold text-slate-700 mt-0.5">{w.description}</p>
-                          </div>
-                          <span className="text-sm font-black text-[#132ea7] shrink-0">{parseFloat(w.hours).toFixed(1)} hrs</span>
-                        </div>
-                        <div className="flex gap-3 text-xs text-slate-400 font-semibold flex-wrap">
-                          <span>📅 {formatDate(w.log_date)}</span>
-                          {w.project && <span>📁 {w.project.name}</span>}
-                          {w.task && <span>✅ {w.task.display_id}</span>}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* WorkLogs pagination */}
-                  {workLogsTotalPages > 1 && (
-                    <div className="flex items-center justify-between gap-2 pt-3 border-t border-slate-100">
-                      <p className="text-xs font-semibold text-slate-400">
-                        Page {workLogsPage} of {workLogsTotalPages} — {workLogsTotal} total
-                      </p>
-                      <div className="flex gap-2">
-                        <button onClick={() => { const p = Math.max(1, workLogsPage - 1); setWorkLogsPage(p); fetchWorkLogs(p, wlFrom, wlTo); }}
-                          disabled={workLogsPage === 1}
-                          className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 disabled:opacity-40 transition">
-                          Prev
-                        </button>
-                        <button onClick={() => { const p = Math.min(workLogsTotalPages, workLogsPage + 1); setWorkLogsPage(p); fetchWorkLogs(p, wlFrom, wlTo); }}
-                          disabled={workLogsPage === workLogsTotalPages}
-                          className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 disabled:opacity-40 transition">
-                          Next
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </>
-              )}
+              <p className="text-sm font-bold text-slate-800 mt-1 truncate">
+                {log.task?.task || log.task_name || "General Log"}
+              </p>
+              <p className="text-xs font-medium text-slate-500 mt-0.5 line-clamp-1">
+                {log.work_done || log.description || "—"}
+              </p>
             </div>
-          )}
+
+            <button
+              onClick={() => openView(log)}
+              className="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-bold uppercase tracking-wider hover:bg-[#132ea7] hover:text-white transition shrink-0"
+            >
+              View
+            </button>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+)}
 
         </div>
       </div>
@@ -2039,6 +2185,17 @@ const handleEditTask = async (e) => {
       </form>
     </div>
   </div>
+)}
+
+{/* ── View Work Log Modal ── */}
+{showView && (
+  <WorkLogViewModal
+    workLog={viewTarget}
+    onClose={() => {
+      setShowView(false);
+      setViewTarget(null);
+    }}
+  />
 )}
     </div>
   );

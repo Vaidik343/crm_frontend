@@ -176,7 +176,12 @@ ADMIN_UPDATE: (id) => `/admin/interns/${id}`,
 
         // ADMIN
         PROJECT: (intern_id) => `/admin/interns/${intern_id}/project`,
-        UPDATE_MENTOR : (intern_id) => `/admin/interns/${intern_id}/project`, //patch
+        // UPDATE_MENTOR : (intern_id) => `/admin/interns/${intern_id}/project`,
+
+
+          // new
+  ADMIN_CREATE:  (intern_id) => `/admin/interns/${intern_id}/project`,  // POST
+  ADMIN_UPDATE:  (intern_id) => `/admin/interns/${intern_id}/project`,  // Put — same URL, different method
     },
 
         INTER_TASKS: {

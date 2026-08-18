@@ -930,6 +930,68 @@ const handleApprove = async () => {
         loading={approving}
       />
 
+{/* ── Reverse Approval Modal ── */}
+<Modal show={!!reverseTarget} onClose={() => setReverseTarget(null)} title="Reverse Leave Approval" size="sm">
+  {reverseTarget && (
+    <div className="space-y-5">
+      <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
+        <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-1">Warning</p>
+        <p className="text-sm font-bold text-amber-700">
+          This will cancel the approved leave and restore the employee's balance including any sandwich days charged.
+        </p>
+      </div>
+      <div className="bg-slate-50 rounded-2xl p-4">
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Leave Request</p>
+        <p className="font-black text-slate-800">{reverseTarget.display_id}</p>
+        <p className="text-sm font-bold text-slate-500 mt-1">
+          {reverseTarget.employee?.name} — {LEAVE_TYPE_LABELS[reverseTarget.leave_type]}
+        </p>
+      </div>
+      <Textarea
+        label="Reason for Reversal"
+        value={reverseReason}
+        onChange={(e) => { setReverseReason(e.target.value); if (reverseError) setReverseError(''); }}
+        placeholder="Why is this approval being reversed..."
+        rows={3}
+        required
+      />
+      {reverseError && (
+        <p className="text-red-500 text-[10px] font-bold uppercase ml-1 -mt-3">{reverseError}</p>
+      )}
+      <div className="flex gap-4 pt-2 border-t border-slate-50">
+        <Button
+          variant="ghost"
+          className="flex-1 font-black uppercase tracking-widest text-sm"
+          onClick={() => { setReverseTarget(null); setReverseReason(''); setReverseError(''); }}
+          disabled={reversing}
+        >
+          Cancel
+        </Button>
+        <Button
+          className="flex-[2] h-14 bg-orange-500 hover:bg-orange-600 text-white shadow-xl shadow-orange-500/20 font-black uppercase tracking-[0.2em] text-sm rounded-2xl"
+          loading={reversing}
+          onClick={async () => {
+            if (!reverseReason.trim()) { setReverseError('Reason is required.'); return; }
+            if (reverseReason.trim().length < 5) { setReverseError('Must be at least 5 characters.'); return; }
+            try {
+              setReversing(true);
+              await reverseLeave(reverseTarget.id, reverseReason.trim());
+              setAlert({ type: 'success', message: `Leave ${reverseTarget.display_id} reversed and balance restored.` });
+              setReverseTarget(null);
+              setReverseReason('');
+            } catch (err) {
+              setAlert({ type: 'danger', message: err?.response?.data?.message || 'Failed to reverse.' });
+            } finally {
+              setReversing(false);
+            }
+          }}
+        >
+          Confirm Reverse
+        </Button>
+      </div>
+    </div>
+  )}
+</Modal>
     </div>
   );
 };

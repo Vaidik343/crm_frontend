@@ -464,7 +464,7 @@ const Dashboard = () => {
       {/* ── Employee activity table ────────────────────── */}
       <div className="bg-white rounded-[2.5rem] overflow-hidden border border-slate-100 shadow-2xl shadow-slate-200/40">
         <div className="p-10 border-b border-slate-50 flex items-center justify-between bg-slate-50/30">
-          <h3 className="text-2xl font-black text-slate-800">Employee Weekly Records</h3>
+          <h3 className="text-2xl font-black text-slate-800">Employee Daily Records</h3>
           {/* <button className="text-[#132ea7] text-sm font-black uppercase tracking-widest hover:underline">Full Analytics</button> */}
         </div>
         <div className="overflow-x-auto">

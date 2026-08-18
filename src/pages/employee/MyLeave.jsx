@@ -79,11 +79,21 @@ const StatusBadge = ({ status }) => {
   );
 };
 
+
+
 const LeaveBadge = ({ type }) => (
-  <span className="px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-widest bg-[#132ea7]/10 text-[#132ea7]">
-    {LEAVE_TYPE_LABELS[type] || type}
+  <span className={`px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-widest ${
+    type === 'unpaid'
+      ? 'bg-red-100 text-red-600'
+      : type === 'exchange'
+        ? 'bg-amber-100 text-amber-600'
+        : 'bg-[#132ea7]/10 text-[#132ea7]'
+  }`}>
+    {type === 'unpaid' ? 'Unpaid' : type === 'exchange' ? 'Exchange' : 'Paid'}
   </span>
 );
+
+
 
 const BalanceCard = ({ balance }) => {
   if (!balance) return null;
@@ -113,6 +123,7 @@ const BalanceCard = ({ balance }) => {
   ];
 
   return (
+    <>
     <div className="bg-white rounded-[2rem] border border-slate-100 shadow-2xl shadow-slate-200/40 p-6 sm:p-8">
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -142,7 +153,7 @@ const BalanceCard = ({ balance }) => {
           <div
             className={`h-full rounded-full transition-all duration-500 ${
               percentage >= 100
-                ? "bg-red-500"
+                ? "bg-red-300"
                 : percentage >= 50
                   ? "bg-amber-500"
                   : "bg-[#132ea7]"
@@ -206,6 +217,7 @@ const BalanceCard = ({ balance }) => {
         </div>
       )}
     </div>
+    </>
   );
 };
 
@@ -967,10 +979,10 @@ const closeForm = () => {
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="font-black text-slate-800 leading-tight">
-                    {LEAVE_TYPE_LABELS[leave.leave_type]} —{" "}
-                    {DURATION_LABELS[leave.duration]}
-                  </p>
+            <p className="font-black text-slate-800 leading-tight">
+  {leave.leave_type === 'unpaid' ? 'Unpaid' : leave.leave_type === 'exchange' ? 'Exchange' : 'Paid'} —{" "}
+  {DURATION_LABELS[leave.duration]}
+</p>
                   <p className="text-[10px] font-black text-slate-400 font-mono mt-0.5">
                     {leave.display_id}
                   </p>
@@ -1219,7 +1231,7 @@ const closeForm = () => {
             </div>
 
             {/* Duration */}
-            <div className="md:col-span-2 space-y-1.5">
+            {/* <div className="md:col-span-2 space-y-1.5">
               <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
                 Duration
               </label>
@@ -1253,7 +1265,7 @@ const closeForm = () => {
                   Half day — start and end date must be the same
                 </p>
               )}
-            </div>
+            </div> */}
 
             {/* Start Date */}
             {/* <div>
@@ -1554,8 +1566,8 @@ const closeForm = () => {
               <div className="flex-1">
                 <div className="flex items-center gap-3 flex-wrap">
                   <h3 className="text-xl font-black text-slate-800">
-                    {LEAVE_TYPE_LABELS[viewTarget.leave_type]} Leave
-                  </h3>
+  {viewTarget.leave_type === 'unpaid' ? 'Unpaid' : viewTarget.leave_type === 'exchange' ? 'Exchange' : 'Paid'} Leave
+</h3>
                   <StatusBadge status={viewTarget.status} />
                   {viewTarget.reason_type === "emergency" && (
                     <span className="px-3 py-1 rounded-lg text-[11px] font-black uppercase tracking-widest bg-red-100 text-red-600">
@@ -1578,7 +1590,7 @@ const closeForm = () => {
                     viewTarget.leave_type === "exchange"
                       ? "Exchange"
                       : viewTarget.status === "approved"
-                        ? LEAVE_TYPE_LABELS[viewTarget.leave_type]
+                        ?  viewTarget.leave_type === "unpaid" ? "Unpaid" : "Paid"
                         : "—",
                 },
                 {
