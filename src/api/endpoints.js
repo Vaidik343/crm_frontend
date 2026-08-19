@@ -217,6 +217,7 @@ ADMIN_UPDATE: (id) => `/admin/interns/${id}`,
   EXPORT_PNG:  (id) => `/events/shared/${id}/export/png`,
   ANNOUNCE: (id) => `/events/${id}/announce`,
   AI_PREVIEW:  "/events/ai-preview",
+  DESIGN_PREVIEWS: "/events/design-previews",
 },
 
 

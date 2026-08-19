@@ -1,38 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useEvent } from "../../context/EventContext";
 import Button from "../../components/ui/Button";
 import Input from "../../components/ui/Input";
 import Textarea from "../../components/ui/Textarea";
 import Spinner from "../../components/ui/Spinner";
+import api from "../../api/axiosInstance";
+import { ENDPOINTS } from "../../api/endpoints";
 
 const EVENT_TYPES = [
-  { value: "birthday",  label: "🎂 Birthday"   },
-  { value: "promotion", label: "🏆 Promotion"  },
-  { value: "office",    label: "🏢 Office"     },
-  { value: "trip",      label: "✈️ Trip"       },
-  { value: "fun_game",  label: "🎮 Fun & Games"},
+  { value: "birthday",  label: "🎂 Birthday"    },
+  { value: "promotion", label: "🏆 Promotion"   },
+  { value: "office",    label: "🏢 Office"      },
+  { value: "trip",      label: "✈️ Trip"        },
+  { value: "fun_game",  label: "🎮 Fun & Games" },
 ];
-
-const DESIGNS_BY_TYPE = {
-  birthday:  ["birthday_1",  "birthday_2"],
-  promotion: ["promotion_1", "promotion_2"],
-  office:    ["office_1",    "office_2"],
-  trip:      ["trip_1",      "trip_2"],
-  fun_game:  ["fun_game_1",  "fun_game_2"],
-};
-
-const DESIGN_PREVIEWS = {
-  birthday_1:  { label: "Purple Gradient", colors: ["#667eea", "#764ba2"] },
-  birthday_2:  { label: "Golden Warm",     colors: ["#fff9f0", "#f59e0b"] },
-  promotion_1: { label: "Dark Elegant",    colors: ["#0f2027", "#2c5364"] },
-  promotion_2: { label: "Forest Green",    colors: ["#134e5e", "#71b280"] },
-  office_1:    { label: "Navy Blue",       colors: ["#1a1a2e", "#0f3460"] },
-  office_2:    { label: "Fresh Green",     colors: ["#f0fdf4", "#22c55e"] },
-  trip_1:      { label: "Pink Vibrant",    colors: ["#f093fb", "#f5576c"] },
-  trip_2:      { label: "Sky Blue",        colors: ["#4facfe", "#00f2fe"] },
-  fun_game_1:  { label: "Golden Fun",      colors: ["#f7971e", "#ffd200"] },
-  fun_game_2:  { label: "Lavender Pop",    colors: ["#a18cd1", "#fbc2eb"] },
-};
 
 const initialForm = {
   event_type:      "",
@@ -46,35 +27,49 @@ const initialForm = {
 };
 
 const EventCreate = ({ onSuccess, onCancel }) => {
-  const { createEvent, previewAICard } = useEvent();
+  const { createEvent, previewAICard , getDesignPreviews } = useEvent();
 
-  const [form,          setForm]          = useState(initialForm);
-  const [fieldErrors,   setFieldErrors]   = useState({});
-  const [submitting,    setSubmitting]    = useState(false);
-  const [aiGenerating,  setAiGenerating]  = useState(false);
-  const [previewHTML,   setPreviewHTML]   = useState(null);
+  const [form,           setForm]           = useState(initialForm);
+  const [fieldErrors,    setFieldErrors]    = useState({});
+  const [submitting,     setSubmitting]     = useState(false);
+  const [aiGenerating,   setAiGenerating]   = useState(false);
+  const [previewHTML,    setPreviewHTML]    = useState(null);
 
+  // Design previews from backend
+  const [designPreviews, setDesignPreviews] = useState([]);
+  const [previewsLoading, setPreviewsLoading] = useState(false);
+
+  // ── Fetch design previews when event_type changes ──
+useEffect(() => {
+  if (!form.event_type || form.mode !== "manual") {
+    setDesignPreviews([]);
+    return;
+  }
+  setPreviewsLoading(true);
+  getDesignPreviews(form.event_type, form.employee_name, form.message)
+    .then((data) => setDesignPreviews(data.previews || []))
+    .catch(() => setDesignPreviews([]))
+    .finally(() => setPreviewsLoading(false));
+}, [form.event_type, form.mode, form.employee_name, form.message]);
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
     if (fieldErrors[name]) setFieldErrors((prev) => ({ ...prev, [name]: "" }));
 
-    // Reset design when event type changes
     if (name === "event_type") {
       setForm((prev) => ({ ...prev, event_type: value, design_template: "" }));
       setPreviewHTML(null);
     }
-
-    // Reset preview when mode changes
     if (name === "mode") {
       setPreviewHTML(null);
+      setForm((prev) => ({ ...prev, mode: value, design_template: "" }));
     }
   };
 
   const validate = () => {
     const errors = {};
     if (!form.event_type)    errors.event_type    = "Event type is required.";
-    if (!form.employee_name) errors.employee_name = "Employee name is required.";
+    if (!form.employee_name) errors.employee_name = "Name is required.";
     if (!form.event_date)    errors.event_date    = "Event date is required.";
     if (form.mode === "manual" && !form.design_template)
       errors.design_template = "Please select a design.";
@@ -112,7 +107,6 @@ const EventCreate = ({ onSuccess, onCancel }) => {
     e.preventDefault();
     const errors = validate();
     if (Object.keys(errors).length) { setFieldErrors(errors); return; }
-
     try {
       setSubmitting(true);
       await createEvent({
@@ -132,8 +126,6 @@ const EventCreate = ({ onSuccess, onCancel }) => {
       setSubmitting(false);
     }
   };
-
-  const designs = DESIGNS_BY_TYPE[form.event_type] || [];
 
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-6">
@@ -168,7 +160,7 @@ const EventCreate = ({ onSuccess, onCancel }) => {
         </label>
         <div className="flex gap-2">
           {[
-            { value: "manual", label: "Manual" },
+            { value: "manual", label: "Manual"      },
             { value: "ai",     label: "✨ AI Magic" },
           ].map((opt) => (
             <button key={opt.value} type="button"
@@ -189,7 +181,7 @@ const EventCreate = ({ onSuccess, onCancel }) => {
       {/* Employee Name + Date */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <Input
-          label="Employee Name"
+          label="Name"
           name="employee_name"
           value={form.employee_name}
           onChange={handleChange}
@@ -218,45 +210,99 @@ const EventCreate = ({ onSuccess, onCancel }) => {
         rows={3}
       />
 
-      {/* Manual Mode — Design Selector */}
+      {/* ── Manual Mode — Design Selector from Backend ── */}
       {form.mode === "manual" && form.event_type && (
-        <div className="space-y-2">
+        <div className="space-y-3">
           <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
             Select Design <span className="text-red-500">*</span>
           </label>
-          <div className="grid grid-cols-2 gap-3">
-            {designs.map((design) => {
-              const preview = DESIGN_PREVIEWS[design];
-              return (
-                <button key={design} type="button"
-                  onClick={() => {
-                    setForm((prev) => ({ ...prev, design_template: design }));
-                    if (fieldErrors.design_template)
-                      setFieldErrors((prev) => ({ ...prev, design_template: "" }));
-                  }}
-                  className={`relative h-20 rounded-2xl overflow-hidden border-2 transition-all ${
-                    form.design_template === design
-                      ? "border-[#132ea7] shadow-lg shadow-[#132ea7]/20"
-                      : "border-transparent hover:border-slate-300"
-                  }`}
-                  style={{
-                    background: `linear-gradient(135deg, ${preview.colors[0]}, ${preview.colors[1]})`,
-                  }}
-                >
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-white font-black text-xs uppercase tracking-widest drop-shadow">
-                      {preview.label}
-                    </span>
-                  </div>
-                  {form.design_template === design && (
-                    <div className="absolute top-2 right-2 w-5 h-5 bg-white rounded-full flex items-center justify-center">
-                      <div className="w-3 h-3 bg-[#132ea7] rounded-full" />
-                    </div>
-                  )}
-                </button>
-              );
-            })}
+
+          {previewsLoading ? (
+            <div className="flex items-center justify-center py-8 gap-3">
+              <Spinner size="sm" />
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest animate-pulse">
+                Loading designs...
+              </span>
+            </div>
+          ) : (
+ <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+  {designPreviews.map(({ design_template, html }) => {
+    const isSelected = form.design_template === design_template;
+    return (
+      <button
+        key={design_template}
+        type="button"
+        onClick={() => {
+          setForm((prev) => ({ ...prev, design_template }));
+          if (fieldErrors.design_template)
+            setFieldErrors((prev) => ({ ...prev, design_template: "" }));
+        }}
+        className={`group relative w-full rounded-2xl overflow-hidden border-2 transition-all text-left bg-slate-900 ${
+          isSelected
+            ? "border-[#132ea7] ring-4 ring-[#132ea7]/15 shadow-xl"
+            : "border-slate-200 hover:border-slate-300 hover:shadow-md"
+        }`}
+      >
+        {/* Exact 800x500 Aspect Ratio Container (8:5) */}
+        <div className="relative w-full aspect-[8/5] overflow-hidden bg-slate-100">
+          <div
+            className="absolute inset-0 flex items-center justify-center"
+            style={{
+              width: "100%",
+              height: "100%",
+            }}
+          >
+            <div
+              className="origin-center flex items-center justify-center shrink-0"
+              style={{
+                width: "800px",
+                height: "500px",
+                transform: "scale(var(--preview-scale, 0.38))",
+              }}
+              ref={(node) => {
+                if (!node) return;
+                const parent = node.parentElement;
+                if (parent) {
+                  const scale = parent.clientWidth / 800;
+                  node.style.setProperty("--preview-scale", scale);
+                }
+              }}
+              dangerouslySetInnerHTML={{ __html: html }}
+            />
           </div>
+        </div>
+
+        {/* Selected Checkmark Badge */}
+        {isSelected && (
+          <div className="absolute top-3 right-3 z-10 w-7 h-7 bg-[#132ea7] text-white rounded-full flex items-center justify-center shadow-lg">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path
+                d="M2.5 7L5.5 10L11.5 4"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+        )}
+
+        {/* Label Footer */}
+        {/* <div className="w-full bg-slate-900 px-3 py-2.5 border-t border-slate-800 flex items-center justify-between">
+          <span className="text-white text-[11px] font-black uppercase tracking-wider">
+            {design_template.replace(/_/g, " ")}
+          </span>
+          {isSelected && (
+            <span className="text-[10px] text-indigo-400 font-extrabold uppercase tracking-widest">
+              Selected
+            </span>
+          )}
+        </div> */}
+      </button>
+    );
+  })}
+</div>   )}
+
           {fieldErrors.design_template && (
             <p className="text-red-500 text-[10px] font-bold ml-1">{fieldErrors.design_template}</p>
           )}
@@ -266,40 +312,45 @@ const EventCreate = ({ onSuccess, onCancel }) => {
       {/* AI Mode */}
       {form.mode === "ai" && (
         <div className="space-y-4">
-          <div className="space-y-2">
-            <Textarea
-              label="AI Prompt"
-              name="ai_prompt"
-              value={form.ai_prompt}
-              onChange={handleChange}
-              placeholder="e.g. Create a vibrant birthday card with confetti theme for our senior developer John who loves coding and coffee..."
-              rows={3}
-              error={fieldErrors.ai_prompt}
-              required
-            />
-          </div>
+          <Textarea
+            label="AI Prompt"
+            name="ai_prompt"
+            value={form.ai_prompt}
+            onChange={handleChange}
+            placeholder="e.g. Create a vibrant birthday card with confetti theme for our senior developer John who loves coding and coffee..."
+            rows={3}
+            error={fieldErrors.ai_prompt}
+            required
+          />
           <button type="button" onClick={handleAIPreview}
             disabled={aiGenerating || !form.event_type || !form.employee_name || !form.ai_prompt}
             className="w-full h-12 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black uppercase tracking-widest text-sm disabled:opacity-50 flex items-center justify-center gap-2 transition-all hover:shadow-lg hover:shadow-purple-600/20">
-            {aiGenerating ? (
-              <><Spinner size="sm" /> Generating...</>
-            ) : (
-              "✨ Generate Preview"
-            )}
+            {aiGenerating ? <><Spinner size="sm" /> Generating...</> : "✨ Generate Preview"}
           </button>
         </div>
       )}
 
-      {/* Card Preview */}
-      {previewHTML && (
+      {/* Card Preview — AI or selected design live preview */}
+      {(previewHTML || form.design_template) && (
         <div className="space-y-2">
           <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
-            Preview
+            {previewHTML ? "AI Preview" : "Selected Design Preview"}
           </label>
-          <div
-            className="rounded-2xl overflow-hidden shadow-xl border border-slate-100 scale-[0.85] origin-top"
-            dangerouslySetInnerHTML={{ __html: previewHTML }}
-          />
+          <div className="relative overflow-hidden rounded-2xl border border-slate-100 shadow-xl bg-slate-50" style={{ height: "300px" }}>
+            <div
+              style={{
+                transform:       "scale(0.375)",
+                transformOrigin: "top left",
+                width:           "800px",
+                height:          "500px",
+                pointerEvents:   "none",
+              }}
+              dangerouslySetInnerHTML={{
+                __html: previewHTML ||
+                  designPreviews.find((d) => d.design_template === form.design_template)?.html || "",
+              }}
+            />
+          </div>
         </div>
       )}
 

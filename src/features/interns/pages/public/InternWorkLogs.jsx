@@ -266,11 +266,11 @@ const validateEdit = () => {
           </h1>
           <p className="text-sm text-slate-400 font-medium mt-0.5">
             {workLogsTotal} log{workLogsTotal !== 1 ? "s" : ""} total
-            {(workLogs || []).length > 0 && (
+            {/* {(workLogs || []).length > 0 && (
               <span className="ml-2 text-[#132ea7] font-black">
                 • {totalHoursOnPage.toFixed(1)} hrs this page
               </span>
-            )}
+            )} */}
           </p>
         </div>
         <button

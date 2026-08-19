@@ -1,6 +1,8 @@
 import { createContext, useCallback, useContext, useState, useMemo } from "react";
 import api from "../api/axiosInstance";
 import { ENDPOINTS } from "../api/endpoints";
+import { applyTreeDeltas } from "motion";
+import { formToJSON } from "axios";
 
 const EventContext = createContext(null);
 
@@ -114,6 +116,21 @@ export const EventProvider = ({ children }) => {
     }
   }, []);
 
+
+const getDesignPreviews = useCallback(async (event_type, employee_name, message) => {
+  try {
+    const params = new URLSearchParams({ event_type });
+    if (employee_name) params.set("employee_name", employee_name);
+    if (message)       params.set("message",       message);
+
+    const { data } = await api.get(`${ENDPOINTS.EVENTS.DESIGN_PREVIEWS}?${params.toString()}`);
+    return data;
+  } catch (error) {
+    throw error;
+  }
+}, []);
+
+
   const value = useMemo(() => ({
     events,
     loading,
@@ -129,9 +146,10 @@ export const EventProvider = ({ children }) => {
     previewAICard,
     announceEvent,
     exportPNG,
+    getDesignPreviews
   }), [
     events, loading, page, limit, total, totalPages,
-    getAllEvents, getEmployeeEvents, createEvent, deleteEvent, previewAICard,announceEvent, exportPNG,
+    getAllEvents, getEmployeeEvents, createEvent, deleteEvent, previewAICard,announceEvent, exportPNG,getDesignPreviews
   ]);
 
   return <EventContext.Provider value={value}>{children}</EventContext.Provider>;

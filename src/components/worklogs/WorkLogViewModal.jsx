@@ -31,7 +31,7 @@ const WorkLogViewModal = ({ workLog, onClose }) => {
         <div className="p-6 overflow-y-auto flex flex-col gap-5">
           
           {/* Metadata Row */}
-          <div className="grid grid-cols-2 gap-4 pb-4 border-b border-slate-100">
+          {/* <div className="grid grid-cols-2 gap-4 pb-4 border-b border-slate-100">
             <div>
               <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
                 Log Date
@@ -48,7 +48,7 @@ const WorkLogViewModal = ({ workLog, onClose }) => {
                 {workLog.hours_worked || workLog.hours || "—"} hrs
               </p>
             </div>
-          </div>
+          </div> */}
 
           {/* Associated Task */}
           <div>

@@ -269,6 +269,7 @@ const openView = (w) => {
 // Open Modal (Pre-fills if editing existing project)
 // Open Modal (Extract clean text for input)
 const handleOpenProjectModal = () => {
+  console.log("click")
   if (project) {
     setProjectForm({
       name: project.name || "",
@@ -1453,12 +1454,12 @@ const handleEditTask = async (e) => {
           <div key={log.id} className="p-4 flex items-center justify-between gap-4 hover:bg-slate-50/80 transition">
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-3">
-                <span className="text-xs font-bold text-slate-400">
+                {/* <span className="text-xs font-bold text-slate-400">
                   {log.date ? formatDate(log.date) : "—"}
                 </span>
                 <span className="px-2 py-0.5 rounded-full bg-[#132ea7]/10 text-[#132ea7] text-[10px] font-black">
                   {log.hours_worked || log.hours || 0} hrs
-                </span>
+                </span> */}
               </div>
               <p className="text-sm font-bold text-slate-800 mt-1 truncate">
                 {log.task?.task || log.task_name || "General Log"}
@@ -1737,74 +1738,130 @@ const handleEditTask = async (e) => {
       )}
 
       {/* ── Assign Task Modal ────────────────────────────────────────────────── */}
-      {showAssignTask && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 sticky top-0 bg-white rounded-t-2xl z-10">
-              <h2 className="text-sm font-black uppercase tracking-widest text-slate-700">Assign Task</h2>
-              <button onClick={() => setShowAssignTask(false)} className="text-slate-400 hover:text-slate-600 transition">
-                <MdClose size={20} />
-              </button>
-            </div>
-            <form onSubmit={handleAssignTask} className="px-6 py-6 flex flex-col gap-5">
-
-              <div>
-                <label className={labelCls}>Task Name <span className="text-red-400">*</span></label>
-                <input name="task" value={taskForm.task}
-                  onChange={(e) => { setTaskForm((p) => ({ ...p, task: e.target.value })); setTaskFormErrors((p) => ({ ...p, task: "" })); }}
-                  placeholder="e.g. Build login API"
-                  className={inputCls(taskFormErrors.task)} />
-                {taskFormErrors.task && <p className={errCls}>{taskFormErrors.task}</p>}
-              </div>
-
-              <div>
-                <label className={labelCls}>Description <span className="text-slate-400 font-medium normal-case tracking-normal">(optional)</span></label>
-                <textarea value={taskForm.description}
-                  onChange={(e) => setTaskForm((p) => ({ ...p, description: e.target.value }))}
-                  rows={3} placeholder="Brief description..."
-                  className={inputCls(false)} />
-              </div>
-
-              {/* Project dropdown — intern's project if exists */}
-              <div>
-                <label className={labelCls}>Project <span className="text-slate-400 font-medium normal-case tracking-normal">(optional)</span></label>
-                <select value={taskForm.intern_project_id}
-                  onChange={(e) => setTaskForm((p) => ({ ...p, intern_project_id: e.target.value }))}
-                  className={inputCls(false)}>
-                  <option value="">No project</option>
-                  {project && <option value={project.id}>{project.name}</option>}
-                </select>
-              </div>
-
-              <div>
-                <label className={labelCls}>Due Date <span className="text-slate-400 font-medium normal-case tracking-normal">(optional)</span></label>
-                <input type="date" value={taskForm.due_date}
-                  onChange={(e) => setTaskForm((p) => ({ ...p, due_date: e.target.value }))}
-                  className={inputCls(false)} />
-              </div>
-
-              <div>
-                <label className={labelCls}>Remark <span className="text-slate-400 font-medium normal-case tracking-normal">(optional)</span></label>
-                <textarea value={taskForm.remark}
-                  onChange={(e) => setTaskForm((p) => ({ ...p, remark: e.target.value }))}
-                  rows={2} placeholder="Add a note..."
-                  className={inputCls(false)} />
-              </div>
-
-              <div className="flex gap-3 pt-2">
-                <button type="button" onClick={() => setShowAssignTask(false)}
-                  className="flex-1 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-black text-sm uppercase tracking-widest hover:bg-slate-50 transition">
-                  Cancel
-                </button>
-                <button type="submit" disabled={assigningTask}
-                  className="flex-1 py-3 rounded-xl bg-[#132ea7] text-white font-black text-sm uppercase tracking-widest hover:bg-[#0f2490] transition disabled:opacity-60">
-                  {assigningTask ? "Assigning..." : "Assign Task"}
-                </button>
-              </div>
-            </form>
-          </div>
+    {/* ── Assign Task Modal ────────────────────────────────────────────────── */}
+{showAssignTask && (
+  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[85vh] flex flex-col border border-slate-100 overflow-hidden">
+      
+      {/* Header */}
+      <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-white shrink-0">
+        <div>
+          <h2 className="text-base font-bold text-slate-800">Assign Task</h2>
+          <p className="text-xs text-slate-400">Create and assign a new task to this team member</p>
         </div>
-      )}
+        <button 
+          onClick={() => setShowAssignTask(false)} 
+          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition"
+        >
+          <MdClose size={18} />
+        </button>
+      </div>
+
+      {/* Form Content */}
+      <form onSubmit={handleAssignTask} className="flex-1 flex flex-col min-h-0">
+        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+
+          {/* Task Name */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1">
+              Task Name <span className="text-red-500">*</span>
+            </label>
+            <input 
+              name="task" 
+              value={taskForm.task}
+              onChange={(e) => { 
+                setTaskForm((p) => ({ ...p, task: e.target.value })); 
+                setTaskFormErrors((p) => ({ ...p, task: "" })); 
+              }}
+              placeholder="e.g. Build login API"
+              className={`w-full px-3.5 py-2 text-xs rounded-xl border bg-slate-50/50 focus:bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#132ea7]/20 focus:border-[#132ea7] transition ${
+                taskFormErrors.task ? 'border-red-400' : 'border-slate-200'
+              }`} 
+            />
+            {taskFormErrors.task && <p className="mt-1 text-[11px] text-red-500">{taskFormErrors.task}</p>}
+          </div>
+
+          {/* Project & Due Date (Side-by-Side Grid) */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">
+                Project <span className="text-slate-400 font-normal">(Optional)</span>
+              </label>
+              <select 
+                value={taskForm.intern_project_id}
+                onChange={(e) => setTaskForm((p) => ({ ...p, intern_project_id: e.target.value }))}
+                className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#132ea7]/20 focus:border-[#132ea7] transition"
+              >
+                <option value="">No project</option>
+                {project && <option value={project.id}>{project.name}</option>}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">
+                Due Date <span className="text-slate-400 font-normal">(Optional)</span>
+              </label>
+              <input 
+                type="date" 
+                value={taskForm.due_date}
+                onChange={(e) => setTaskForm((p) => ({ ...p, due_date: e.target.value }))}
+                className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#132ea7]/20 focus:border-[#132ea7] transition" 
+              />
+            </div>
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1">
+              Description <span className="text-slate-400 font-normal">(Optional)</span>
+            </label>
+            <textarea 
+              value={taskForm.description}
+              onChange={(e) => setTaskForm((p) => ({ ...p, description: e.target.value }))}
+              rows={3} 
+              placeholder="Brief description or context..."
+              className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#132ea7]/20 focus:border-[#132ea7] transition resize-none" 
+            />
+          </div>
+
+          {/* Remark */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1">
+              Initial Remark <span className="text-slate-400 font-normal">(Optional)</span>
+            </label>
+            <textarea 
+              value={taskForm.remark}
+              onChange={(e) => setTaskForm((p) => ({ ...p, remark: e.target.value }))}
+              rows={2} 
+              placeholder="Add an initial note or instruction..."
+              className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#132ea7]/20 focus:border-[#132ea7] transition resize-none" 
+            />
+          </div>
+
+        </div>
+
+        {/* Action Footer */}
+        <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex justify-end gap-3 shrink-0">
+          <button 
+            type="button" 
+            onClick={() => setShowAssignTask(false)}
+            className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-medium text-xs transition"
+          >
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            disabled={assigningTask}
+            className="px-5 py-2 rounded-xl bg-[#132ea7] hover:bg-[#0f2490] text-white font-semibold text-xs shadow-sm transition disabled:opacity-50"
+          >
+            {assigningTask ? "Assigning..." : "Assign Task"}
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+)}
 
       {/* ── Update Mentor Modal ──────────────────────────────────────────────── */}
       {showMentor && (
@@ -2021,173 +2078,246 @@ const handleEditTask = async (e) => {
 
 
       {/* ── View Task Modal ──────────────────────────────────────────────────── */}
+{/* ── View Task Modal ─────────────────────────────────────────────────── */}
 {showViewTask && viewTaskTarget && (
-  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 sticky top-0 bg-white rounded-t-2xl z-10">
-        <div>
-          <h2 className="text-sm font-black uppercase tracking-widest text-slate-700">{viewTaskTarget.task}</h2>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-0.5">{viewTaskTarget.display_id}</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${TASK_STATUS_COLORS[viewTaskTarget.status]}`}>
-            {viewTaskTarget.status}
-          </span>
-          <button onClick={() => { setShowViewTask(false); setViewTaskTarget(null); }} className="text-slate-400 hover:text-slate-600 transition">
-            <MdClose size={20} />
+  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] flex flex-col border border-slate-100 overflow-hidden">
+      
+      {/* Header */}
+      <div className="px-6 pt-6 pb-4 border-b border-slate-100 bg-white">
+        <div className="flex items-center justify-between gap-4 mb-2">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-mono text-slate-400 font-medium">
+              #{viewTaskTarget.display_id}
+            </span>
+            <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full capitalize ${TASK_STATUS_COLORS[viewTaskTarget.status] || "bg-slate-100 text-slate-600"}`}>
+              {viewTaskTarget.status}
+            </span>
+          </div>
+          <button 
+            onClick={() => { setShowViewTask(false); setViewTaskTarget(null); }} 
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition"
+          >
+            <MdClose size={18} />
           </button>
         </div>
+        <h2 className="text-xl font-bold text-slate-800">{viewTaskTarget.task}</h2>
       </div>
 
-      <div className="px-6 py-6 flex flex-col gap-5">
-        {/* Details grid */}
-        <div className="grid grid-cols-2 gap-4">
-          {[
-            ["Project",  viewTaskTarget.project?.name || "—"],
-            ["Due Date", viewTaskTarget.due_date ? formatDate(viewTaskTarget.due_date) : "—"],
-            ["Type",     viewTaskTarget.assigned_by ? "Admin Assigned" : "Self Created"],
-            ["Created",  formatDate(viewTaskTarget.createdAt)],
-          ].map(([label, val]) => (
-            <div key={label} className="bg-slate-50 rounded-xl p-3">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{label}</p>
-              <p className="text-sm font-semibold text-slate-700">{val}</p>
-            </div>
-          ))}
+      {/* Main Content Area */}
+      <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+        
+        {/* Compact Metadata Row (Replaced visual blocky cards) */}
+        <div className="grid grid-cols-4 gap-4 py-3 px-4 bg-slate-50/80 rounded-xl border border-slate-100 text-xs">
+          <div>
+            <span className="block text-[11px] text-slate-400 font-medium mb-0.5">Project</span>
+            <span className="font-semibold text-slate-700">{viewTaskTarget.project?.name || "—"}</span>
+          </div>
+          <div>
+            <span className="block text-[11px] text-slate-400 font-medium mb-0.5">Due Date</span>
+            <span className="font-semibold text-slate-700">{viewTaskTarget.due_date ? formatDate(viewTaskTarget.due_date) : "—"}</span>
+          </div>
+          <div>
+            <span className="block text-[11px] text-slate-400 font-medium mb-0.5">Type</span>
+            <span className="font-semibold text-slate-700">{viewTaskTarget.assigned_by ? "Admin Assigned" : "Self Created"}</span>
+          </div>
+          <div>
+            <span className="block text-[11px] text-slate-400 font-medium mb-0.5">Created</span>
+            <span className="font-semibold text-slate-700">{formatDate(viewTaskTarget.createdAt)}</span>
+          </div>
         </div>
 
-        {/* Description */}
+        {/* Description Section */}
         {viewTaskTarget.description && (
-          <div className="bg-[#132ea7] rounded-xl p-5 text-white">
-            <p className="text-[10px] font-black uppercase tracking-widest text-white/50 mb-2">Description</p>
-            <p className="text-sm font-medium leading-relaxed opacity-90">{viewTaskTarget.description}</p>
+          <div>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Description</h3>
+            <p className="text-sm text-slate-600 leading-relaxed bg-white border border-slate-100 rounded-xl p-4">
+              {viewTaskTarget.description}
+            </p>
           </div>
         )}
 
-        {/* Remarks */}
-        {Array.isArray(viewTaskTarget.remarks) && viewTaskTarget.remarks.length > 0 && (
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-3">
-              Remarks ({viewTaskTarget.remarks.length})
-            </p>
-            <div className="flex flex-col gap-3 max-h-[200px] overflow-y-auto">
+        {/* Remarks Feed */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">Activity & Remarks</h3>
+            {Array.isArray(viewTaskTarget.remarks) && (
+              <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                {viewTaskTarget.remarks.length}
+              </span>
+            )}
+          </div>
+
+          {Array.isArray(viewTaskTarget.remarks) && viewTaskTarget.remarks.length > 0 ? (
+            <div className="space-y-3">
               {[...viewTaskTarget.remarks].reverse().map((r, i) => (
-                <div key={i} className="bg-slate-50 rounded-xl border border-slate-100 p-3.5">
-                  <p className="text-sm font-semibold text-slate-700">{r.text}</p>
-                  <div className="flex items-center justify-between mt-2">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{r.added_by_name}</p>
-                    <p className="text-[10px] text-slate-300 font-semibold">
+                <div key={i} className="p-3.5 bg-slate-50/50 rounded-xl border border-slate-100 text-xs">
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="font-semibold text-slate-700">{r.added_by_name}</span>
+                    <span className="text-[10px] text-slate-400">
                       {r.created_at ? new Date(r.created_at).toLocaleDateString() : ""}
-                    </p>
+                    </span>
                   </div>
+                  <p className="text-slate-600 leading-normal">{r.text}</p>
                 </div>
               ))}
             </div>
-          </div>
-        )}
-
-        <div className="flex gap-3 pt-2 border-t border-slate-100">
-          <button
-            onClick={() => { setShowViewTask(false); setViewTaskTarget(null); }}
-            className="flex-1 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-black text-sm uppercase tracking-widest hover:bg-slate-50 transition"
-          >
-            Close
-          </button>
-          <button
-            onClick={() => {
-              setShowViewTask(false);
-              setEditTaskTarget(viewTaskTarget);
-              setEditTaskForm({ task: viewTaskTarget.task || "", description: viewTaskTarget.description || "", status: viewTaskTarget.status || "", due_date: viewTaskTarget.due_date || "", remark: "" });
-              setEditTaskErrors({});
-              setShowEditTask(true);
-            }}
-            className="flex-1 py-3 rounded-xl bg-[#e98937] text-white font-black text-sm uppercase tracking-widest hover:bg-[#d4782a] transition"
-          >
-            Edit Task
-          </button>
+          ) : (
+            <p className="text-xs text-slate-400 italic">No remarks added yet.</p>
+          )}
         </div>
+
       </div>
+
+      {/* Footer */}
+      <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex justify-end gap-3">
+        <button
+          onClick={() => { setShowViewTask(false); setViewTaskTarget(null); }}
+          className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-medium text-xs transition"
+        >
+          Close
+        </button>
+        <button
+          onClick={() => {
+            setShowViewTask(false);
+            setEditTaskTarget(viewTaskTarget);
+            setEditTaskForm({ 
+              task: viewTaskTarget.task || "", 
+              description: viewTaskTarget.description || "", 
+              status: viewTaskTarget.status || "", 
+              due_date: viewTaskTarget.due_date || "", 
+              remark: "" 
+            });
+            setEditTaskErrors({});
+            setShowEditTask(true);
+          }}
+          className="px-5 py-2 rounded-xl bg-[#e98937] hover:bg-[#d4782a] text-white font-semibold text-xs shadow-sm transition"
+        >
+          Edit Task
+        </button>
+      </div>
+
     </div>
   </div>
 )}
-
+{/* ── Edit Task Modal ──────────────────────────────────────────────────── */}
 {/* ── Edit Task Modal ──────────────────────────────────────────────────── */}
 {showEditTask && editTaskTarget && (
-  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
-      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 sticky top-0 bg-white rounded-t-2xl z-10">
-        <h2 className="text-sm font-black uppercase tracking-widest text-slate-700">Edit Task</h2>
-        <button onClick={() => { setShowEditTask(false); setEditTaskTarget(null); }} className="text-slate-400 hover:text-slate-600 transition">
-          <MdClose size={20} />
+  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[85vh] flex flex-col border border-slate-100 overflow-hidden">
+      
+      {/* Header */}
+      <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div>
+          <h2 className="text-base font-bold text-slate-800">Edit Task</h2>
+          <p className="text-xs text-slate-400">Update status, timeline, or add notes</p>
+        </div>
+        <button 
+          onClick={() => { setShowEditTask(false); setEditTaskTarget(null); }} 
+          className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition"
+        >
+          <MdClose size={18} />
         </button>
       </div>
-      <form onSubmit={handleEditTask} className="px-6 py-6 flex flex-col gap-5">
 
-        <div>
-          <label className={labelCls}>Task Name <span className="text-red-400">*</span></label>
-          <input
-            value={editTaskForm.task}
-            onChange={(e) => { setEditTaskForm((p) => ({ ...p, task: e.target.value })); setEditTaskErrors({}); }}
-            className={inputCls(editTaskErrors.task)}
-          />
-          {editTaskErrors.task && <p className={errCls}>{editTaskErrors.task}</p>}
+      {/* Form Body */}
+      <form onSubmit={handleEditTask} className="flex-1 flex flex-col min-h-0">
+        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+          
+          {/* Task Title */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1">
+              Task Title <span className="text-red-500">*</span>
+            </label>
+            <input
+              value={editTaskForm.task}
+              onChange={(e) => { setEditTaskForm((p) => ({ ...p, task: e.target.value })); setEditTaskErrors({}); }}
+              className={`w-full px-3.5 py-2 text-xs rounded-xl border bg-slate-50/50 focus:bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#132ea7]/20 focus:border-[#132ea7] transition ${
+                editTaskErrors.task ? 'border-red-400' : 'border-slate-200'
+              }`}
+            />
+            {editTaskErrors.task && <p className="mt-1 text-[11px] text-red-500">{editTaskErrors.task}</p>}
+          </div>
+
+          {/* 2-Column Inputs for Status & Due Date */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">Status</label>
+              <select
+                value={editTaskForm.status}
+                onChange={(e) => setEditTaskForm((p) => ({ ...p, status: e.target.value }))}
+                className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#132ea7]/20 focus:border-[#132ea7] transition"
+              >
+                {["open", "ongoing", "hold", "closed"].map((s) => (
+                  <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-600 mb-1">
+                Due Date <span className="text-slate-400 font-normal">(Optional)</span>
+              </label>
+              <input
+                type="date"
+                value={editTaskForm.due_date}
+                onChange={(e) => setEditTaskForm((p) => ({ ...p, due_date: e.target.value }))}
+                className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#132ea7]/20 focus:border-[#132ea7] transition"
+              />
+            </div>
+          </div>
+
+          {/* Description */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1">
+              Description <span className="text-slate-400 font-normal">(Optional)</span>
+            </label>
+            <textarea
+              value={editTaskForm.description}
+              onChange={(e) => setEditTaskForm((p) => ({ ...p, description: e.target.value }))}
+              rows={3}
+              className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#132ea7]/20 focus:border-[#132ea7] transition resize-none"
+            />
+          </div>
+
+          {/* Add Remark */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 mb-1">
+              Add New Remark <span className="text-slate-400 font-normal">(Optional)</span>
+            </label>
+            <textarea
+              value={editTaskForm.remark}
+              onChange={(e) => setEditTaskForm((p) => ({ ...p, remark: e.target.value }))}
+              rows={2}
+              placeholder="Write an update..."
+              className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-slate-50/50 focus:bg-white text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#132ea7]/20 focus:border-[#132ea7] transition resize-none"
+            />
+          </div>
+
         </div>
 
-        <div>
-          <label className={labelCls}>Description <span className="text-slate-400 font-medium normal-case tracking-normal">(optional)</span></label>
-          <textarea
-            value={editTaskForm.description}
-            onChange={(e) => setEditTaskForm((p) => ({ ...p, description: e.target.value }))}
-            rows={3} className={inputCls(false)}
-          />
-        </div>
-
-        <div>
-          <label className={labelCls}>Status</label>
-          <select
-            value={editTaskForm.status}
-            onChange={(e) => setEditTaskForm((p) => ({ ...p, status: e.target.value }))}
-            className={inputCls(false)}
+        {/* Action Footer */}
+        <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={() => { setShowEditTask(false); setEditTaskTarget(null); }}
+            className="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 font-medium text-xs transition"
           >
-            {["open", "ongoing", "hold", "closed"].map((s) => (
-              <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className={labelCls}>Due Date <span className="text-slate-400 font-medium normal-case tracking-normal">(optional)</span></label>
-          <input
-            type="date"
-            value={editTaskForm.due_date}
-            onChange={(e) => setEditTaskForm((p) => ({ ...p, due_date: e.target.value }))}
-            className={inputCls(false)}
-          />
-        </div>
-
-        <div>
-          <label className={labelCls}>Add Remark <span className="text-slate-400 font-medium normal-case tracking-normal">(optional)</span></label>
-          <textarea
-            value={editTaskForm.remark}
-            onChange={(e) => setEditTaskForm((p) => ({ ...p, remark: e.target.value }))}
-            rows={2} placeholder="Add a note..." className={inputCls(false)}
-          />
-        </div>
-
-        <div className="flex gap-3 pt-2">
-          <button type="button" onClick={() => { setShowEditTask(false); setEditTaskTarget(null); }}
-            className="flex-1 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-black text-sm uppercase tracking-widest hover:bg-slate-50 transition">
             Cancel
           </button>
-          <button type="submit" disabled={editingTask}
-            className="flex-1 py-3 rounded-xl bg-[#132ea7] text-white font-black text-sm uppercase tracking-widest hover:bg-[#0f2490] transition disabled:opacity-60">
+          <button
+            type="submit"
+            disabled={editingTask}
+            className="px-5 py-2 rounded-xl bg-[#132ea7] hover:bg-[#0f2490] text-white font-semibold text-xs shadow-sm transition disabled:opacity-50"
+          >
             {editingTask ? "Saving..." : "Save Changes"}
           </button>
         </div>
       </form>
+
     </div>
   </div>
 )}
-
 {/* ── View Work Log Modal ── */}
 {showView && (
   <WorkLogViewModal 

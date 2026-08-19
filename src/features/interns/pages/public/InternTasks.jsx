@@ -5,9 +5,12 @@ import { useIntern } from "../../../../context/InternContext";
 import toast from "react-hot-toast";
 import {
   MdAdd, MdClose, MdEdit, MdTask,
-  MdSearch, MdFilterList,
+  MdSearch, MdFilterList,MdAssignment 
 } from "react-icons/md";
 import { formatDate } from "../../../../utils/formatDate";
+import Modal from "../../../../components/ui/Modal";
+import Badge from "../../../../components/ui/Badge";
+import Button from "../../../../components/ui/Button";
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -36,6 +39,32 @@ const initialEditForm = {
   remark:      "",
 };
 
+
+const formatTimelineDate = (dateString) => {
+  if (!dateString) return "";
+  const date = new Date(dateString);
+  const now = new Date();
+
+  const isToday = date.toDateString() === now.toDateString();
+
+  const yesterday = new Date();
+  yesterday.setDate(now.getDate() - 1);
+  const isYesterday = date.toDateString() === yesterday.toDateString();
+
+  const timeStr = date.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  if (isToday) return `Today • ${timeStr}`;
+  if (isYesterday) return `Yesterday • ${timeStr}`;
+
+  const monthDayStr = date.toLocaleDateString([], {
+    month: "short",
+    day: "numeric",
+  });
+  return `${monthDayStr} • ${timeStr}`;
+};
 // ── Component ──────────────────────────────────────────────────────────────────
 
 const InternTasks = () => {
