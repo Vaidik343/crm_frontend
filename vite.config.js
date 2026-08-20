@@ -13,7 +13,7 @@ export default defineConfig({
        devOptions: {
     enabled: false  // ← disables SW in dev/preview mode
   },
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
+      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'Bluebell-Logo.webp'],
       manifest: {
         name: 'Employee Work Management',
         short_name: 'EWM',
@@ -42,7 +42,7 @@ export default defineConfig({
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp}'],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api/]
       }

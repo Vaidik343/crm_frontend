@@ -1,7 +1,7 @@
 // src/components/common/HeaderLogo.jsx
 
 import React from "react";
-
+import logo from "../../../public/Bluebell-Logo.webp";
 const HeaderLogo = ({ 
   title = "CRM", 
   logoClassName = "h-8 w-auto object-contain bg-white rounded-lg p-1 shrink-0 shadow-sm",
@@ -10,11 +10,7 @@ const HeaderLogo = ({
 }) => {
   return (
     <div className={containerClassName}>
-      <img
-        src="/Bluebell-Logo.webp"
-        alt="Bluebell Logo"
-        className={logoClassName}
-      />
+    <img src={logo} alt="Bluebell Logo" className={logoClassName} />
       {title && <span className={titleClassName}>{title}</span>}
     </div>
   );

@@ -535,7 +535,13 @@ const handleEditTask = async (e) => {
         reference_name: intern.reference_name || "",
         reference_contact: intern.reference_contact || "",
       });
-      setSelectedMentorIds(intern.mentor_ids || []);
+setSelectedMentorIds(
+  Array.isArray(intern.mentor_ids)
+    ? intern.mentor_ids
+    : intern.mentor_ids
+      ? [intern.mentor_ids]
+      : []
+);
       setAdminEditErrors({});
     }
   }, [showAdminEdit, intern]);
@@ -2318,6 +2324,106 @@ const handleEditTask = async (e) => {
     </div>
   </div>
 )}
+
+
+{/* ── Create / Edit Project Modal ─────────────────────────────────────── */}
+{showProjectModal && (
+  <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
+    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto">
+      <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 sticky top-0 bg-white rounded-t-2xl z-10">
+        <h2 className="text-sm font-black uppercase tracking-widest text-slate-700">
+          {project ? "Edit Project" : "Create Project"}
+        </h2>
+        <button onClick={() => setShowProjectModal(false)} className="text-slate-400 hover:text-slate-600 transition">
+          <MdClose size={20} />
+        </button>
+      </div>
+
+      <form onSubmit={handleSaveProjectForm} className="px-6 py-6 flex flex-col gap-5">
+
+        {/* Name */}
+        <div>
+          <label className={labelCls}>Project Name <span className="text-red-400">*</span></label>
+          <input
+            value={projectForm.name}
+            onChange={(e) => { setProjectForm((p) => ({ ...p, name: e.target.value })); setProjectFormErrors((p) => ({ ...p, name: "" })); }}
+            placeholder="e.g. Inventory Management System"
+            className={inputCls(projectFormErrors.name)}
+          />
+          {projectFormErrors.name && <p className={errCls}>{projectFormErrors.name}</p>}
+        </div>
+
+        {/* Description */}
+        <div>
+          <label className={labelCls}>Description <span className="text-red-400">*</span></label>
+          <textarea
+            value={projectForm.description}
+            onChange={(e) => { setProjectForm((p) => ({ ...p, description: e.target.value })); setProjectFormErrors((p) => ({ ...p, description: "" })); }}
+            rows={4}
+            placeholder="Brief description of the project..."
+            className={inputCls(projectFormErrors.description)}
+          />
+          {projectFormErrors.description && <p className={errCls}>{projectFormErrors.description}</p>}
+        </div>
+
+        {/* Tech Details */}
+        <div>
+          <label className={labelCls}>Tech Details <span className="text-slate-300 font-medium normal-case tracking-normal">(optional)</span></label>
+          <textarea
+            value={projectForm.tech_details}
+            onChange={(e) => setProjectForm((p) => ({ ...p, tech_details: e.target.value }))}
+            rows={3}
+            placeholder="e.g. React, Node.js, PostgreSQL..."
+            className={inputCls(false)}
+          />
+        </div>
+
+        {/* Mentors */}
+        <div>
+          <label className={labelCls}>Mentors <span className="text-slate-300 font-medium normal-case tracking-normal">(optional)</span></label>
+
+          {selectedProjectMentorIds.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-3">
+              {users.filter((u) => selectedProjectMentorIds.includes(u.id)).map((u) => (
+                <div
+                  key={u.id}
+                  className="flex items-center gap-1.5 bg-[#132ea7]/10 text-[#132ea7] px-3 py-1 rounded-full text-xs font-black cursor-pointer hover:bg-red-100 hover:text-red-500 transition"
+                  onClick={() => setSelectedProjectMentorIds((prev) => prev.filter((mid) => mid !== u.id))}
+                >
+                  {u.name} <MdClose size={12} />
+                </div>
+              ))}
+            </div>
+          )}
+
+          <LocalSearchableSelect
+            options={users.filter((u) => !selectedProjectMentorIds.includes(u.id))}
+            value=""
+            onChange={(uid) => { if (uid) setSelectedProjectMentorIds((prev) => [...prev, uid]); }}
+            getId={(u) => u.id}
+            getLabel={getMemberLabel}
+            getSearchText={(u) => `${u.name} ${u.employee_id}`}
+            placeholder="Search and add mentor..."
+            emptyOptionLabel="None"
+          />
+        </div>
+
+        <div className="flex gap-3 pt-2">
+          <button type="button" onClick={() => setShowProjectModal(false)}
+            className="flex-1 py-3 rounded-xl border-2 border-slate-200 text-slate-600 font-black text-sm uppercase tracking-widest hover:bg-slate-50 transition">
+            Cancel
+          </button>
+          <button type="submit" disabled={savingProject}
+            className="flex-1 py-3 rounded-xl bg-[#132ea7] text-white font-black text-sm uppercase tracking-widest hover:bg-[#0f2490] transition disabled:opacity-60">
+            {savingProject ? "Saving..." : project ? "Update Project" : "Create Project"}
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+)}
+
 {/* ── View Work Log Modal ── */}
 {showView && (
   <WorkLogViewModal 

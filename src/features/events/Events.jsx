@@ -225,7 +225,7 @@ const Events = () => {
         {viewTarget && (
           <div className="space-y-5">
             <div
-              className="rounded-xl overflow-hidden border border-slate-200 shadow-sm flex items-center justify-center bg-slate-50"
+              className="rounded-xl overflow-hidden  border-slate-200  flex items-center justify-center bg-slate-50"
               dangerouslySetInnerHTML={{ __html: viewTarget.card_html }}
             />
             <div className="grid grid-cols-2 gap-3">

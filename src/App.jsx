@@ -33,6 +33,9 @@ import ChangePassword  from "./pages/employee/ChangePassword";
 import EmployeeProfile   from "./pages/employee/EmployeeProfile";
 
 
+import MyInterns       from "./pages/employee/MyInterns.jsx";
+import MyInternDetail  from "./pages/employee/MyInternDetail";
+
 
 import { InternProvider } from "./context/InternContext";
 
@@ -164,6 +167,9 @@ const App = () => {
   <Route path="leaves" element={<MyLeaves />} />
   <Route path="holiday" element={<Holiday />} />
   <Route path="events" element={<Events />} />
+
+  <Route path="my-interns"          element={<MyInterns />} />
+<Route path="my-interns/:intern_id" element={<MyInternDetail />} />
 
   {/* <Route path="password" element={<ChangePassword />} /> */}
   <Route path="/employee/profile" element={<EmployeeProfile />} />

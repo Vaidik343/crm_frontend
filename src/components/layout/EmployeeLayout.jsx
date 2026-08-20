@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import Button from "../ui/Button";
 
 import {  
-   MdLogout, MdTask, MdPhone, MdBook, MdLock, MdDashboard, MdMenu,MdClose, MdFolder, MdNotifications,       MdEventAvailable,
+   MdLogout, MdTask, MdPhone, MdBook, MdLock, MdDashboard, MdMenu,MdClose, MdFolder, MdNotifications,  MdPeopleAlt ,     MdEventAvailable,
   MdHistory,
   MdCelebration, } from "react-icons/md";
 import { useState } from "react";
@@ -21,6 +21,7 @@ const navItems = [
     { to: "/employee/projects", label: "Projects", icon: <MdFolder size={18} /> },
     { to: "/employee/leaves", label: "Leaves", icon: <MdEventAvailable size={18} /> },
     { to: "/employee/holiday", label: "Holidays", icon: <MdCelebration size={18} /> },
+    // { to: "/employee/my-interns", label: "My Interns", icon: <MdPeopleAlt size={18} /> },
     // { to: "/employee/events", label: "Announcement", icon: <MdCelebration size={20} /> }
     //   { to: "/employee/notifications", label: "Notifications", icon: <MdNotifications size={18} /> },
     //   {to: "/Team", label:"Team", }
@@ -124,12 +125,12 @@ const cancelLogout = () => setShowLogoutModal(false);
             </div> */}
 
             {/* Mobile Toggle */}
-            {/* <button
+            <button
                 onClick={() => setMobileOpen(!mobileOpen)}
                 className="min-[1180px]:hidden text-white p-2 rounded-lg hover:bg-white/10 transition"
             >
                 {mobileOpen ? <MdClose size={28} /> : <MdMenu size={28} />}
-            </button> */}
+            </button>
         </div>
     </div>
 
