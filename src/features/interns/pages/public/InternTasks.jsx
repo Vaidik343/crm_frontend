@@ -12,6 +12,7 @@ import Modal from "../../../../components/ui/Modal";
 import Badge from "../../../../components/ui/Badge";
 import Button from "../../../../components/ui/Button";
 
+import { getAssignerType, getAssignerName } from "../../../../utils/internTaskAssigner";
 // ── Constants ──────────────────────────────────────────────────────────────────
 
 const STATUS_OPTIONS = ["open", "ongoing", "hold", "closed"];
@@ -38,6 +39,7 @@ const initialEditForm = {
   due_date:    "",
   remark:      "",
 };
+
 
 
 const formatTimelineDate = (dateString) => {
@@ -93,6 +95,8 @@ const InternTasks = () => {
   const [editForm, setEditForm]         = useState(initialEditForm);
   const [editErrors, setEditErrors]     = useState({});
   const [editing, setEditing]           = useState(false);
+
+
 
   // ── View modal (remarks timeline) ─────────────────────────────────────────
   const [showView, setShowView]         = useState(false);
@@ -327,16 +331,18 @@ const InternTasks = () => {
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        {t.assigned_by ? (
-                          <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-purple-100 text-purple-700">
-                            Admin
-                          </span>
-                        ) : (
-                          <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-slate-100 text-slate-500">
-                            Self
-                          </span>
-                        )}
-                      </td>
+  {(() => {
+    const at = getAssignerType(t);
+    return (
+      <div className="flex flex-col gap-1">
+        <span className="text-xs font-semibold text-slate-700">{getAssignerName(t)}</span>
+        <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full w-fit ${at.bg} ${at.color}`}>
+          {at.label}
+        </span>
+      </div>
+    );
+  })()}
+</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <button
@@ -379,7 +385,14 @@ const InternTasks = () => {
                     {t.project && <span>📁 {t.project.name}</span>}
                     {t.due_date && <span>📅 {formatDate(t.due_date)}</span>}
                     <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${t.assigned_by ? "bg-purple-100 text-purple-700" : "bg-slate-100 text-slate-500"}`}>
-                      {t.assigned_by ? "Admin" : "Self"}
+                      {(() => {
+  const at = getAssignerType(t);
+  return (
+    <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${at.bg} ${at.color}`}>
+      {getAssignerName(t)} · {at.label}
+    </span>
+  );
+})()}
                     </span>
                   </div>
                   <div className="flex gap-3">

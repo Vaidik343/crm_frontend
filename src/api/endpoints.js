@@ -196,11 +196,12 @@ ADMIN_UPDATE: (id) => `/admin/interns/${id}`,
         
         DELETE_TASK: (id) => `/admin/intern/tasks/${id}`,
 
-        MY_MENTORED_INTERNS: '/interns/my-mentored',
-MENTOR_ASSIGN_TASK:  '/intern-tasks/mentor-assign',
-
-
     },
+
+    MY_MENTORED_INTERNS: '/interns/my-mentored',
+MENTOR_ASSIGN_TASK:  '/intern-tasks/mentor-assign',
+INTERN_MENTOR_VIEW:  (id) => `/interns/${id}/mentor-view`,
+INTERN_MENTOR_TASKS: (id) => `/interns/${id}/mentor-tasks`,
 
         INTER_WORKLOGS: {
         CREATE: '/intern/worklogs',

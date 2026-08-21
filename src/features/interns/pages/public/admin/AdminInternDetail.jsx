@@ -7,6 +7,7 @@ import api from "../../../../../api/axiosInstance";
 import { ENDPOINTS } from "../../../../../api/endpoints";
 import toast from "react-hot-toast";
 import LocalSearchableSelect from "../../../../../components/ui/LocalSearchableSelect";
+import { getAssignerType, getAssignerName } from "../../../../../utils/internTaskAssigner";
 import {
   MdArrowBack, MdClose, MdPerson, MdFolder,
   MdTask, MdBook, MdSearch, MdContentCopy,
@@ -168,6 +169,7 @@ const AdminInternDetail = () => {
   const [workLogsTotalPages, setWorkLogsTotalPages] = useState(1);
   const [wlFrom, setWlFrom] = useState("");
   const [wlTo, setWlTo] = useState("");
+
 
   // ── Modals ─────────────────────────────────────────────────────────────────
 
@@ -1273,11 +1275,19 @@ setSelectedMentorIds(
                                 {t.status}
                               </span>
                             </td>
-                            <td className="px-4 py-3">
-                              <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${t.assigned_by ? "bg-purple-100 text-purple-700" : "bg-slate-100 text-slate-500"}`}>
-                                {t.assigned_by ? "Admin" : "Self"}
-                              </span>
-                            </td>
+                         <td className="px-4 py-3">
+  {(() => {
+    const at = getAssignerType(t);
+    return (
+      <div className="flex flex-col gap-1">
+        <span className="text-xs font-semibold text-slate-600">{getAssignerName(t)}</span>
+        <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full w-fit ${at.bg} ${at.color}`}>
+          {at.label}
+        </span>
+      </div>
+    );
+  })()}
+</td>
 
      {/* // AFTER */}
 <td className="px-4 py-3">
@@ -1337,9 +1347,14 @@ setSelectedMentorIds(
                         <div className="flex gap-2 flex-wrap text-xs text-slate-400 font-semibold">
                           {t.project && <span>📁 {t.project.name}</span>}
                           {t.due_date && <span>📅 {formatDate(t.due_date)}</span>}
-                          <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${t.assigned_by ? "bg-purple-100 text-purple-700" : "bg-slate-100 text-slate-500"}`}>
-                            {t.assigned_by ? "Admin" : "Self"}
-                          </span>
+                  {(() => {
+  const at = getAssignerType(t);
+  return (
+    <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${at.bg} ${at.color}`}>
+      {getAssignerName(t)} · {at.label}
+    </span>
+  );
+})()}
                         </div>
 
                         {/* // AFTER the existing chips div in mobile cards, add: */}
@@ -2125,7 +2140,17 @@ setSelectedMentorIds(
           </div>
           <div>
             <span className="block text-[11px] text-slate-400 font-medium mb-0.5">Type</span>
-            <span className="font-semibold text-slate-700">{viewTaskTarget.assigned_by ? "Admin Assigned" : "Self Created"}</span>
+            {(() => {
+  const at = getAssignerType(viewTaskTarget);
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span className="font-semibold text-slate-700">{getAssignerName(viewTaskTarget)}</span>
+      <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full w-fit ${at.bg} ${at.color}`}>
+        {at.label}
+      </span>
+    </div>
+  );
+})()}
           </div>
           <div>
             <span className="block text-[11px] text-slate-400 font-medium mb-0.5">Created</span>

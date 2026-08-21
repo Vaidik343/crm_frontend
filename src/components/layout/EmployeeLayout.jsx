@@ -6,26 +6,15 @@ import {
    MdLogout, MdTask, MdPhone, MdBook, MdLock, MdDashboard, MdMenu,MdClose, MdFolder, MdNotifications,  MdPeopleAlt ,     MdEventAvailable,
   MdHistory,
   MdCelebration, } from "react-icons/md";
-import { useState } from "react";
+import { useState , useEffect } from "react";
 import NotificationBell from "../NotificationBell";
 import HeaderLogo from "../common/HeaderLogo";
 import AnnouncementBell from "../ui/AnnouncementBell";
 import AnnouncementPopup from "../ui/AnnouncementPopup";
+import api from "../../api/axiosInstance";
+import { ENDPOINTS } from "../../api/endpoints";
 
-const navItems = [
-    { to: "/employee/myDashboard", label: "Dashboard", icon: <MdDashboard size={18} /> },
-    { to: "/employee/tasks", label: "My Tasks", icon: <MdTask size={18} /> },
-    { to: "/employee/calls", label: "My Calls", icon: <MdPhone size={18} /> },
-    { to: "/employee/work-logs", label: "Work Log", icon: <MdBook size={18} /> },
-    // { to: "/employee/password", label: "Password", icon: <MdLock size={18} /> },
-    { to: "/employee/projects", label: "Projects", icon: <MdFolder size={18} /> },
-    { to: "/employee/leaves", label: "Leaves", icon: <MdEventAvailable size={18} /> },
-    { to: "/employee/holiday", label: "Holidays", icon: <MdCelebration size={18} /> },
-    // { to: "/employee/my-interns", label: "My Interns", icon: <MdPeopleAlt size={18} /> },
-    // { to: "/employee/events", label: "Announcement", icon: <MdCelebration size={20} /> }
-    //   { to: "/employee/notifications", label: "Notifications", icon: <MdNotifications size={18} /> },
-    //   {to: "/Team", label:"Team", }
-];
+
 
 const EmployeeLayout = () => {
     const { user, logout } = useAuth();
@@ -33,6 +22,8 @@ const EmployeeLayout = () => {
 
     const [showLogoutModal, setShowLogoutModal] = useState(false);
 
+    const [isMentor, setIsMentor] = useState(false);
+const [mentorCheckDone, setMentorCheckDone] = useState(false);
     // Add this handler
 const handleLogout = () => setShowLogoutModal(true);
 const confirmLogout = () => { setShowLogoutModal(false); logout(); };
@@ -43,6 +34,36 @@ const cancelLogout = () => setShowLogoutModal(false);
 //     logout()
 //   }
 // }
+
+
+
+  // Check if this employee has any mentored interns
+
+
+useEffect(() => {
+  api.get(ENDPOINTS.MY_MENTORED_INTERNS)
+    .then(res => setIsMentor((res.data.interns || []).length > 0))
+    .catch(() => setIsMentor(false))
+    .finally(() => setMentorCheckDone(true));
+}, []);
+  const navItems = [
+    { to: "/employee/myDashboard", label: "Dashboard", icon: <MdDashboard size={18} /> },
+    { to: "/employee/tasks", label: "My Tasks", icon: <MdTask size={18} /> },
+    { to: "/employee/calls", label: "My Calls", icon: <MdPhone size={18} /> },
+    { to: "/employee/work-logs", label: "Work Log", icon: <MdBook size={18} /> },
+    // { to: "/employee/password", label: "Password", icon: <MdLock size={18} /> },
+    { to: "/employee/projects", label: "Projects", icon: <MdFolder size={18} /> },
+    { to: "/employee/leaves", label: "Leaves", icon: <MdEventAvailable size={18} /> },
+    { to: "/employee/holiday", label: "Holidays", icon: <MdCelebration size={18} /> },
+    // { to: "/employee/my-interns", label: "My Interns", icon: <MdPeopleAlt size={18} /> },
+
+     ...(mentorCheckDone && isMentor
+  ? [{ to: "/employee/my-interns", label: "My Interns", icon: <MdPeopleAlt size={18} /> }]
+  : []),
+    // { to: "/employee/events", label: "Announcement", icon: <MdCelebration size={20} /> }
+    //   { to: "/employee/notifications", label: "Notifications", icon: <MdNotifications size={18} /> },
+    //   {to: "/Team", label:"Team", }
+];
 
     return (
         <div className="h-screen    bg-slate-50  flex flex-col   ">
