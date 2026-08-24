@@ -38,20 +38,33 @@ const EventTypeBadge = ({ type }) => {
 
 const CardThumbnail = ({ html, onClick }) => {
   return (
-    <div 
-      className="relative w-full aspect-[16/9] overflow-hidden rounded-t-2xl bg-slate-50 cursor-pointer group select-none"
+    <div
+      className="relative w-full aspect-[8/5] overflow-hidden rounded-t-2xl bg-slate-900 cursor-pointer group select-none flex items-center justify-center"
       onClick={onClick}
     >
-      {/* Mathematical ratio scale ensuring 100% gapless canvas fit */}
-      <div className="absolute inset-0 w-full h-full flex items-center justify-center overflow-hidden">
-        <div 
-          className="w-[140%] h-[140%] origin-top-left scale-[0.714] shrink-0 pointer-events-none [&>*]:w-full [&>*]:h-full [&>*]:object-cover [&>*]:rounded-none"
+      {/* Container wrapper dynamically scaling 800x500 canvas to fit thumbnail area */}
+      <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+        <div
+          className="origin-center flex items-center justify-center shrink-0 pointer-events-none"
+          style={{
+            width: "800px",
+            height: "500px",
+            transform: "scale(var(--thumb-scale, 0.4))",
+          }}
+          ref={(node) => {
+            if (!node) return;
+            const parent = node.parentElement;
+            if (parent) {
+              const scale = parent.clientWidth / 800;
+              node.style.setProperty("--thumb-scale", scale);
+            }
+          }}
           dangerouslySetInnerHTML={{ __html: html }}
         />
       </div>
 
       {/* Hover Overlay */}
-      <div className="absolute inset-0 bg-slate-900/20 opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center backdrop-blur-[1px]">
+      <div className="absolute inset-0 z-10 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center backdrop-blur-[2px]">
         <span className="bg-white/95 text-slate-800 rounded-xl px-3.5 py-1.5 font-extrabold text-xs uppercase tracking-wider flex items-center gap-1.5 shadow-md transform translate-y-1 group-hover:translate-y-0 transition-all">
           <MdVisibility size={15} /> View Card
         </span>
@@ -59,7 +72,6 @@ const CardThumbnail = ({ html, onClick }) => {
     </div>
   );
 };
-
 // ─────────────────────────────────────────────
 // CARD PREVIEW MODAL
 // ─────────────────────────────────────────────

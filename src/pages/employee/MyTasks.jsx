@@ -117,7 +117,13 @@ const MyTasks = () => {
 
   const [selectedProject, setSelectedProject] = useState(null);
   const [selectedCall, setSelectedCall] = useState(null);
+  
+
   const [dueFilter, setDueFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+
+  
+const anyFilterActive = !!(dueFilter || statusFilter);
 
   const today = new Date().toISOString().split("T")[0];
   const sevenDaysAgo = (() => {
@@ -161,22 +167,21 @@ const MyTasks = () => {
 
   const noSelf = assignableUsers.filter((u) => u.id !== authUser?.id);
 
-  useEffect(() => {
-    getAllTasks?.(page, dateFrom, dateTo, limit, search, dueFilter);
-    getAllProjects?.();
-    getAllCalls?.();
-    getAllUsers?.();
-  }, [page, dateFrom, dateTo, dueFilter]);
+useEffect(() => {
+  getAllTasks?.(page, dateFrom, dateTo, limit, search, dueFilter, statusFilter, anyFilterActive);
+  getAllProjects?.();
+  getAllCalls?.();
+  getAllUsers?.();
+}, [page, dateFrom, dateTo, dueFilter, statusFilter]);
 
-  useEffect(() => {
-    const debounce = setTimeout(() => {
-      setPage(1);
-      getAllTasks?.(1, dateFrom, dateTo, limit, search, dueFilter);
-    }, 300);
+useEffect(() => {
+  const debounce = setTimeout(() => {
+    setPage(1);
+    getAllTasks?.(1, dateFrom, dateTo, limit, search, dueFilter, statusFilter, anyFilterActive);
+  }, 300);
 
-    return () => clearTimeout(debounce);
-  }, [search]);
-
+  return () => clearTimeout(debounce);
+}, [search]);
   // ── Handlers ──────────────────────────────────────────────────────────────
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -567,28 +572,67 @@ const handleSaveEditRemark = async (remarkId) => {
         </div>
 
         <div className="flex flex-col xl:flex-row lg:items-center justify-between gap-3">
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 shrink-0">
-            {[
-              { value: "", label: "All" },
-              { value: "due_soon", label: "Due Soon" },
-              { value: "overdue", label: "Overdue" },
-            ].map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => {
-                  setPage(1);
-                  setDueFilter(opt.value);
-                }}
-                className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${
-                  dueFilter === opt.value
-                    ? "bg-[#132ea7] text-white shadow-md shadow-[#132ea7]/20"
-                    : "bg-slate-100 text-slate-500 hover:bg-slate-200"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 shrink-0">
+  {/* All — clears everything */}
+  <button
+    onClick={() => {
+      setPage(1);
+      setDueFilter("");
+      setStatusFilter("");
+    }}
+    className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+      !dueFilter && !statusFilter
+        ? "bg-[#132ea7] text-white shadow-md shadow-[#132ea7]/20"
+        : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+    }`}
+  >
+    All
+  </button>
+
+  {/* Divider */}
+  <span className="text-slate-300 font-bold px-0.5">|</span>
+
+  {/* Due date filters */}
+  {[
+    { value: "due_soon", label: "Due Soon" },
+    { value: "overdue",  label: "Overdue" },
+  ].map((opt) => (
+    <button
+      key={opt.value}
+      onClick={() => {
+        setPage(1);
+        setStatusFilter("");          // clear status filter
+        setDueFilter(opt.value);
+      }}
+      className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+        dueFilter === opt.value
+          ? "bg-[#132ea7] text-white shadow-md shadow-[#132ea7]/20"
+          : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+      }`}
+    >
+      {opt.label}
+    </button>
+  ))}
+
+  {/* Divider */}
+  <span className="text-slate-300 font-bold px-0.5">|</span>
+
+  {/* Status filter */}
+  <button
+    onClick={() => {
+      setPage(1);
+      setDueFilter("");              // clear due filter
+      setStatusFilter("ongoing");
+    }}
+    className={`px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all whitespace-nowrap ${
+      statusFilter === "ongoing"
+        ? "bg-[#e98937] text-white shadow-md shadow-[#e98937]/20"
+        : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+    }`}
+  >
+    Ongoing
+  </button>
+</div>
 
           <div className="flex-1 max-w-md w-full">
             <SearchInput

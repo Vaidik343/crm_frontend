@@ -61,34 +61,36 @@ export const TaskProvider = ({ children }) => {
   }, [socket]);
 
   // ── API methods ───────────────────────────────────────────────────────────────
-  const getAllTasks = useCallback(async (pageNumber = 1, from = "", to = "", pageLimit = 10, search = "" , due_filter = "", statusFilter = "") => {
-    try {
-      setLoading(true);
+  const getAllTasks = useCallback(async (pageNumber = 1, from = "", to = "", pageLimit = 10, search = "", dueFilter = "", statusFilter = "", allDates = false) => {
+  try {
+    setLoading(true);
 
-        const params = new URLSearchParams({ page: pageNumber, limit: pageLimit });
-  
-    if (from) params.set("from", from);
-    if (to) params.set("to", to);
-    if (search) params.set("search", search);
-    if (due_filter) params.set("due_filter", due_filter);
-     if (statusFilter) params.set("status_filter", statusFilter);
-         
+    const params = new URLSearchParams({ page: pageNumber, limit: pageLimit });
 
-      const { data } = await api.get(
-        `${ENDPOINTS.TASKS.ALL}?${params.toString()}`
-      );
-      // console.log("🚀 ~ TaskProvider ~ data:", data)
-      setTasks(data.data || []);
-      setPage(data.page || 1);
-      setLimit(data.limit || 10);
-      setTotal(data.total || 0);
-      return data;
-    } catch (error) {
-      throw error;
-    } finally {
-      setLoading(false);
+    if (allDates) {
+      params.set("all_dates", "true");
+    } else {
+      if (from) params.set("from", from);
+      if (to)   params.set("to", to);
     }
-  }, []);
+
+    if (search)       params.set("search",        search);
+    if (dueFilter)    params.set("due_filter",     dueFilter);
+    if (statusFilter) params.set("status_filter",  statusFilter);
+
+    const { data } = await api.get(`${ENDPOINTS.TASKS.ALL}?${params.toString()}`);
+
+    setTasks(data.data || []);
+    setPage(data.page || 1);
+    setLimit(data.limit || 10);
+    setTotal(data.total || 0);
+    return data;
+  } catch (error) {
+    throw error;
+  } finally {
+    setLoading(false);
+  }
+}, []);
 
   const getTaskById = useCallback(async (id) => {
     try {

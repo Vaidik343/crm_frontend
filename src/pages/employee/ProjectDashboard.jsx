@@ -6,9 +6,12 @@ import Badge, { DueDateBadge } from "../../components/ui/Badge";
 import {
   MdFolder, MdGroup, MdPhone, MdWarning, MdAccessTime,
   MdArrowBack, MdAssignment, MdCalendarToday, MdCheckCircle,
-  MdPerson, MdDownload 
+  MdPerson, MdDownload , MdAutoAwesome 
 } from "react-icons/md";
+
+
 import ExportProjectModal from "../../components/ui/ExportProjectModal";
+import AIAnalysisModal from "../../components/ui/AIAnalysisModal";
 const STATUS_COLORS = {
   planning:  "bg-slate-100 text-slate-600",
   active:    "bg-emerald-100 text-emerald-700",
@@ -36,7 +39,8 @@ const ProjectDashboard = () => {
 
   const [showExport, setShowExport] = useState(false);
 
-
+const [showAiAnalysis, setShowAiAnalysis] = useState(false);
+console.log("🚀 ~ ProjectDashboard ~ showAiAnalysis:", showAiAnalysis)
 
   useEffect(() => {
     api.get(`/projects/${id}/dashboard`)
@@ -140,13 +144,24 @@ const dueSoonTasks = (recent_tasks || []).filter((t) => {
         
 
   {/* Export */}
-<button
-  onClick={() => setShowExport(true)}
-  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#132ea7] text-white text-xs font-black uppercase tracking-widest shadow-sm hover:bg-[#132ea7]/90 transition-all mt-1"
->
-  <MdDownload size={16} />
-  Export
-</button>
+{/* Export + AI Analysis buttons */}
+<div className="flex items-center gap-2 mt-1">
+  <button
+    onClick={() => setShowExport(true)}
+    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#132ea7] text-white text-xs font-black uppercase tracking-widest shadow-sm hover:bg-[#132ea7]/90 transition-all"
+  >
+    <MdDownload size={16} />
+    Export
+  </button>
+
+  <button
+    onClick={() => setShowAiAnalysis(true)}
+    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#132ea7] to-[#e98937] text-white text-xs font-black uppercase tracking-widest shadow-sm hover:opacity-90 transition-all"
+  >
+    <MdAutoAwesome size={16} />
+    AI Analysis
+  </button>
+</div>
       </div>
 
 
@@ -441,6 +456,7 @@ const dueSoonTasks = (recent_tasks || []).filter((t) => {
         </div>
       </div>
 <ExportProjectModal show={showExport} onClose={() => setShowExport(false)} project={project} />
+<AIAnalysisModal show={showAiAnalysis} onClose={() => setShowAiAnalysis(false)} project={project} />
     </div>
   );
 };

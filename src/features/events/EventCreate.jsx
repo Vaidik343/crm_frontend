@@ -331,28 +331,45 @@ useEffect(() => {
       )}
 
       {/* Card Preview — AI or selected design live preview */}
-      {(previewHTML || form.design_template) && (
-        <div className="space-y-2">
-          <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
-            {previewHTML ? "AI Preview" : "Selected Design Preview"}
-          </label>
-          <div className="relative overflow-hidden rounded-2xl border border-slate-100 shadow-xl bg-slate-50" style={{ height: "300px" }}>
-            <div
-              style={{
-                transform:       "scale(0.375)",
-                transformOrigin: "top left",
-                width:           "800px",
-                height:          "500px",
-                pointerEvents:   "none",
-              }}
-              dangerouslySetInnerHTML={{
-                __html: previewHTML ||
-                  designPreviews.find((d) => d.design_template === form.design_template)?.html || "",
-              }}
-            />
-          </div>
-        </div>
-      )}
+{(previewHTML || form.design_template) && (
+  <div className="space-y-2">
+    <div className="flex items-center justify-between ml-1">
+      <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block">
+        {previewHTML ? "✨ AI Live Preview" : "Selected Design Preview"}
+      </label>
+      <span className="text-[10px] text-slate-400 font-semibold">
+        Card Aspect Ratio: 800×500
+      </span>
+    </div>
+
+    {/* Scaled Preview Frame */}
+    <div className="relative w-full aspect-[8/5] overflow-hidden rounded-2xl border border-slate-200 bg-slate-900 shadow-xl flex items-center justify-center">
+      <div
+        className="origin-center flex items-center justify-center shrink-0 transition-transform duration-150"
+        style={{
+          width: "800px",
+          height: "500px",
+          transform: "scale(var(--live-scale, 0.75))",
+        }}
+        ref={(node) => {
+          if (!node) return;
+          const parent = node.parentElement;
+          if (parent) {
+            // Calculates scale factor to match container width exactly
+            const scale = parent.clientWidth / 800;
+            node.style.setProperty("--live-scale", scale);
+          }
+        }}
+        dangerouslySetInnerHTML={{
+          __html:
+            previewHTML ||
+            designPreviews.find((d) => d.design_template === form.design_template)?.html ||
+            "",
+        }}
+      />
+    </div>
+  </div>
+)}
 
       {fieldErrors.submit && (
         <p className="text-red-500 text-sm font-bold text-center">{fieldErrors.submit}</p>
