@@ -7,6 +7,7 @@ import {
   MdSearch, MdPerson, MdFilterList,
 } from "react-icons/md";
 import { formatDate } from "../../../../../utils/formatDate";
+import Pagination from "../../../../../components/ui/Pagination";
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -274,27 +275,16 @@ const AdminInterns = () => {
 
         {/* Pagination */}
         {internsTotalPages > 1 && (
-          <div className="px-4 py-4 border-t border-slate-100 flex items-center justify-between gap-2 flex-wrap">
-            <p className="text-xs font-semibold text-slate-400">
-              Page {internsPage} of {internsTotalPages} — {internsTotal} total
-            </p>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setInternsPage((p) => Math.max(1, p - 1))}
-                disabled={internsPage === 1}
-                className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 disabled:opacity-40 transition"
-              >
-                Prev
-              </button>
-              <button
-                onClick={() => setInternsPage((p) => Math.min(internsTotalPages, p + 1))}
-                disabled={internsPage === internsTotalPages}
-                className="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-black uppercase tracking-widest text-slate-600 hover:bg-slate-50 disabled:opacity-40 transition"
-              >
-                Next
-              </button>
-            </div>
-          </div>
+       
+
+ <div className="px-6 py-6 border-t border-slate-100">
+    <Pagination
+      page={internsPage}
+      totalPages={internsTotalPages}
+      onPageChange={(p) => setInternsPage(p)}
+    />
+  </div>
+
         )}
 
       </div>

@@ -35,6 +35,7 @@ import LocalSearchableSelect from "../../components/ui/LocalSearchableSelect";
 import SearchableSelect from "../../components/ui/SearchableSelect";
 import { ENDPOINTS } from "../../api/endpoints";
 import MultiSearchableSelect from "../../components/ui/MultiSearchableSelect";
+import Pagination from "../../components/ui/Pagination";
 
 const CALL_TYPES = {
   inquiry: ["inquiry", "follow-back"],
@@ -824,33 +825,13 @@ if (cc?.task) {
     {/* Pagination */}
     
 {totalPages > 1 && (
-    <div className="flex items-center justify-between px-6 py-6 border-t border-slate-100">
-          <button
-            disabled={page === 1}
-            onClick={() => setPage(page - 1)}
-            className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <div className="flex items-center gap-2">
-            {[...Array(totalPages)].map((_, i) => (
-              <button
-                key={i + 1}
-                onClick={() => setPage(i + 1)}
-                className={`w-10 h-10 rounded-xl font-bold transition-all ${page === i + 1 ? "bg-[#132ea7] text-white" : "bg-slate-100 text-slate-700"}`}
-              >
-                {i + 1}
-              </button>
-            ))}
-          </div>
-          <button
-            disabled={page === totalPages}
-            onClick={() => setPage(page + 1)}
-            className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
+     <div className="px-6 py-6 border-t border-slate-100">
+    <Pagination
+      page={page}
+      totalPages={totalPages}
+      onPageChange={(p) => setPage(p)}
+    />
+  </div>
 )}
     
       
