@@ -25,6 +25,7 @@ import {
 } from "react-icons/md";
 
 import loginBg from "../../../../assets/login.png";
+import logo from "../../../../assets/Bluebell-Logo.webp";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -214,7 +215,7 @@ const LeftPanel = ({ step, steps, isEmployee }) => (
   <div className="hidden lg:flex bg-[#132ea7] w-[35%] xl:w-[32%] shrink-0 p-8 flex-col justify-between h-full">
     <div>
       <div className="flex items-center gap-2.5 mb-8">
-        <img src="/Bluebell-Logo.webp" alt="Bluebell Logo"
+        <img src={logo} alt="Bluebell Logo"
           className="h-9 w-auto object-contain bg-white rounded-lg p-1 shrink-0" />
         <span className="text-white font-black text-sm uppercase tracking-wide">
           {isEmployee ? "Employee Portal" : "Intern Portal"}
@@ -505,7 +506,7 @@ const InternRegister = () => {
           <div className="lg:hidden bg-slate-50 border-b border-slate-100 p-4 shrink-0">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <img src="/Bluebell-Logo.webp" alt="Logo"
+                <img src={logo} alt="Logo"
                   className="h-6 w-auto object-contain bg-white rounded p-0.5 border border-slate-200" />
                 <span className="font-black text-xs uppercase tracking-wide text-[#132ea7]">
                   {isEmployee ? "Employee Portal" : "Intern Portal"}

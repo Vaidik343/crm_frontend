@@ -603,7 +603,7 @@ const Projects = () => {
                           className="px-10 py-6 cursor-pointer"
                           onClick={() =>
                             navigate(
-                              `/employee/projects/${project.id}/dashboard`,
+                              `/admin/projects/${project.id}/dashboard`,
                             )
                           }
                         >

@@ -9,6 +9,7 @@ import { MdVisibility, MdVisibilityOff } from "react-icons/md";
 
 
 import loginBg from '../../../../assets/login.png';
+import logo from '../../../../assets/Bluebell-Logo.webp';
 
 
 const InternLogin = () => {
@@ -96,7 +97,7 @@ const InternLogin = () => {
         <div className="bg-[#132ea7] px-8 py-6">
           <div className="flex items-center gap-3 mb-1">
             <img
-              src="/Bluebell-Logo.webp"
+              src={logo}
               alt="Bluebell Logo"
               className="h-9 w-auto object-contain bg-white rounded-lg p-1 shrink-0"
             />

@@ -1,7 +1,7 @@
 // src/components/common/HeaderLogo.jsx
 
 import React from "react";
-import logo from "../../../public/Bluebell-Logo.webp";
+import logo from "../../assets/Bluebell-Logo.webp";
 const HeaderLogo = ({ 
   title = "CRM", 
   logoClassName = "h-8 w-auto object-contain bg-white rounded-lg p-1 shrink-0 shadow-sm",
