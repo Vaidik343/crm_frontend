@@ -1,10 +1,15 @@
 import { createContext, useContext, useCallback, useMemo } from 'react';
 import api from '../api/axiosInstance';
 import { ENDPOINTS } from '../api/endpoints';
+import toast from 'react-hot-toast';
+import { useState } from 'react';
 
 const EmployeeApplicationContext = createContext(null);
 
 export const EmployeeApplicationProvider = ({ children }) => {
+
+    const [positions, setPositions] = useState([]);
+    const [addresses, setAddresses] = useState([]);
 
   const submitApplication = useCallback(async (formData) => {
       try {
@@ -65,6 +70,44 @@ export const EmployeeApplicationProvider = ({ children }) => {
   
   }, []);
 
+
+//   const fetchLookUps = useCallback(async () => {
+//     try {
+//       const [posRes, addRes] = await Promise.all([
+//         api.get(ENDPOINTS.OFFER_LETTER.POSITIONS),
+//         api.get(ENDPOINTS.OFFER_LETTER.ADDRESSES)
+//       ])
+
+//       setAddresses(posRes.data.positions || []);
+//       setPositions(addRes.data.addresses || []);
+//     } catch (error) {
+//       toast.error('Failed to load lookup data.');
+//       throw error
+//     }
+//   }, []);
+
+// const createPosition = async (name) => {
+//  try {
+//      const {data} = await api.post(ENDPOINTS.OFFER_LETTER.POSITIONS, {name});
+//    setPositions((prev) => [...prev, data.position]);
+//    return data.position;
+//  } catch (error) {
+//    throw error;
+//  }
+// }
+
+// const createAddress = async (name) => {
+//      try {
+//          const {data} = await api.post(ENDPOINTS.OFFER_LETTER.ADDRESSES, {name});
+//    setAddresses((prev) => [...prev, data.address]);
+//    return data.address;
+//      } catch (error) {
+//       throw error;
+//      }
+// }
+
+
+
   const value = useMemo(() => ({
     submitApplication,
     getAllApplications,
@@ -72,6 +115,9 @@ export const EmployeeApplicationProvider = ({ children }) => {
     approveApplication,
     rejectApplication,
     deleteApplication,
+    // fetchLookUps,
+    // createPosition,
+    // createAddress
   }), [
     submitApplication,
     getAllApplications,
@@ -79,6 +125,9 @@ export const EmployeeApplicationProvider = ({ children }) => {
     approveApplication,
     rejectApplication,
     deleteApplication,
+    // fetchLookUps,
+    // createPosition,
+    // createAddress,
   ]);
 
   return (

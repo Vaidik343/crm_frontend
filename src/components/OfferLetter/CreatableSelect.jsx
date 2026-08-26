@@ -1,3 +1,6 @@
+import { useState } from "react";
+import { MdAdd } from "react-icons/md";
+
 const CreatableSelect = ({ label, options, value, onChange, onCreate, placeholder }) => {
   const [input, setInput]     = useState('');
   const [open, setOpen]       = useState(false);

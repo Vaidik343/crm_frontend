@@ -235,6 +235,12 @@ EMPLOYEE_APPLICATIONS: {
 },
 
 
+OFFER_LETTER: {
+  POSITIONS:  '/offer-letter/positions',
+  ADDRESSES:  '/offer-letter/addresses',
+  GENERATE:   (id) => `/offer-letter/generate/${id}`,
+},
+
 
     //probation
      PROBATION: {

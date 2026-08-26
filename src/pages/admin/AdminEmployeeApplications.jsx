@@ -9,6 +9,10 @@ import {
   MdRefresh, MdVisibility, MdDelete,
 } from "react-icons/md";
 
+
+import GenerateOfferLetter from '../../components/OfferLetter/GenerateOfferLetter';
+
+
 // ── helpers ───────────────────────────────────────────────────────────────────
 
 const STATUS_META = {
@@ -244,7 +248,9 @@ const DetailView = ({ application, onBack, onApprove, onReject }) => {
           })}
         </div>
       </div>
-
+{application.status === 'approved' && (
+  <GenerateOfferLetter application={application} />
+)}
       {/* Reject Modal */}
       {showRejectModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
