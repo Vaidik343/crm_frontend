@@ -100,7 +100,7 @@ const REFERENCE_PLACEHOLDERS = {
 // ── Initial state ─────────────────────────────────────────────────────────────
 
 const initialStep1 = {
-  intern_type: "", name: "", email: "", mobile: "",
+  intern_type: "", name: "", email: "", mobile: "",  alternate_number: "",
   enrollment_no: "", degree_type: "",
   reference_type: "", reference_name: "", reference_contact: "",
 };
@@ -362,6 +362,10 @@ const InternRegister = () => {
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(step1.email)) e.email = "Enter a valid email.";
     if (!step1.mobile.trim()) e.mobile = "Mobile number is required.";
     else if (!/^\d{10}$/.test(step1.mobile)) e.mobile = "Enter a valid 10-digit mobile number.";
+
+  //   if (step1.alternate_number && !/^\d{10}$/.test(step1.alternate_number))
+  // e.alternate_number = "Enter a valid 10-digit number.";
+
     if (!step1.enrollment_no.trim()) e.enrollment_no = "Enrollment number is required.";
     if (!step1.degree_type) e.degree_type = "Please select degree type.";
     setErrors1(e);
@@ -390,6 +394,8 @@ const InternRegister = () => {
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(empStep1.email)) e.email = "Enter a valid email.";
     if (!empStep1.phone.trim()) e.phone = "Phone number is required.";
     else if (!/^\d{10}$/.test(empStep1.phone)) e.phone = "Enter a valid 10-digit number.";
+  //   if (empStep1.alternate_number && !/^\d{10}$/.test(step1.alternate_number))
+  // e.alternate_number = "Enter a valid 10-digit number.";
     if (!empStep1.address.trim()) e.address = "Address is required.";
     if (!empStep1.gender) e.gender = "Please select gender.";
     setEmpErrors1(e);
@@ -582,6 +588,16 @@ const InternRegister = () => {
                         <input name="mobile" value={step1.mobile} onChange={handleStep1Change} placeholder="10-digit number" maxLength={10} className={inputCls(errors1.mobile)} />
                         <FieldError msg={errors1.mobile} />
                       </div>
+
+                      <div>
+  <Label>Alternate Number</Label>
+  <input name="alternate_number" value={step1.alternate_number}
+    onChange={handleStep1Change} placeholder="Optional 10-digit number"
+    maxLength={10} className={inputCls(errors1.alternate_number)} />
+  <FieldError msg={errors1.alternate_number} />
+</div>
+
+
                       <div>
                         <Label>Enrollment Number <Required /></Label>
                         <input name="enrollment_no" value={step1.enrollment_no} onChange={handleStep1Change} placeholder="e.g. GTU123456" className={inputCls(errors1.enrollment_no)} />
@@ -812,6 +828,16 @@ const InternRegister = () => {
                         <input name="phone" value={empStep1.phone} onChange={handleEmpStep1Change} placeholder="10-digit number" maxLength={10} className={inputCls(empErrors1.phone)} />
                         <FieldError msg={empErrors1.phone} />
                       </div>
+
+                      <div>
+  <Label>Alternate Number</Label>
+  <input name="alternate_number" value={empStep1.alternate_number}
+    onChange={handleEmpStep1Change} placeholder="Optional 10-digit number"
+    maxLength={10} className={inputCls(empErrors1.alternate_number)} />
+  <FieldError msg={empErrors1.alternate_number} />
+</div>
+
+
                       <div>
                         <Label>Gender <Required /></Label>
                         <select name="gender" value={empStep1.gender} onChange={handleEmpStep1Change} className={inputCls(empErrors1.gender)}>

@@ -7,7 +7,7 @@ import Spinner from "../../components/ui/Spinner";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
 import SearchInput from "../../components/ui/SearchInput";
 import { formatDate } from "../../utils/formatDate";
-import { MdAdd, MdDownload, MdDelete, MdVisibility, MdCampaign } from "react-icons/md";
+import { MdAdd, MdDownload, MdDelete, MdVisibility, MdCampaign, MdEdit } from "react-icons/md";
 import toast from "react-hot-toast";
 import EventCreate from "./EventCreate";
 
@@ -131,7 +131,7 @@ const CardPreviewModal = ({ event, onClose, onExport, exporting }) => {
 const AdminEvents = () => {
   const {
     events, loading, page, limit, total, totalPages,
-    setPage, getAllEvents, deleteEvent, exportPNG, announceEvent 
+    setPage, getAllEvents, deleteEvent, exportPNG, announceEvent, updateEvent
   } = useEvent();
 
   const [showCreate,   setShowCreate]   = useState(false);
@@ -143,6 +143,10 @@ const AdminEvents = () => {
   const [search,       setSearch]       = useState("");
   const [typeFilter,   setTypeFilter]   = useState("");
   const [announcing,   setAnnouncing]   = useState(null);
+
+  const [editTarget, setEditTarget] = useState(null);
+  const[editForm, setEditForm] = useState({});
+  const [editSaving, setEditSaving] = useState(false);
 
   // ── Effects ──
   useEffect(() => {
@@ -158,6 +162,22 @@ const AdminEvents = () => {
   }, [search]);
 
   // ── Handlers ──
+
+  // ── Save edit ──
+  const handleEditSave = async () => {
+    if(!editTarget)  return;
+
+    try {
+      setEditSaving(true);
+      await updateEvent(editTarget.id, editForm);
+      toast.success("Event update.");
+      setEditTarget(null);
+    } catch (error) {
+      toast.error("Failed to update event.");
+    } finally {
+      setEditSaving(false)
+    }
+  }
   const handleDelete = async () => {
     if (!deleteTarget) return;
     try {
@@ -339,6 +359,11 @@ const AdminEvents = () => {
                     <MdVisibility size={15} /> View
                   </button>
 
+                  <button
+                    onClick={ () => openEdit(event)}
+                    title="Edit"
+                    className="p-2 w-9 h-9 rounded-xl bg-blue-50 text-blue-600 font-bold flex items-center justify-center hover:bg-blue-100 transition-all border border-blue-200/50"
+                  ></button>
                   <button 
                     onClick={() => handleExport(event.id, event.display_id)}
                     title="Download PNG"
@@ -386,6 +411,9 @@ const AdminEvents = () => {
         <EventCreate onSuccess={handleCreated} onCancel={() => setShowCreate(false)} />
       </Modal>
 
+
+
+
       <CardPreviewModal
         event={viewTarget}
         onClose={() => setViewTarget(null)}
@@ -400,6 +428,28 @@ const AdminEvents = () => {
         onCancel={() => setDeleteTarget(null)}
         loading={deleting}
       />
+
+      {/* Edit modal */}
+      <Modal show={!!editTarget} onClose={() => setEditTarget(null)} title="Edit Event" size="md">
+
+        {editTarget && (
+          <div className="space-y-5">
+            <label className="text-[11px] font-block text-slate-500 uppercase tracking-widest block ml-1">
+              Name
+            </label>
+
+            <input
+              type="text"
+              value={editForm.employee_name}
+              onChange={(e) => setEditForm((prev) => ({...prev, employee_name: e.target.value}))}
+
+              className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 focus:outline-none focus-ring-4 focus:ring-[#132ea7]"
+            />
+          </div>
+        )}
+
+
+      </Modal>
     </div>
   );
 };

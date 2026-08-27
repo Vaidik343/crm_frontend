@@ -7,6 +7,10 @@
   import SearchableSelect from "../../components/ui/SearchableSelect";
 import Pagination from "../../components/ui/Pagination";
 
+import { useLocation } from "react-router-dom";
+
+
+
   import Input from "../../components/ui/Input";
   import Button from "../../components/ui/Button";
   import Modal from "../../components/ui/Modal";
@@ -112,7 +116,7 @@ import api from "../../api/axiosInstance";
     const [dueFilter, setDueFilter] = useState(""); // "" | "overdue" | "due_soon"
     // console.log("🚀 ~ Tasks ~ dueFilter:", dueFilter)
 
-
+const location = useLocation();
     const [statusLogs, setStatusLogs] = useState([]);
     // console.log("🚀 ~ Tasks ~ statusLogs:", statusLogs)
     const [logsLoading, setLogsLoading] = useState(false)
@@ -156,6 +160,15 @@ const search = filter.toLowerCase().trim();
       return () => clearTimeout(debounce);
     }, [search]);
     
+
+    useEffect(() => {
+  if (!location.state?.openTaskId || !tasks.length) return;
+  const found = tasks.find(t => t.id === location.state.openTaskId);
+  if (found) {
+    setViewTarget(found);
+    window.history.replaceState({}, '');
+  }
+}, [location.state?.openTaskId, tasks]);
 
     useEffect(() => {
     if (!viewTarget?.id) { setStatusLogs([]); return; }

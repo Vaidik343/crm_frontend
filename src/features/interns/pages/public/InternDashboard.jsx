@@ -6,9 +6,10 @@ import { useIntern } from "../../../../context/InternContext";
 import { useInternAuth } from "../../hooks/useInternAuth";
 import toast from "react-hot-toast";
 import {
-  MdPerson, MdFolder, MdTask, MdEdit, MdAdd, MdClose
+  MdPerson, MdFolder, MdTask, MdEdit, MdAdd, MdClose, MdDownload
 } from "react-icons/md";
 import { formatDate } from "../../../../utils/formatDate";
+import ExportInternModal from "../../../../components/ui/ExportInternModal";
 
 const statusColors = {
   open:    "bg-blue-50 text-blue-700 border border-blue-200",
@@ -52,6 +53,7 @@ const InternDashboard = () => {
   const [projectForm, setProjectForm]             = useState(initialProjectForm);
   const [projectErrors, setProjectErrors]         = useState({});
   const [projectSubmitting, setProjectSubmitting] = useState(false);
+  const [showExportModal, setShowExportModal]     = useState(false);
   const isEditingProject = !!project;
 
   useEffect(() => {
@@ -148,12 +150,20 @@ const InternDashboard = () => {
             Here's an overview of your active project and internship progress.
           </p>
         </div>
-        <button
-          onClick={() => navigate("/intern/tasks")}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#132ea7] text-white text-xs font-black uppercase tracking-widest hover:bg-[#0f2490] transition"
-        >
-          <MdTask size={14} /> View All Tasks
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowExportModal(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-700 text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition shadow-sm"
+          >
+            <MdDownload size={16} className="text-[#132ea7]" /> Export My Report
+          </button>
+          <button
+            onClick={() => navigate("/intern/tasks")}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#132ea7] text-white text-xs font-black uppercase tracking-widest hover:bg-[#0f2490] transition shadow-md shadow-[#132ea7]/20"
+          >
+            <MdTask size={14} /> View All Tasks
+          </button>
+        </div>
       </div>
 
       {/* ── Main Grid ── */}
@@ -465,6 +475,14 @@ const InternDashboard = () => {
           </div>
         </div>
       )}
+
+      {/* ── Export Intern Modal ── */}
+      <ExportInternModal
+        show={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        intern={profile}
+        isSelfExport={true}
+      />
 
     </div>
   );

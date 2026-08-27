@@ -1056,7 +1056,7 @@ const handleSaveEditRemark = async (remarkId) => {
                                       {formatTimelineDate(r.created_at)}
                                     </span>
 
-                                    {isOwnerOrAdmin && r.id && (
+                                    {/* {isOwnerOrAdmin && r.id && (
                                       <button
                                         type="button"
                                         onClick={() => {
@@ -1068,7 +1068,7 @@ const handleSaveEditRemark = async (remarkId) => {
                                       >
                                         <MdEdit size={14} />
                                       </button>
-                                    )}
+                                    )} */}
                                   </div>
                                 </div>
                               </>

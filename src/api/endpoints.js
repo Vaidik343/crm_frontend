@@ -162,6 +162,8 @@ ADMIN_UPDATE: (id) => `/admin/interns/${id}`,
         EXTEND: (id) => `/admin/interns/${id}/extend`,
         DEACTIVATE: (id) => `/admin/interns/${id}/deactivate`,
         REGENERATE_TOKEN: (id) => `/admin/interns/${id}/regenerate-token`,
+        EXPORT: (id) => `/admin/interns/${id}/export`,
+        MY_EXPORT: '/intern/export',
 
 
         
@@ -222,6 +224,8 @@ INTERN_MENTOR_TASKS: (id) => `/interns/${id}/mentor-tasks`,
   ANNOUNCE: (id) => `/events/${id}/announce`,
   AI_PREVIEW:  "/events/ai-preview",
   DESIGN_PREVIEWS: "/events/design-previews",
+
+  UPDATE: (id) => `/events/${id}`,
 },
 
 

@@ -11,11 +11,12 @@ import { getAssignerType, getAssignerName } from "../../../../../utils/internTas
 import {
   MdArrowBack, MdClose, MdPerson, MdFolder,
   MdTask, MdBook, MdSearch, MdContentCopy,
-  MdCheck,
+  MdCheck, MdDownload,
 } from "react-icons/md";
 import { formatDate } from "../../../../../utils/formatDate";
 
-import WorkLogViewModal  from "../../../../../components/worklogs/WorkLogViewModal"
+import WorkLogViewModal  from "../../../../../components/worklogs/WorkLogViewModal";
+import ExportInternModal from "../../../../../components/ui/ExportInternModal";
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -236,6 +237,7 @@ const [editTaskTarget, setEditTaskTarget] = useState(null);
 const [editTaskForm, setEditTaskForm] = useState({ task: "", description: "", status: "", due_date: "", remark: "" });
 const [editTaskErrors, setEditTaskErrors] = useState({});
 const [editingTask, setEditingTask] = useState(false);
+const [showExportModal, setShowExportModal] = useState(false);
 
 
 
@@ -818,21 +820,30 @@ setSelectedMentorIds(
     <div className="flex flex-col gap-6">
 
       {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={() => navigate("/admin/interns")}
-          className="p-2 rounded-xl hover:bg-slate-100 text-slate-500 transition"
-        >
-          <MdArrowBack size={20} />
-        </button>
-        <div>
-          <h1 className="text-xl font-black text-slate-800 uppercase tracking-tight">
-            Intern Detail
-          </h1>
-          <p className="text-sm text-slate-400 font-medium mt-0.5">
-            {intern.display_id || "—"}
-          </p>
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate("/admin/interns")}
+            className="p-2 rounded-xl hover:bg-slate-100 text-slate-500 transition"
+          >
+            <MdArrowBack size={20} />
+          </button>
+          <div>
+            <h1 className="text-xl font-black text-slate-800 uppercase tracking-tight">
+              Intern Detail
+            </h1>
+            <p className="text-sm text-slate-400 font-medium mt-0.5">
+              {intern.display_id || "—"}
+            </p>
+          </div>
         </div>
+
+        <button
+          onClick={() => setShowExportModal(true)}
+          className="flex items-center gap-2 px-5 py-2.5 bg-[#132ea7] text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-[#0f2490] transition-all shadow-md shadow-[#132ea7]/20"
+        >
+          <MdDownload size={18} /> Export Excel Report
+        </button>
       </div>
 
       {/* ── Profile card ────────────────────────────────────────────────────── */}
@@ -867,6 +878,7 @@ setSelectedMentorIds(
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-6 gap-y-4 mt-5">
               {[
                 ["Mobile", intern.mobile || "—"],
+                ["Alternate No.", intern.alternate_number || "—"],
                 ["Enrollment No.", intern.enrollment_no || "—"],
                 ["Degree", intern.degree_type ? intern.degree_type.charAt(0).toUpperCase() + intern.degree_type.slice(1) : "—"],
                 // ["College",       intern.college_name  || "—"],
@@ -2459,6 +2471,14 @@ setSelectedMentorIds(
     }}
   />
 )}
+
+{/* ── Export Intern Modal ── */}
+<ExportInternModal
+  show={showExportModal}
+  onClose={() => setShowExportModal(false)}
+  intern={intern}
+  isSelfExport={false}
+/>
     </div>
   );
 };

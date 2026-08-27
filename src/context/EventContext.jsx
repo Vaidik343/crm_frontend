@@ -131,6 +131,33 @@ const getDesignPreviews = useCallback(async (event_type, employee_name, message)
 }, []);
 
 
+const updateEvent = useCallback(async (id, payload) => {
+  try {
+    const { data } = await api.patch(ENDPOINTS.EVENTS.UPDATE(id), payload);
+    setEvents((prev) =>
+      prev.map((e) => e.id === id ? { ...e, ...data.event } : e)
+    );
+    return data;
+  } catch (error) {
+    throw error;
+  }
+}, []);
+
+
+const updateEvent1 = useCallback(async (id, payload) => {
+  try {
+    const {data} = await api.put(ENDPOINTS.EVENTS.UPDATE(id), payload);
+    setEvents((prev) => 
+       prev.map((e) => e.id === id ? {...e, ...data.event} : e)
+    );
+
+    return data;
+  } catch (error) {
+    throw error;
+  }
+})
+
+
   const value = useMemo(() => ({
     events,
     loading,

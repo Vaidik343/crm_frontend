@@ -156,6 +156,7 @@ const DetailView = ({ application, onBack, onApprove, onReject }) => {
             {[
               ["Email", application.email, <MdEmail className="text-slate-400" />],
               ["Phone", application.phone, <MdPhone className="text-slate-400" />],
+              ["Alternate No.", application.alternate_number || "—", <MdPhone className="text-slate-400" />],
               ["Gender", fmt(application.gender), null],
               ["Address", application.address, <MdLocationOn className="text-slate-400" />],
             ].map(([label, val, icon]) => (
