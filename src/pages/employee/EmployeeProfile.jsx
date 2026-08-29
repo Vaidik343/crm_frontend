@@ -35,7 +35,7 @@ const LABEL_CLS =
   "text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 block";
 
 const EmployeeProfile = () => {
-  const { user, logout, setUser } = useAuth();
+  const { user, logout, setUser, updateStoredUser  } = useAuth();
   const { updateUser } = useUser();
   const { changeOwnPassword } = usePassword();
 
@@ -53,7 +53,9 @@ const EmployeeProfile = () => {
     date_of_birth: "",
     address: "",
   });
+  console.log("🚀 ~ EmployeeProfile ~ profile:", profile)
   const [profileError, setProfileError] = useState("");
+  console.log("🚀 ~ EmployeeProfile ~ profileError:", profileError)
 
   // ── Password state ──
   const [pwForm, setPwForm] = useState({ current: "", next: "", confirm: "" });
@@ -106,7 +108,8 @@ const EmployeeProfile = () => {
         date_of_birth: profile.date_of_birth || null,
         address: profile.address.trim() || null,
       });
-      if (setUser && res?.user) setUser((prev) => ({ ...prev, ...res.user }));
+      console.log("🚀 ~ handleProfileSave ~ res:", res)
+      if (res?.user) updateStoredUser(res.user);
       setAlert({ type: "success", message: "Profile updated successfully." });
       setEditing(false);
     } catch (err) {

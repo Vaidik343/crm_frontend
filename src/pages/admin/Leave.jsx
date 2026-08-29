@@ -13,8 +13,9 @@ import {
   MdVisibility,
   MdCheck,
   MdClose,
-  MdUndo ,
-  MdTimeline,MdDownload, MdPictureAsPdf, MdTableChart  
+  MdUndo,
+  MdTimeline,
+  MdTableChart,
 } from "react-icons/md";
 import { formatDate, formatDateTime } from "../../utils/formatDate";
 import LeaveCalculation from "../../components/leaves/LeaveCalculation";
@@ -32,37 +33,30 @@ const LEAVE_TYPE_LABELS = {
   exchange: "Exchange",
 };
 
-
 const DURATION_LABELS = {
-  full_day: "Full Day",
-  first_half: "First Half",
+  full_day:    "Full Day",
+  first_half:  "First Half",
   second_half: "Second Half",
 };
 
 const STATUS_BADGE_MAP = {
-  pending: "pending",
-  approved: "active",
-  rejected: "danger",
+  pending:   "pending",
+  approved:  "active",
+  rejected:  "danger",
   cancelled: "inactive",
 };
 
-const LEAVE_TYPE_BADGE_MAP = {
-  paid: "primary",
-  unpaid: "secondary",
-  exchange: "ongoing",
-};
-
 const MONTHS = [
-  { value: "", label: "All Months" },
-  { value: "1", label: "January" },
-  { value: "2", label: "February" },
-  { value: "3", label: "March" },
-  { value: "4", label: "April" },
-  { value: "5", label: "May" },
-  { value: "6", label: "June" },
-  { value: "7", label: "July" },
-  { value: "8", label: "August" },
-  { value: "9", label: "September" },
+  { value: "",   label: "All Months" },
+  { value: "1",  label: "January" },
+  { value: "2",  label: "February" },
+  { value: "3",  label: "March" },
+  { value: "4",  label: "April" },
+  { value: "5",  label: "May" },
+  { value: "6",  label: "June" },
+  { value: "7",  label: "July" },
+  { value: "8",  label: "August" },
+  { value: "9",  label: "September" },
   { value: "10", label: "October" },
   { value: "11", label: "November" },
   { value: "12", label: "December" },
@@ -70,11 +64,25 @@ const MONTHS = [
 
 const currentYear = new Date().getFullYear();
 const YEARS = [
-  { value: "", label: "All Years" },
-  { value: String(currentYear), label: String(currentYear) },
-  { value: String(currentYear - 1), label: String(currentYear - 1) },
-  { value: String(currentYear - 2), label: String(currentYear - 2) },
+  { value: "",                       label: "All Years" },
+  { value: String(currentYear),      label: String(currentYear) },
+  { value: String(currentYear - 1),  label: String(currentYear - 1) },
+  { value: String(currentYear - 2),  label: String(currentYear - 2) },
 ];
+
+// ─────────────────────────────────────────────
+// HELPER — is reverse allowed for this leave?
+// Only allowed if leave's start_date is in the current calendar month+year
+// ─────────────────────────────────────────────
+const isReverseAllowed = (leave) => {
+  if (!leave?.start_date) return false;
+  const now       = new Date();
+  const leaveDate = new Date(leave.start_date);
+  return (
+    leaveDate.getMonth()     === now.getMonth() &&
+    leaveDate.getFullYear()  === now.getFullYear()
+  );
+};
 
 // ─────────────────────────────────────────────
 // MAIN COMPONENT
@@ -94,132 +102,55 @@ const Leaves = () => {
     rejectLeave,
     getLeaveLogs,
     getLeaveCalculation,
-    reverseLeave
+    reverseLeave,
   } = useLeave();
 
   const { users, getAllUsers } = useUser();
 
   // ── Modal state ──
-  const [viewTarget, setViewTarget] = useState(null);
-  const [rejectTarget, setRejectTarget] = useState(null);
-  const [confirmApprove, setConfirmApprove] = useState(null);
+  const [viewTarget,      setViewTarget]      = useState(null);
+  const [rejectTarget,    setRejectTarget]    = useState(null);
+  const [confirmApprove,  setConfirmApprove]  = useState(null);
 
   // ── Action state ──
   const [rejectionReason, setRejectionReason] = useState("");
-  const [rejectionError, setRejectionError] = useState("");
-  const [approving, setApproving] = useState(false);
-  const [rejecting, setRejecting] = useState(false);
-  const [alert, setAlert] = useState({ type: "", message: "" });
+  const [rejectionError,  setRejectionError]  = useState("");
+  const [approving,       setApproving]       = useState(false);
+  const [rejecting,       setRejecting]       = useState(false);
+  const [alert,           setAlert]           = useState({ type: "", message: "" });
 
   // ── Logs state ──
-  const [logs, setLogs] = useState([]);
+  const [logs,        setLogs]        = useState([]);
   const [logsLoading, setLogsLoading] = useState(false);
 
   // ── Left panel filters ──
   const [statusFilter, setStatusFilter] = useState("");
-  const [typeFilter, setTypeFilter] = useState("");
-  const [monthFilter, setMonthFilter] = useState("");
-  const [yearFilter, setYearFilter] = useState("");
+  const [typeFilter,   setTypeFilter]   = useState("");
+  const [monthFilter,  setMonthFilter]  = useState("");
+  const [yearFilter,   setYearFilter]   = useState("");
 
-  // ── Right panel state (Multi-Year calculation) ──
-  const currentYear = new Date().getFullYear();
-  const [calculationData, setCalculationData] = useState([]);
+  // ── Right panel state ──
+  const [calculationData,    setCalculationData]    = useState([]);
   const [calculationLoading, setCalculationLoading] = useState(false);
-  const [calcEmployee, setCalcEmployee] = useState("");
-  const [calcYears, setCalcYears] = useState([String(currentYear)]);
-  const [calcMonth, setCalcMonth] = useState("");
+  const [calcEmployee,       setCalcEmployee]       = useState("");
+  const [calcYears,          setCalcYears]          = useState([String(currentYear)]);
+  const [calcMonth,          setCalcMonth]          = useState("");
 
+  // ── Download state ──
+  const [downloading, setDownloading] = useState(false);
 
-const [downloading, setDownloading] = useState(false);
-console.log("🚀 ~ Leaves ~ downloading:", downloading)
-
-
-const [reverseTarget, setReverseTarget] = useState(null);
-console.log("🚀 ~ Leaves ~ reverseTarget:", reverseTarget)
-const [reverseReason, setReverseReason] = useState('');
-const [reverseError, setReverseError]   = useState('');
-console.log("🚀 ~ Leaves ~ reverseError:", reverseError)
-const [reversing, setReversing]         = useState(false);
-console.log("🚀 ~ Leaves ~ reversing:", reversing)
-
-
-
-
-const handleDownloadExcel = async () => {
-  try {
-    setDownloading("excel");
-    const params = new URLSearchParams();
-    console.log("🚀 ~ handleDownloadExcel ~ calcEmployee:", calcEmployee)
-    if (calcEmployee) params.set("user_id", calcEmployee);
-
-    const response = await api.get(
-      `${ENDPOINTS.EXPORT.LEAVES_EXCEL}?${params.toString()}`,
-      { responseType: "blob" }
-    );
-    const url  = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement("a");
-    link.href  = url;
-    const empLabel = calcEmployee
-      ? users.find((u) => u.id === calcEmployee)?.employee_id || "employee"
-      : "all_employees";
-    link.setAttribute("download", `${empLabel}_leaves.xlsx`);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.URL.revokeObjectURL(url);
-    toast.success("Excel downloaded!");
-  } catch (err) {
-  console.log("🚀 ~ handleDownloadExcel ~ err:", err)
-    toast.error("Failed to download Excel.");
-  } finally {
-    setDownloading(false);
-  }
-};
-
-const handleDownloadPDF = async () => {
-  try {
-    setDownloading("pdf");
-    const params = new URLSearchParams();
-    if (calcEmployee) params.set("user_id", calcEmployee);
-
-    const response = await api.get(
-      `${ENDPOINTS.EXPORT.LEAVES_PDF}?${params.toString()}`,
-      { responseType: "blob" }
-    );
-    const url  = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement("a");
-    link.href  = url;
-    const empLabel = calcEmployee
-      ? users.find((u) => u.id === calcEmployee)?.employee_id || "employee"
-      : "all_employees";
-    link.setAttribute("download", `${empLabel}_leaves.pdf`);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.URL.revokeObjectURL(url);
-    toast.success("PDF downloaded!");
-  } catch {
-    toast.error("Failed to download PDF.");
-  } finally {
-    setDownloading(false);
-  }
-};
-
-  const handleAddYear = (yr) => {
-    if (!yr) return;
-    setCalcYears((prev) => (prev.includes(String(yr)) ? prev : [...prev, String(yr)]));
-  };
-
-  const handleRemoveYear = (yr) => {
-    setCalcYears((prev) => (prev.length > 1 ? prev.filter((y) => y !== String(yr)) : prev));
-  };
+  // ── Reverse state ──
+  const [reverseTarget, setReverseTarget] = useState(null);
+  const [reverseReason, setReverseReason] = useState("");
+  const [reverseError,  setReverseError]  = useState("");
+  const [reversing,     setReversing]     = useState(false);
 
   // ── Helpers ──
   const buildFilters = () => ({
-    status: statusFilter,
+    status:     statusFilter,
     leave_type: typeFilter,
-    month: monthFilter,
-    year: yearFilter,
+    month:      monthFilter,
+    year:       yearFilter,
   });
 
   const SELECT_CLS =
@@ -244,21 +175,22 @@ const handleDownloadPDF = async () => {
             try {
               const response = await getLeaveCalculation({
                 user_id: calcEmployee,
-                year: yr,
-                month: calcMonth,
+                year:    yr,
+                month:   calcMonth,
               });
               const item = response.result?.[0] || {};
               return {
-                year: yr,
+                year:      yr,
                 employees: item.employees || [],
-                totals: item.totals || {},
-                type: item.type || "yearly",
+                totals:    item.totals    || {},
+                type:      item.type      || "yearly",
               };
-            } catch (err) {
+            } catch {
               return { year: yr, employees: [], totals: {}, type: "yearly" };
             }
           })
         );
+        console.log("🚀 ~ fetchCalculation ~ results:", results)
         setCalculationData(results);
       } catch (error) {
         console.log(error);
@@ -278,25 +210,64 @@ const handleDownloadPDF = async () => {
       .finally(() => setLogsLoading(false));
   }, [viewTarget?.id]);
 
+  // ── Download ──
+  const handleDownloadExcel = async () => {
+    try {
+      setDownloading("excel");
+      const params = new URLSearchParams();
+      if (calcEmployee) params.set("user_id", calcEmployee);
+      const response = await api.get(
+        `${ENDPOINTS.EXPORT.LEAVES_EXCEL}?${params.toString()}`,
+        { responseType: "blob" }
+      );
+      const url  = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href  = url;
+      const empLabel = calcEmployee
+        ? users.find((u) => u.id === calcEmployee)?.employee_id || "employee"
+        : "all_employees";
+      link.setAttribute("download", `${empLabel}_leaves.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success("Excel downloaded!");
+    } catch {
+      toast.error("Failed to download Excel.");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  // ── Year handlers ──
+  const handleAddYear = (yr) => {
+    if (!yr) return;
+    setCalcYears((prev) => (prev.includes(String(yr)) ? prev : [...prev, String(yr)]));
+  };
+
+  const handleRemoveYear = (yr) => {
+    setCalcYears((prev) => (prev.length > 1 ? prev.filter((y) => y !== String(yr)) : prev));
+  };
+
   // ── Approve ──
-const handleApprove = async () => {
-  if (!confirmApprove) return;
-  try {
-    setApproving(true);
-    const result = await approveLeave(confirmApprove.id);
-    const sandwichMsg = result?.sandwich_days > 0
-      ? ` (+ ${result.sandwich_days} sandwich day(s) charged)`
-      : '';
-    setAlert({ type: 'success', message: `Leave ${confirmApprove.display_id} approved.${sandwichMsg}` });
-    if (viewTarget?.id === confirmApprove.id)
-      setViewTarget((prev) => ({ ...prev, status: 'approved' }));
-  } catch (err) {
-    setAlert({ type: 'danger', message: err?.response?.data?.message || 'Failed to approve.' });
-  } finally {
-    setApproving(false);
-    setConfirmApprove(null);
-  }
-};
+  const handleApprove = async () => {
+    if (!confirmApprove) return;
+    try {
+      setApproving(true);
+      const result = await approveLeave(confirmApprove.id);
+      const sandwichMsg = result?.sandwich_days > 0
+        ? ` (+ ${result.sandwich_days} sandwich day(s) charged)`
+        : "";
+      setAlert({ type: "success", message: `Leave ${confirmApprove.display_id} approved.${sandwichMsg}` });
+      if (viewTarget?.id === confirmApprove.id)
+        setViewTarget((prev) => ({ ...prev, status: "approved" }));
+    } catch (err) {
+      setAlert({ type: "danger", message: err?.response?.data?.message || "Failed to approve." });
+    } finally {
+      setApproving(false);
+      setConfirmApprove(null);
+    }
+  };
 
   // ── Reject ──
   const openReject = (leave) => {
@@ -306,12 +277,11 @@ const handleApprove = async () => {
   };
 
   const handleReject = async () => {
-    if (!rejectionReason.trim()) { setRejectionError("Rejection reason is required."); return; }
-    if (rejectionReason.trim().length < 5) { setRejectionError("Must be at least 5 characters."); return; }
+    if (!rejectionReason.trim())              { setRejectionError("Rejection reason is required."); return; }
+    if (rejectionReason.trim().length < 5)    { setRejectionError("Must be at least 5 characters."); return; }
     try {
       setRejecting(true);
-     const rl =  await rejectLeave(rejectTarget.id, rejectionReason.trim());
-      console.log("🚀 ~ handleReject ~ rl:", rl)
+      await rejectLeave(rejectTarget.id, rejectionReason.trim());
       setAlert({ type: "success", message: `Leave ${rejectTarget.display_id} rejected.` });
       if (viewTarget?.id === rejectTarget.id)
         setViewTarget((prev) => ({ ...prev, status: "rejected", rejection_reason: rejectionReason.trim() }));
@@ -369,58 +339,45 @@ const handleApprove = async () => {
     <div className="space-y-5 animate-in fade-in duration-700">
 
       {/* ── Header ── */}
-      
-<div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-6">
-  <div>
-    <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-1 uppercase">
-      Leave <span className="text-[#132ea7]">Requests</span>
-    </h2>
-    <p className="text-slate-500 font-bold text-base">Total: {total}</p>
-  </div>
+      <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-6">
+        <div>
+          <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-1 uppercase">
+            Leave <span className="text-[#132ea7]">Requests</span>
+          </h2>
+          <p className="text-slate-500 font-bold text-base">Total: {total}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleDownloadExcel}
+            disabled={!!downloading}
+            className="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all disabled:opacity-50 shadow-lg shadow-green-600/20"
+          >
+            <MdTableChart size={16} />
+            {downloading ? "Downloading..." : "Excel"}
+          </button>
+        </div>
+      </div>
 
-  {/* ← ADD THIS */}
-  <div className="flex items-center gap-2">
-    <button
-      onClick={handleDownloadExcel}
-      disabled={downloading}
-      className="flex items-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all disabled:opacity-50 shadow-lg shadow-green-600/20"
-    >
-      <MdTableChart size={16} />
-      {downloading ? "Downloading..." : "Excel"}
-    </button>
-    {/* <button
-      onClick={handleDownloadPDF}
-      disabled={downloading}
-      className="flex items-center gap-2 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-xl text-xs font-black uppercase tracking-widest transition-all disabled:opacity-50 shadow-lg shadow-red-500/20"
-    >
-      <MdPictureAsPdf size={16} />
-      {downloading ? "Downloading..." : "PDF"}
-    </button> */}
-  </div>
-</div>
       <Alert
         type={alert.type}
         message={alert.message}
         onClose={() => setAlert({ type: "", message: "" })}
       />
 
-      {/* ── TWO PANEL LAYOUT (Top Aligned) ── */}
+      {/* ── TWO PANEL LAYOUT ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
 
-        {/* ════════════════════════════════════
-            LEFT PANEL — Leave Requests Table
-        ════════════════════════════════════ */}
+        {/* ════════ LEFT PANEL ════════ */}
         <div className="lg:col-span-7 xl:col-span-6">
 
-          {/* ── Desktop Table Card ── */}
+          {/* Desktop Table */}
           <div className="hidden md:block bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-lg shadow-slate-200/40">
 
-            {/* Header inside Left Card (Filters on Left Side) */}
+            {/* Filters header */}
             <div className="p-3.5 px-4 border-b border-slate-100 flex items-center justify-between gap-3 bg-slate-50/50">
               <span className="text-xs font-black text-slate-700 uppercase tracking-wider">
                 All Requests
               </span>
-
               <div className="flex items-center gap-2">
                 <select
                   value={statusFilter}
@@ -433,19 +390,15 @@ const handleApprove = async () => {
                   <option value="rejected">Rejected</option>
                   <option value="cancelled">Cancelled</option>
                 </select>
-
                 <select
                   value={typeFilter}
                   onChange={(e) => { setPage(1); setTypeFilter(e.target.value); }}
                   className={SELECT_CLS}
                 >
                   <option value="">All Types</option>
-                  {/* <option value="paid">Paid</option>
-                  <option value="unpaid">Unpaid</option> */}
-                    <option value="paid">Casual</option>
+                  <option value="paid">Casual</option>
                   <option value="exchange">Exchange</option>
                 </select>
-
                 {(statusFilter || typeFilter || monthFilter || yearFilter) && (
                   <button
                     onClick={() => { setStatusFilter(""); setTypeFilter(""); setMonthFilter(""); setYearFilter(""); setPage(1); }}
@@ -462,21 +415,11 @@ const handleApprove = async () => {
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-slate-100/80">
-                    <th className="w-32 px-3.5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">
-                      Requested On
-                    </th>
-                    <th className="w-44 px-3.5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">
-                      Employee
-                    </th>
-                    <th className="w-28 px-3.5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">
-                      Leave Type
-                    </th>
-                    <th className="w-28 px-3.5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">
-                      Status
-                    </th>
-                    <th className="w-24 px-3.5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap text-right">
-                      Actions
-                    </th>
+                    <th className="w-32 px-3.5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Requested On</th>
+                    <th className="w-44 px-3.5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Employee</th>
+                    <th className="w-28 px-3.5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Leave Type</th>
+                    <th className="w-28 px-3.5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">Status</th>
+                    <th className="w-24 px-3.5 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
@@ -520,36 +463,19 @@ const handleApprove = async () => {
                           </div>
                         </td>
 
-                      {/* Leave Type cell */}
-{/* <td className="px-4 py-3">
-  <div className="flex flex-col gap-0.5 items-start">
-    <Badge
-      value={leave.reason_type === "emergency" ? "Emergency" : "Casual"}
-      overrideColor={leave.reason_type === "emergency" ? "danger" : "primary"}
-    />
-    {leave.leave_type === "exchange" && (
-      <Badge value="Exchange" overrideColor="ongoing" />
-    )}
-  </div>
-</td> */}
+                        {/* Leave Type */}
+                        <td className="px-4 py-3">
+                          <div className="flex flex-col gap-0.5 items-start">
+                            <Badge
+                              value={leave.reason_type === "emergency" ? "Emergency" : "Casual"}
+                              overrideColor={leave.reason_type === "emergency" ? "danger" : "primary"}
+                            />
+                            {leave.leave_type === "exchange" && (
+                              <Badge value="Exchange" overrideColor="ongoing" />
+                            )}
+                          </div>
+                        </td>
 
-<td className="px-4 py-3">
-  <div className="flex flex-col gap-0.5 items-start">
-    <Badge
-      value={leave.reason_type === "emergency" ? "Emergency" : "Casual"}
-      overrideColor={leave.reason_type === "emergency" ? "danger" : "primary"}
-    />
-    {leave.leave_type === "exchange" && (
-      <Badge value="Exchange" overrideColor="ongoing" />
-    )}
-    {/* {leave.leave_type !== "exchange" && leave.status === "approved" && (
-      <Badge
-        value={leave.leave_type === "unpaid" ? "Unpaid" : "Paid"}
-        overrideColor={leave.leave_type === "unpaid" ? "secondary" : "primary"}
-      />
-    )} */}
-  </div>
-</td>
                         {/* Status */}
                         <td className="px-4 py-3">
                           <Badge value={leave.status} overrideColor={STATUS_BADGE_MAP[leave.status]} />
@@ -566,15 +492,16 @@ const handleApprove = async () => {
                               <MdVisibility size={16} />
                             </button>
 
-                            {leave.status === 'approved' && (
-  <button
-    onClick={() => { setReverseTarget(leave); setReverseReason(''); setReverseError(''); }}
-    title="Reverse Approval"
-    className="p-1.5 rounded-lg bg-slate-50 text-slate-400 hover:bg-orange-50 hover:text-orange-500 transition-all"
-  >
-    <MdUndo size={16} />
-  </button>
-)}
+                            {/* Reverse — only approved + current month */}
+                            {leave.status === "approved" && isReverseAllowed(leave) && (
+                              <button
+                                onClick={() => { setReverseTarget(leave); setReverseReason(""); setReverseError(""); }}
+                                title="Reverse Approval"
+                                className="p-1.5 rounded-lg bg-slate-50 text-slate-400 hover:bg-orange-50 hover:text-orange-500 transition-all"
+                              >
+                                <MdUndo size={16} />
+                              </button>
+                            )}
 
                             {leave.status === "pending" && (
                               <>
@@ -605,7 +532,7 @@ const handleApprove = async () => {
             {totalPages > 1 && <Pagination />}
           </div>
 
-          {/* ── Mobile Cards ── */}
+          {/* Mobile Cards */}
           <div className="md:hidden space-y-3">
             {loading ? (
               <div className="flex justify-center py-12"><Spinner size="lg" /></div>
@@ -628,18 +555,17 @@ const handleApprove = async () => {
                   </div>
                   <div className="space-y-1.5 text-sm">
                     {[
-                      
-{
-  label: "Leave Type",
-  value: leave.leave_type === "exchange"
-    ? "Exchange"
-    : leave.status === "approved"
-      ? (leave.leave_type === "paid" ? "Paid" : "Unpaid")
-      : "—"
-},
-                      { label: "Duration", value: DURATION_LABELS[leave.duration] },
-                      { label: "From", value: formatDate(leave.start_date) },
-                      { label: "To", value: formatDate(leave.end_date) },
+                      {
+                        label: "Leave Type",
+                        value: leave.leave_type === "exchange"
+                          ? "Exchange"
+                          : leave.status === "approved"
+                            ? (leave.leave_type === "paid" ? "Paid" : "Unpaid")
+                            : "—",
+                      },
+                      { label: "Duration",  value: DURATION_LABELS[leave.duration] },
+                      { label: "From",      value: formatDate(leave.start_date) },
+                      { label: "To",        value: formatDate(leave.end_date) },
                       { label: "Requested", value: formatDate(leave.created_at || leave.createdAt) },
                     ].map((item) => (
                       <div key={item.label} className="flex justify-between items-center">
@@ -649,18 +575,36 @@ const handleApprove = async () => {
                     ))}
                   </div>
                   <div className="flex gap-2 pt-2 border-t border-slate-100">
-                    <button onClick={() => setViewTarget(leave)} className="flex-1 h-9 rounded-xl bg-slate-50 text-slate-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all">
+                    <button
+                      onClick={() => setViewTarget(leave)}
+                      className="flex-1 h-9 rounded-xl bg-slate-50 text-slate-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-[#132ea7]/10 hover:text-[#132ea7] transition-all"
+                    >
                       <MdVisibility size={14} /> View
                     </button>
                     {leave.status === "pending" && (
                       <>
-                        <button onClick={() => setConfirmApprove(leave)} className="flex-1 h-9 rounded-xl bg-green-50 text-green-600 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-green-100 transition-all">
+                        <button
+                          onClick={() => setConfirmApprove(leave)}
+                          className="flex-1 h-9 rounded-xl bg-green-50 text-green-600 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-green-100 transition-all"
+                        >
                           <MdCheck size={14} /> Approve
                         </button>
-                        <button onClick={() => openReject(leave)} className="flex-1 h-9 rounded-xl bg-red-50 text-red-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-red-100 transition-all">
+                        <button
+                          onClick={() => openReject(leave)}
+                          className="flex-1 h-9 rounded-xl bg-red-50 text-red-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-red-100 transition-all"
+                        >
                           <MdClose size={14} /> Reject
                         </button>
                       </>
+                    )}
+                    {/* Reverse on mobile — current month only */}
+                    {leave.status === "approved" && isReverseAllowed(leave) && (
+                      <button
+                        onClick={() => { setReverseTarget(leave); setReverseReason(""); setReverseError(""); }}
+                        className="flex-1 h-9 rounded-xl bg-orange-50 text-orange-500 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-orange-100 transition-all"
+                      >
+                        <MdUndo size={14} /> Reverse
+                      </button>
                     )}
                   </div>
                 </div>
@@ -672,9 +616,7 @@ const handleApprove = async () => {
         </div>
         {/* END LEFT PANEL */}
 
-        {/* ════════════════════════════════════
-            RIGHT PANEL — Leave Calculation
-        ════════════════════════════════════ */}
+        {/* ════════ RIGHT PANEL ════════ */}
         <div className="lg:col-span-5 xl:col-span-6">
           <LeaveCalculation
             users={users}
@@ -691,20 +633,21 @@ const handleApprove = async () => {
             onMonthChange={setCalcMonth}
           />
         </div>
-        {/* END RIGHT PANEL */}
 
       </div>
       {/* END TWO PANEL LAYOUT */}
 
 
-      {/* ══════════════════════════════════════════
+      {/* ══════════════════════════════════
           MODALS
-      ══════════════════════════════════════════ */}
+      ══════════════════════════════════ */}
 
-      {/* ── View / Detail Modal ── */}
+      {/* View Modal */}
       <Modal show={!!viewTarget} onClose={() => setViewTarget(null)} title="Leave Details" size="lg">
         {viewTarget && (
           <div className="space-y-6 py-2">
+
+            {/* Header */}
             <div className="flex items-start gap-4 pb-5 border-b border-slate-100">
               <div className="w-14 h-14 rounded-2xl bg-[#132ea7] text-white flex items-center justify-center shrink-0 shadow-xl shadow-[#132ea7]/20">
                 <MdBeachAccess size={26} />
@@ -712,15 +655,18 @@ const handleApprove = async () => {
               <div className="flex-1">
                 <div className="flex items-center gap-3 flex-wrap">
                   <h3 className="text-xl font-black text-slate-800">
-  {viewTarget.reason_type === "emergency" ? "Emergency" : "Casual"} Leave
-</h3>
+                    {viewTarget.reason_type === "emergency" ? "Emergency" : "Casual"} Leave
+                  </h3>
                   <Badge value={viewTarget.status} overrideColor={STATUS_BADGE_MAP[viewTarget.status]} />
                   {viewTarget.reason_type === "emergency" && <Badge value="Emergency" overrideColor="danger" />}
                 </div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 font-mono">{viewTarget.display_id || "—"}</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 font-mono">
+                  {viewTarget.display_id || "—"}
+                </p>
               </div>
             </div>
 
+            {/* Employee */}
             <div className="flex items-center gap-4 bg-slate-50 rounded-2xl p-4">
               <div className="w-12 h-12 rounded-full bg-[#132ea7]/10 flex items-center justify-center text-[#132ea7] font-black text-lg">
                 {viewTarget.employee?.name?.charAt(0) || "?"}
@@ -731,14 +677,20 @@ const handleApprove = async () => {
               </div>
             </div>
 
+            {/* Info Grid */}
             <div className="grid grid-cols-2 gap-3">
               {[
                 { label: "Reason Type", value: viewTarget.reason_type === "emergency" ? "Emergency" : "Casual" },
-{ label: "Leave Type",  value: viewTarget.leave_type === "exchange" ? "Exchange" : "System Assigned (Paid / Unpaid)" },
-                { label: "Duration", value: DURATION_LABELS[viewTarget.duration] },
-                { label: "From", value: formatDate(viewTarget.start_date) },
-                { label: "To", value: formatDate(viewTarget.end_date) },
-                { label: "Requested", value: formatDate(viewTarget.created_at || viewTarget.createdAt) },
+                { label: "Leave Type",  value: viewTarget.leave_type === "exchange" ? "Exchange" : "System Assigned (Paid / Unpaid)" },
+                { label: "Duration",    value: DURATION_LABELS[viewTarget.duration] },
+                { label: "From",        value: formatDate(viewTarget.start_date) },
+                { label: "To",          value: formatDate(viewTarget.end_date) },
+                // ── Exchange date details ──
+                ...(viewTarget.leave_type === "exchange" && viewTarget.exchange_with_date ? [
+                  { label: "Working On", value: formatDate(viewTarget.exchange_with_date) },
+                  { label: "Taking Off", value: formatDate(viewTarget.start_date) },
+                ] : []),
+                { label: "Requested",   value: formatDate(viewTarget.created_at || viewTarget.createdAt) },
                 { label: "Approved By", value: viewTarget.approver?.name || "—" },
                 { label: "Approved At", value: viewTarget.approved_at ? formatDate(viewTarget.approved_at) : "—" },
               ].map((item) => (
@@ -749,61 +701,53 @@ const handleApprove = async () => {
               ))}
             </div>
 
+            {/* Reason */}
             <div className="bg-[#132ea7] rounded-2xl p-6 text-white">
               <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-2">Reason</p>
               <p className="font-medium leading-relaxed opacity-90">{viewTarget.reason}</p>
             </div>
 
+            {/* Emergency doc */}
+            {viewTarget?.reason_type === "emergency" && (
+              <div className="bg-red-50 border border-red-100 rounded-2xl p-4 space-y-3">
+                <div>
+                  <p className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">Emergency Type</p>
+                  <p className="font-black text-red-600 text-sm capitalize">
+                    {viewTarget.emergency_sub_type === "medical" ? "Medical" : "Other"}
+                  </p>
+                </div>
+                {(() => {
+                  const docUrl = typeof viewTarget.medical_document === "string"
+                    ? viewTarget.medical_document
+                    : viewTarget.medical_document?.url || null;
+                  const baseUrl = import.meta.env.VITE_API_URL?.replace("/api/", "").replace("/api", "");
+                  return docUrl ? (
+                    <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Medical Document</p>
+                        <p className="text-[10px] font-bold text-green-600 uppercase tracking-widest">✓ Submitted</p>
+                      </div>
+                      <a
+                        href={`${baseUrl}${docUrl}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-black text-[#132ea7] hover:underline flex items-center gap-1.5"
+                      >
+                        View Document
+                      </a>
+                    </div>
+                  ) : (
+                    <div className="bg-amber-50 rounded-xl p-3 border border-amber-100">
+                      <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest">
+                        ⚠️ Document not yet uploaded by employee
+                      </p>
+                    </div>
+                  );
+                })()}
+              </div>
+            )}
 
-  {viewTarget?.reason_type === "emergency" && (
-  <div className="bg-red-50 border border-red-100 rounded-2xl p-4 space-y-3">
-    <div>
-      <p className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">
-        Emergency Type
-      </p>
-      <p className="font-black text-red-600 text-sm capitalize">
-        {viewTarget.emergency_sub_type === "medical" ? "Medical" : "Other"}
-      </p>
-    </div>
-
-    {(() => {
-      const docUrl = typeof viewTarget.medical_document === "string"
-        ? viewTarget.medical_document
-        : viewTarget.medical_document?.url || null;
-
-      const baseUrl = import.meta.env.VITE_API_URL?.replace("/api/", "").replace("/api", "");
-
-      return docUrl ? (
-        <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 flex items-center justify-between gap-3">
-          <div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">
-              Medical Document
-            </p>
-            <p className="text-[10px] font-bold text-green-600 uppercase tracking-widest">
-              ✓ Submitted
-            </p>
-          </div>
-          
-          <a
-            href={`${baseUrl}${docUrl}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs font-black text-[#132ea7] hover:underline flex items-center gap-1.5"
-          >
-            View Document
-          </a>
-        </div>
-      ) : (
-        <div className="bg-amber-50 rounded-xl p-3 border border-amber-100">
-          <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest">
-            ⚠️ Document not yet uploaded by employee
-          </p>
-        </div>
-      );
-    })()}
-  </div>
-)}
-
+            {/* Rejection reason */}
             {viewTarget.status === "rejected" && viewTarget.rejection_reason && (
               <div className="bg-red-50 border border-red-100 rounded-2xl p-5">
                 <p className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-2">Rejection Reason</p>
@@ -811,31 +755,52 @@ const handleApprove = async () => {
               </div>
             )}
 
+            {/* Approve / Reject actions */}
             {viewTarget.status === "pending" && (
               <div className="flex gap-3 pt-2">
-                <Button variant="ghost" className="flex-1 h-12 font-black uppercase tracking-widest text-sm border border-red-200 text-red-500 hover:bg-red-50"
-                  onClick={() => { openReject(viewTarget); setViewTarget(null); }}>
+                <Button
+                  variant="ghost"
+                  className="flex-1 h-12 font-black uppercase tracking-widest text-sm border border-red-200 text-red-500 hover:bg-red-50"
+                  onClick={() => { openReject(viewTarget); setViewTarget(null); }}
+                >
                   <MdClose size={18} className="mr-1" /> Reject
                 </Button>
-                <Button variant="primary" className="flex-[2] h-12 bg-green-600 hover:bg-green-700 shadow-lg shadow-green-600/20 font-black uppercase tracking-widest text-sm"
-                  onClick={() => { setConfirmApprove(viewTarget); setViewTarget(null); }}>
+                <Button
+                  variant="primary"
+                  className="flex-[2] h-12 bg-green-600 hover:bg-green-700 shadow-lg shadow-green-600/20 font-black uppercase tracking-widest text-sm"
+                  onClick={() => { setConfirmApprove(viewTarget); setViewTarget(null); }}
+                >
                   <MdCheck size={18} className="mr-1" /> Approve
                 </Button>
               </div>
             )}
 
+            {/* Reverse action — current month only */}
+            {viewTarget.status === "approved" && isReverseAllowed(viewTarget) && (
+              <div className="flex gap-3 pt-2">
+                <Button
+                  variant="ghost"
+                  className="flex-1 h-12 font-black uppercase tracking-widest text-sm border border-orange-200 text-orange-500 hover:bg-orange-50"
+                  onClick={() => {
+                    setReverseTarget(viewTarget);
+                    setReverseReason("");
+                    setReverseError("");
+                    setViewTarget(null);
+                  }}
+                >
+                  <MdUndo size={18} className="mr-1" /> Reverse Approval
+                </Button>
+              </div>
+            )}
 
-            {viewTarget.status === 'approved' && (
-  <div className="flex gap-3 pt-2">
-    <Button
-      variant="ghost"
-      className="flex-1 h-12 font-black uppercase tracking-widest text-sm border border-orange-200 text-orange-500 hover:bg-orange-50"
-      onClick={() => { setReverseTarget(viewTarget); setReverseReason(''); setReverseError(''); setViewTarget(null); }}
-    >
-      <MdUndo size={18} className="mr-1" /> Reverse Approval
-    </Button>
-  </div>
-)}
+            {/* Past month approved — show info instead of button */}
+            {viewTarget.status === "approved" && !isReverseAllowed(viewTarget) && (
+              <div className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  Reversal not available — this leave is from a past month.
+                </p>
+              </div>
+            )}
 
             {/* Activity Logs */}
             <div className="space-y-3">
@@ -854,8 +819,8 @@ const handleApprove = async () => {
                     {logs.map((log) => (
                       <div key={log.id} className="flex gap-4 relative">
                         <div className={`w-4 h-4 rounded-full shrink-0 mt-0.5 z-10 ring-2 ring-white ${
-                          log.action === "approved" ? "bg-green-500" :
-                          log.action === "rejected" ? "bg-red-500" :
+                          log.action === "approved"  ? "bg-green-500" :
+                          log.action === "rejected"  ? "bg-red-500"   :
                           log.action === "cancelled" ? "bg-slate-400" : "bg-[#132ea7]"
                         }`} />
                         <div className="flex-1 bg-slate-50 rounded-xl p-3 border border-slate-100">
@@ -863,7 +828,9 @@ const handleApprove = async () => {
                             <p className="text-xs font-black text-slate-700 capitalize">{log.action}</p>
                             <p className="text-[10px] font-bold text-slate-400">{formatDateTime(log.created_at)}</p>
                           </div>
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">By {log.user?.name || "—"}</p>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">
+                            By {log.user?.name || "—"}
+                          </p>
                           {log.remarks?.rejection_reason && (
                             <div className="mt-2 pt-2 border-t border-slate-200">
                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Reason</p>
@@ -879,13 +846,15 @@ const handleApprove = async () => {
             </div>
 
             <div className="flex justify-end pt-2">
-              <Button variant="ghost" onClick={() => setViewTarget(null)} className="font-black uppercase tracking-widest text-xs">Close</Button>
+              <Button variant="ghost" onClick={() => setViewTarget(null)} className="font-black uppercase tracking-widest text-xs">
+                Close
+              </Button>
             </div>
           </div>
         )}
       </Modal>
 
-      {/* ── Reject Modal ── */}
+      {/* Reject Modal */}
       <Modal show={!!rejectTarget} onClose={() => setRejectTarget(null)} title="Reject Leave Request" size="sm">
         {rejectTarget && (
           <div className="space-y-5">
@@ -911,7 +880,11 @@ const handleApprove = async () => {
               <Button variant="ghost" className="flex-1 font-black uppercase tracking-widest text-sm" onClick={() => setRejectTarget(null)} disabled={rejecting}>
                 Cancel
               </Button>
-              <Button className="flex-[2] h-14 bg-red-500 hover:bg-red-600 text-white shadow-xl shadow-red-500/20 font-black uppercase tracking-[0.2em] text-sm rounded-2xl" onClick={handleReject} loading={rejecting}>
+              <Button
+                className="flex-[2] h-14 bg-red-500 hover:bg-red-600 text-white shadow-xl shadow-red-500/20 font-black uppercase tracking-[0.2em] text-sm rounded-2xl"
+                onClick={handleReject}
+                loading={rejecting}
+              >
                 Confirm Reject
               </Button>
             </div>
@@ -919,9 +892,7 @@ const handleApprove = async () => {
         )}
       </Modal>
 
-      
-
-      {/* ── Approve Confirm ── */}
+      {/* Approve Confirm */}
       <ConfirmDialog
         show={!!confirmApprove}
         message={`Approve leave request "${confirmApprove?.display_id}" for ${confirmApprove?.employee?.name}?`}
@@ -930,68 +901,72 @@ const handleApprove = async () => {
         loading={approving}
       />
 
-{/* ── Reverse Approval Modal ── */}
-<Modal show={!!reverseTarget} onClose={() => setReverseTarget(null)} title="Reverse Leave Approval" size="sm">
-  {reverseTarget && (
-    <div className="space-y-5">
-      <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
-        <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-1">Warning</p>
-        <p className="text-sm font-bold text-amber-700">
-          This will cancel the approved leave and restore the employee's balance including any sandwich days charged.
-        </p>
-      </div>
-      <div className="bg-slate-50 rounded-2xl p-4">
-        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Leave Request</p>
-        <p className="font-black text-slate-800">{reverseTarget.display_id}</p>
-        <p className="text-sm font-bold text-slate-500 mt-1">
-          {reverseTarget.employee?.name} — {LEAVE_TYPE_LABELS[reverseTarget.leave_type]}
-        </p>
-      </div>
-      <Textarea
-        label="Reason for Reversal"
-        value={reverseReason}
-        onChange={(e) => { setReverseReason(e.target.value); if (reverseError) setReverseError(''); }}
-        placeholder="Why is this approval being reversed..."
-        rows={3}
-        required
-      />
-      {reverseError && (
-        <p className="text-red-500 text-[10px] font-bold uppercase ml-1 -mt-3">{reverseError}</p>
-      )}
-      <div className="flex gap-4 pt-2 border-t border-slate-50">
-        <Button
-          variant="ghost"
-          className="flex-1 font-black uppercase tracking-widest text-sm"
-          onClick={() => { setReverseTarget(null); setReverseReason(''); setReverseError(''); }}
-          disabled={reversing}
-        >
-          Cancel
-        </Button>
-        <Button
-          className="flex-[2] h-14 bg-orange-500 hover:bg-orange-600 text-white shadow-xl shadow-orange-500/20 font-black uppercase tracking-[0.2em] text-sm rounded-2xl"
-          loading={reversing}
-          onClick={async () => {
-            if (!reverseReason.trim()) { setReverseError('Reason is required.'); return; }
-            if (reverseReason.trim().length < 5) { setReverseError('Must be at least 5 characters.'); return; }
-            try {
-              setReversing(true);
-              await reverseLeave(reverseTarget.id, reverseReason.trim());
-              setAlert({ type: 'success', message: `Leave ${reverseTarget.display_id} reversed and balance restored.` });
-              setReverseTarget(null);
-              setReverseReason('');
-            } catch (err) {
-              setAlert({ type: 'danger', message: err?.response?.data?.message || 'Failed to reverse.' });
-            } finally {
-              setReversing(false);
-            }
-          }}
-        >
-          Confirm Reverse
-        </Button>
-      </div>
-    </div>
-  )}
-</Modal>
+      {/* Reverse Modal */}
+      <Modal show={!!reverseTarget} onClose={() => setReverseTarget(null)} title="Reverse Leave Approval" size="sm">
+        {reverseTarget && (
+          <div className="space-y-5">
+            <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
+              <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-1">Warning</p>
+              <p className="text-sm font-bold text-amber-700">
+                This will cancel the approved leave and restore the employee's balance including any sandwich days charged.
+              </p>
+            </div>
+            <div className="bg-slate-50 rounded-2xl p-4">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Leave Request</p>
+              <p className="font-black text-slate-800">{reverseTarget.display_id}</p>
+              <p className="text-sm font-bold text-slate-500 mt-1">
+                {reverseTarget.employee?.name} — {LEAVE_TYPE_LABELS[reverseTarget.leave_type]}
+              </p>
+              <p className="text-xs font-bold text-slate-400 mt-1">
+                {formatDate(reverseTarget.start_date)} — {formatDate(reverseTarget.end_date)}
+              </p>
+            </div>
+            <Textarea
+              label="Reason for Reversal"
+              value={reverseReason}
+              onChange={(e) => { setReverseReason(e.target.value); if (reverseError) setReverseError(""); }}
+              placeholder="Why is this approval being reversed..."
+              rows={3}
+              required
+            />
+            {reverseError && (
+              <p className="text-red-500 text-[10px] font-bold uppercase ml-1 -mt-3">{reverseError}</p>
+            )}
+            <div className="flex gap-4 pt-2 border-t border-slate-50">
+              <Button
+                variant="ghost"
+                className="flex-1 font-black uppercase tracking-widest text-sm"
+                onClick={() => { setReverseTarget(null); setReverseReason(""); setReverseError(""); }}
+                disabled={reversing}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="flex-[2] h-14 bg-orange-500 hover:bg-orange-600 text-white shadow-xl shadow-orange-500/20 font-black uppercase tracking-[0.2em] text-sm rounded-2xl"
+                loading={reversing}
+                onClick={async () => {
+                  if (!reverseReason.trim())           { setReverseError("Reason is required."); return; }
+                  if (reverseReason.trim().length < 5) { setReverseError("Must be at least 5 characters."); return; }
+                  try {
+                    setReversing(true);
+                    await reverseLeave(reverseTarget.id, reverseReason.trim());
+                    setAlert({ type: "success", message: `Leave ${reverseTarget.display_id} reversed and balance restored.` });
+                    setReverseTarget(null);
+                    setReverseReason("");
+                  } catch (err) {
+                    setAlert({ type: "danger", message: err?.response?.data?.message || "Failed to reverse." });
+                  } finally {
+                    setReversing(false);
+                  }
+                }}
+              >
+                Confirm Reverse
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
     </div>
   );
 };

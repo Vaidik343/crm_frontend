@@ -236,6 +236,7 @@ EMPLOYEE_APPLICATIONS: {
   APPROVE:    (id) => `/employee-applications/${id}/approve`,
   REJECT:     (id) => `/employee-applications/${id}/reject`,
   DELETE:     (id) => `/employee-applications/${id}`,
+  APPROVED_PENDING: '/employee-applications/approved-pending',
 },
 
 

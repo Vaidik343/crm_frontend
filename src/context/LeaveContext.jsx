@@ -138,6 +138,7 @@ const uploadLeaveDocument = useCallback(async (id, file) => {
   
   // admin
 
+    
  const getAllLeaves = useCallback(async (
     pageNumber = 1,
     pageLimit  = 10,
@@ -158,6 +159,7 @@ const uploadLeaveDocument = useCallback(async (id, file) => {
 
       
 const { data } = await api.get(`${ENDPOINTS.LEAVES.ALL}?${params.toString()}`)
+console.log("🚀 ~ LeaveProvider ~ data:", data)
 
       setLeaves(data.data || []);
       setPage(data.page     || 1);
@@ -166,6 +168,7 @@ const { data } = await api.get(`${ENDPOINTS.LEAVES.ALL}?${params.toString()}`)
 
       return data;
     } catch (error) {
+      console.log("🚀 ~ LeaveProvider ~ error:", error)
       throw error;
     } finally {
       setLoading(false);

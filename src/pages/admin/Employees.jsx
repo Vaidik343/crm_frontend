@@ -83,6 +83,10 @@ const [probationForm, setProbationForm]     = useState({ probation_start: "", pr
 const [probationErrors, setProbationErrors] = useState({});
 const [startingProbation, setStartingProbation] = useState(false);
 
+const [approvedApps, setApprovedApps]     = useState([]);
+const [appsLoading, setAppsLoading]       = useState(false);
+const [selectedApp, setSelectedApp]       = useState(null);
+
 
   useEffect(() => {
     getAllUsers();
@@ -128,14 +132,25 @@ if (!isValid) {
   return errors;
 };
 
-  const openCreate = () => {
-    setEditTarget(null);
-    setForm(initialForm);
-    setFieldErrors({});
-    setCredentials(null);
-    setShowModal(true);
-  };
+const openCreate = async () => {
+  setEditTarget(null);
+  setForm(initialForm);
+  setFieldErrors({});
+  setCredentials(null);
+  setSelectedApp(null);
+  setShowModal(true);
 
+  // fetch approved applications not yet converted
+  setAppsLoading(true);
+  try {
+    const { data } = await api.get(ENDPOINTS.EMPLOYEE_APPLICATIONS.APPROVED_PENDING);
+    setApprovedApps(data.applications || []);
+  } catch {
+    setApprovedApps([]);
+  } finally {
+    setAppsLoading(false);
+  }
+};
   const openEdit = (user) => {
     setEditTarget(user);
     setForm({
@@ -689,6 +704,89 @@ const errCls   = "text-xs text-red-500 font-bold mt-1 ml-1 uppercase";
         ) : (
           <form onSubmit={handleSubmit} noValidate className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {!editTarget && (
+  <div>
+    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1 mb-2">
+      From Application{' '}
+      <span className="text-slate-300 font-bold normal-case tracking-normal">(optional — pick to auto-fill)</span>
+    </label>
+
+    {appsLoading ? (
+      <div className="text-xs text-slate-400 py-2">Loading approved applications...</div>
+    ) : approvedApps.length === 0 ? (
+      <div className="text-xs text-slate-400 bg-slate-50 rounded-xl px-4 py-3 border border-slate-100">
+        No approved applications waiting — fill manually below.
+      </div>
+    ) : (
+      <div className="flex flex-col gap-2 max-h-48 overflow-y-auto pr-1">
+        {approvedApps.map((app) => (
+          <button
+            key={app.id}
+            type="button"
+            onClick={() => {
+              if (selectedApp?.id === app.id) {
+                // deselect — clear form
+                setSelectedApp(null);
+                setForm(initialForm);
+              } else {
+                setSelectedApp(app);
+                setForm((prev) => ({
+                  ...prev,
+                  name:   `${app.first_name} ${app.last_name}`,
+                  email:  app.email,
+                  mobile: app.phone,
+                }));
+              }
+            }}
+            className={`w-full text-left px-4 py-3 rounded-xl border-2 transition-colors ${
+              selectedApp?.id === app.id
+                ? 'border-[#132ea7] bg-[#132ea7]/5'
+                : 'border-slate-100 bg-slate-50 hover:border-[#132ea7]/30'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-black text-slate-800 text-sm">
+                  {app.first_name} {app.last_name}
+                </p>
+                <p className="text-[11px] text-slate-400 mt-0.5">
+                  {app.email} · {app.phone}
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 bg-slate-200 px-2 py-0.5 rounded-md">
+                  {app.display_id}
+                </span>
+                {selectedApp?.id === app.id && (
+                  <span className="text-[#132ea7]">
+                    <MdCheckCircle size={18} />
+                  </span>
+                )}
+              </div>
+            </div>
+            {app.work_location_type && (
+              <p className="text-[10px] text-slate-400 mt-1">
+                {app.work_location_type === 'in_office'
+                  ? '🏢 In Office'
+                  : `🏠 Out of Office${app.work_location ? ` — ${app.work_location}` : ''}`}
+              </p>
+            )}
+          </button>
+        ))}
+      </div>
+    )}
+
+    {selectedApp && (
+      <button
+        type="button"
+        onClick={() => { setSelectedApp(null); setForm(initialForm); }}
+        className="mt-1.5 text-[10px] font-black text-slate-400 hover:text-red-500 uppercase tracking-widest"
+      >
+        ✕ Clear selection
+      </button>
+    )}
+  </div>
+)}
               <Input
                 label="Full Name"
                 name="name"

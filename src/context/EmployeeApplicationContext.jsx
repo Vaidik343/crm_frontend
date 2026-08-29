@@ -38,16 +38,14 @@ export const EmployeeApplicationProvider = ({ children }) => {
        }
   }, []);
 
-  const approveApplication = useCallback(async (id) => {
+ const approveApplication = useCallback(async (id, work_location_type, work_location) => {
+  const { data } = await api.patch(
+    ENDPOINTS.EMPLOYEE_APPLICATIONS.APPROVE(id),
+    { work_location_type, work_location: work_location || null }
+  );
+  return data;
+}, []);
 
-    try {
-          const { data } = await api.patch(ENDPOINTS.EMPLOYEE_APPLICATIONS.APPROVE(id));
-    return data;
-    } catch (error) {
-       throw error
-    }
-
-  }, []);
 
   const rejectApplication = useCallback(async (id, rejection_reason) => {
 

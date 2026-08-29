@@ -151,7 +151,7 @@ const [showPassword, setShowPassword] = useState(false);
 
 <div className="text-center mt-4">
   <p className="text-sm text-slate-400 font-bold">
-    Are you an Employee?{" "}
+    Are you not an Employee?{" "}
     
      <a href="/intern/login"
       className="text-[#132ea7] font-black hover:underline"

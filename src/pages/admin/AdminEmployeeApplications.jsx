@@ -58,6 +58,12 @@ const DetailView = ({ application, onBack, onApprove, onReject }) => {
   const [rejectionReason, setRejectionReason] = useState("");
   const [acting, setActing] = useState(false);
 
+
+  const [showApproveModal, setShowApproveModal] = useState(false);
+const [locationType, setLocationType]         = useState('in_office');
+const [locationText, setLocationText]         = useState('');
+const [locationError, setLocationError]       = useState('');
+
   const handleApprove = async () => {
     setActing(true);
     await onApprove(application.id);
@@ -98,7 +104,7 @@ const DetailView = ({ application, onBack, onApprove, onReject }) => {
                 <MdClose size={16} /> Reject
               </button>
               <button
-                onClick={handleApprove}
+                onClick={() => setShowApproveModal(true)}
                 disabled={acting}
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs uppercase tracking-wider hover:bg-emerald-700 shadow-sm shadow-emerald-200 transition disabled:opacity-50"
               >
@@ -283,6 +289,86 @@ const DetailView = ({ application, onBack, onApprove, onReject }) => {
           </div>
         </div>
       )}
+
+      {showApproveModal && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 border border-slate-100">
+      <h3 className="font-black text-slate-800 text-lg mb-1">Approve Application</h3>
+      <p className="text-xs text-slate-500 mb-5">Select where this employee will be working.</p>
+
+      {/* Location type toggle */}
+      <div className="flex gap-2 mb-4">
+        <button
+          type="button"
+          onClick={() => { setLocationType('in_office'); setLocationText(''); setLocationError(''); }}
+          className={`flex-1 py-2.5 rounded-xl border-2 text-xs font-black uppercase tracking-widest transition-colors ${
+            locationType === 'in_office'
+              ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
+              : 'border-slate-200 text-slate-400 hover:border-slate-300'
+          }`}
+        >
+          In Office
+        </button>
+        <button
+          type="button"
+          onClick={() => { setLocationType('out_of_office'); setLocationError(''); }}
+          className={`flex-1 py-2.5 rounded-xl border-2 text-xs font-black uppercase tracking-widest transition-colors ${
+            locationType === 'out_of_office'
+              ? 'border-[#132ea7] bg-[#132ea7]/5 text-[#132ea7]'
+              : 'border-slate-200 text-slate-400 hover:border-slate-300'
+          }`}
+        >
+          Out of Office
+        </button>
+      </div>
+
+      {/* Location text — only for out of office */}
+      {locationType === 'out_of_office' && (
+        <div className="mb-4">
+          <label className="block text-xs font-bold text-slate-500 mb-1.5">
+            Location <span className="text-red-400">*</span>
+          </label>
+          <input
+            value={locationText}
+            onChange={(e) => { setLocationText(e.target.value); setLocationError(''); }}
+            placeholder="e.g. Work From Home, Surat Office, Client Site"
+            className={`w-full border rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#132ea7] ${
+              locationError ? 'border-red-400 bg-red-50' : 'border-slate-200'
+            }`}
+          />
+          {locationError && (
+            <p className="text-[11px] text-red-500 font-semibold mt-1">{locationError}</p>
+          )}
+        </div>
+      )}
+
+      <div className="flex gap-3">
+        <button
+          onClick={() => { setShowApproveModal(false); setLocationType('in_office'); setLocationText(''); setLocationError(''); }}
+          className="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs uppercase tracking-wider hover:bg-slate-50 transition"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={async () => {
+            if (locationType === 'out_of_office' && !locationText.trim()) {
+              setLocationError('Please enter the work location.');
+              return;
+            }
+            setActing(true);
+            await onApprove(application.id, locationType, locationText);
+            setActing(false);
+            setShowApproveModal(false);
+          }}
+          disabled={acting}
+          className="flex-1 py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-xs uppercase tracking-wider hover:bg-emerald-700 transition shadow-sm disabled:opacity-50"
+        >
+          {acting ? 'Approving...' : 'Confirm Approve'}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 };
@@ -347,16 +433,21 @@ const AdminEmployeeApplications = () => {
     }
   };
 
-  const handleApprove = async (id) => {
-    try {
-      await approveApplication(id);
-      toast.success("Application approved.");
-      setSelectedApp((prev) => prev ? { ...prev, status: "approved" } : prev);
-      fetchApplications();
-    } catch (err) {
-      toast.error(err?.response?.data?.message || "Failed to approve.");
-    }
-  };
+ const handleApprove = async (id, work_location_type, work_location) => {
+  try {
+    await approveApplication(id, work_location_type, work_location);
+    toast.success('Application approved.');
+    setSelectedApp((prev) => prev ? {
+      ...prev,
+      status: 'approved',
+      work_location_type,
+      work_location: work_location || null,
+    } : prev);
+    fetchApplications();
+  } catch (err) {
+    toast.error(err?.response?.data?.message || 'Failed to approve.');
+  }
+};
 
   const handleReject = async (id, rejection_reason) => {
     try {
@@ -471,6 +562,24 @@ const AdminEmployeeApplications = () => {
                       {new Date(app.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
                     </td>
                     <td className="px-4 py-3"><StatusBadge status={app.status} /></td>
+                    <td className="px-4 py-3 text-xs text-slate-500">
+  {app.work_location_type === 'in_office' && (
+    <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 text-[11px] font-black uppercase tracking-widest">
+      In Office
+    </span>
+  )}
+  {app.work_location_type === 'out_of_office' && (
+    <div className="flex flex-col gap-0.5">
+      <span className="px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[11px] font-black uppercase tracking-widest w-fit">
+        Out of Office
+      </span>
+      {app.work_location && (
+        <span className="text-[11px] text-slate-500 font-medium">{app.work_location}</span>
+      )}
+    </div>
+  )}
+  {!app.work_location_type && <span className="text-slate-300">—</span>}
+</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1">
                         <button onClick={() => handleView(app.id)}

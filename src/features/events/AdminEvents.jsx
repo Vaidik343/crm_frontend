@@ -145,8 +145,11 @@ const AdminEvents = () => {
   const [announcing,   setAnnouncing]   = useState(null);
 
   const [editTarget, setEditTarget] = useState(null);
+  console.log("🚀 ~ AdminEvents ~ editTarget:", editTarget)
   const[editForm, setEditForm] = useState({});
+  console.log("🚀 ~ AdminEvents ~ editForm:", editForm)
   const [editSaving, setEditSaving] = useState(false);
+  console.log("🚀 ~ AdminEvents ~ editSaving:", editSaving)
 
   // ── Effects ──
   useEffect(() => {
@@ -221,6 +224,18 @@ const AdminEvents = () => {
       setAnnouncing(null);
     }
   };
+
+
+  // ── Open edit ──
+const openEdit = (event) => {
+  setEditTarget(event);
+  setEditForm({
+    employee_name: event.employee_name,
+    message:       event.message || "",
+    event_date:    event.event_date,
+  });
+};
+
 
   // ── Pagination ──
   const Pagination = () => (
@@ -359,11 +374,12 @@ const AdminEvents = () => {
                     <MdVisibility size={15} /> View
                   </button>
 
-                  <button
-                    onClick={ () => openEdit(event)}
-                    title="Edit"
-                    className="p-2 w-9 h-9 rounded-xl bg-blue-50 text-blue-600 font-bold flex items-center justify-center hover:bg-blue-100 transition-all border border-blue-200/50"
-                  ></button>
+            <button
+  onClick={() => openEdit(event)}
+  title="Edit"
+  className="p-2 w-9 h-9 rounded-xl bg-blue-50 text-blue-600 font-bold flex items-center justify-center hover:bg-blue-100 transition-all border border-blue-200/50">
+  <MdEdit size={16} />
+</button>
                   <button 
                     onClick={() => handleExport(event.id, event.display_id)}
                     title="Download PNG"
@@ -430,26 +446,59 @@ const AdminEvents = () => {
       />
 
       {/* Edit modal */}
-      <Modal show={!!editTarget} onClose={() => setEditTarget(null)} title="Edit Event" size="md">
+    <Modal show={!!editTarget} onClose={() => setEditTarget(null)} title="Edit Event" size="md">
+  {editTarget && (
+    <div className="space-y-5">
+      <div className="space-y-1.5">
+        <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
+          Name / Title
+        </label>
+        <input
+          type="text"
+          value={editForm.employee_name}
+          onChange={(e) => setEditForm((prev) => ({ ...prev, employee_name: e.target.value }))}
+          className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/10"
+        />
+      </div>
 
-        {editTarget && (
-          <div className="space-y-5">
-            <label className="text-[11px] font-block text-slate-500 uppercase tracking-widest block ml-1">
-              Name
-            </label>
+      <div className="space-y-1.5">
+        <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
+          Event Date
+        </label>
+        <input
+          type="date"
+          value={editForm.event_date}
+          onChange={(e) => setEditForm((prev) => ({ ...prev, event_date: e.target.value }))}
+          className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/10"
+        />
+      </div>
 
-            <input
-              type="text"
-              value={editForm.employee_name}
-              onChange={(e) => setEditForm((prev) => ({...prev, employee_name: e.target.value}))}
+      <div className="space-y-1.5">
+        <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
+          Message
+        </label>
+        <textarea
+          value={editForm.message}
+          onChange={(e) => setEditForm((prev) => ({ ...prev, message: e.target.value }))}
+          rows={3}
+          className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-[#132ea7]/10 resize-none"
+          placeholder="Write a message..."
+        />
+      </div>
 
-              className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 focus:outline-none focus-ring-4 focus:ring-[#132ea7]"
-            />
-          </div>
-        )}
-
-
-      </Modal>
+      <div className="flex gap-3 pt-2 border-t border-slate-50">
+        <Button variant="ghost" onClick={() => setEditTarget(null)} disabled={editSaving}
+          className="flex-1 font-black uppercase tracking-widest text-xs h-10">
+          Cancel
+        </Button>
+        <Button variant="primary" onClick={handleEditSave} loading={editSaving}
+          className="flex-[2] font-black uppercase tracking-widest text-xs h-10">
+          Save Changes
+        </Button>
+      </div>
+    </div>
+  )}
+</Modal>
     </div>
   );
 };

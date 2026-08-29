@@ -133,7 +133,7 @@ const getDesignPreviews = useCallback(async (event_type, employee_name, message)
 
 const updateEvent = useCallback(async (id, payload) => {
   try {
-    const { data } = await api.patch(ENDPOINTS.EVENTS.UPDATE(id), payload);
+    const { data } = await api.put(ENDPOINTS.EVENTS.UPDATE(id), payload);
     setEvents((prev) =>
       prev.map((e) => e.id === id ? { ...e, ...data.event } : e)
     );
@@ -144,18 +144,6 @@ const updateEvent = useCallback(async (id, payload) => {
 }, []);
 
 
-const updateEvent1 = useCallback(async (id, payload) => {
-  try {
-    const {data} = await api.put(ENDPOINTS.EVENTS.UPDATE(id), payload);
-    setEvents((prev) => 
-       prev.map((e) => e.id === id ? {...e, ...data.event} : e)
-    );
-
-    return data;
-  } catch (error) {
-    throw error;
-  }
-})
 
 
   const value = useMemo(() => ({
@@ -173,10 +161,12 @@ const updateEvent1 = useCallback(async (id, payload) => {
     previewAICard,
     announceEvent,
     exportPNG,
-    getDesignPreviews
+    getDesignPreviews,
+    updateEvent
+    
   }), [
     events, loading, page, limit, total, totalPages,
-    getAllEvents, getEmployeeEvents, createEvent, deleteEvent, previewAICard,announceEvent, exportPNG,getDesignPreviews
+    getAllEvents, getEmployeeEvents, createEvent, deleteEvent, previewAICard,announceEvent, exportPNG,getDesignPreviews,updateEvent
   ]);
 
   return <EventContext.Provider value={value}>{children}</EventContext.Provider>;

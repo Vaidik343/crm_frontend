@@ -62,6 +62,8 @@ const initialForm = {
   reason_type: 'casual',
   reason:      '',
   worked_saturday_id: '',
+    exchange_with_date: '',
+  exchange_for_date:  '',  
 };
 
 // ─────────────────────────────────────────────
@@ -380,6 +382,8 @@ useEffect(() => {
         ...prev,
         leave_type: value,
         worked_saturday_id: "",
+         exchange_with_date: "",
+    exchange_for_date:  "",
       }));
     }
 
@@ -449,12 +453,26 @@ const removeBlock = (idx) => {
 const validate = () => {
   const errors = {};
   if (!form.reason.trim()) errors.reason = 'Reason is required.';
-  if (form.leave_type === 'exchange' && !form.worked_saturday_id)
-    errors.worked_saturday_id = 'Please select a Saturday to exchange.';
   if (form.reason_type === 'emergency' && !emergencySubType)
     errors.emergency_sub_type = 'Please select Medical or Other.';
 
-  // ── Skip date block validation for exchange leave ──
+  if (form.leave_type === 'exchange') {
+    // Must pick either admin-marked Saturday OR both self-declared dates
+    const hasAdminSaturday = !!form.worked_saturday_id;
+    const hasSelfDeclared  = !!form.exchange_with_date && !!form.exchange_for_date;
+
+    if (!hasAdminSaturday && !hasSelfDeclared) {
+      errors.exchange = 'Please select an admin-marked Saturday or enter both exchange dates.';
+    }
+
+    if (!hasAdminSaturday && hasSelfDeclared) {
+      if (form.exchange_with_date === form.exchange_for_date) {
+        errors.exchange = '"Exchange With" and "Exchange For" dates cannot be the same day.';
+      }
+    }
+  }
+
+  // ── Date block validation — only for non-exchange ──
   let hasBlockErrors = false;
   if (form.leave_type !== 'exchange') {
     const bErrors = leaveBlocks.map((block) => {
@@ -482,7 +500,7 @@ const openForm = () => {
 
 const closeForm = () => {
   setShowForm(false);
-  setForm(initialForm);
+  setForm(initialForm);  // initialForm now includes exchange_with_date/exchange_for_date as ''
   setLeaveBlocks([{ ...initialBlock }]);
   setFieldErrors({});
   setBlockErrors([]);
@@ -491,7 +509,6 @@ const closeForm = () => {
   setMedicalFileError('');
   setSandwichWarnings([]);
 };
-
 
 
 
@@ -511,21 +528,40 @@ const closeForm = () => {
   const block = leaveBlocks[i];
 
   // For exchange, derive start/end from the selected Saturday
-  const isExchange = form.leave_type === 'exchange';
-  const selectedSaturday = isExchange
-    ? saturdays.find((s) => s.id === form.worked_saturday_id)
-    : null;
+ const isExchange       = form.leave_type === 'exchange';
+const isAdminSaturday  = isExchange && !!form.worked_saturday_id;
+const isSelfDeclared   = isExchange && !form.worked_saturday_id;
+const selectedSaturday = isAdminSaturday
+  ? saturdays.find((s) => s.id === form.worked_saturday_id)
+  : null;
 
-  const payload = {
-    leave_type:  form.leave_type,
-    reason_type: form.reason_type,
-    reason:      form.reason,
-    start_date:  isExchange ? selectedSaturday?.saturday_date : block.start_date,
-    end_date:    isExchange ? selectedSaturday?.saturday_date : block.end_date,
-    duration:    isExchange ? 'full_day' : block.duration,
-    ...(isExchange && { worked_saturday_id: form.worked_saturday_id }),
-    ...(form.reason_type === 'emergency' && { emergency_sub_type: emergencySubType }),
-  };
+const payload = {
+  leave_type:  form.leave_type,
+  reason_type: form.reason_type,
+  reason:      form.reason,
+  // start/end date logic:
+  // admin Saturday → use saturday_date
+  // self-declared → use exchange_for_date (the day they want off)
+  // regular → use block dates
+  start_date: isAdminSaturday
+    ? selectedSaturday?.saturday_date
+    : isSelfDeclared
+      ? form.exchange_for_date
+      : block.start_date,
+  end_date: isAdminSaturday
+    ? selectedSaturday?.saturday_date
+    : isSelfDeclared
+      ? form.exchange_for_date
+      : block.end_date,
+  duration: isExchange ? 'full_day' : block.duration,
+  ...(isAdminSaturday && { worked_saturday_id: form.worked_saturday_id }),
+  ...(isSelfDeclared  && {
+    exchange_with_date: form.exchange_with_date,
+    exchange_for_date:  form.exchange_for_date,
+  }),
+  ...(form.reason_type === 'emergency' && { emergency_sub_type: emergencySubType }),
+};
+
 
       try {
         const result = await createLeave(
@@ -1330,43 +1366,121 @@ const closeForm = () => {
 {/* ── Leave Date Blocks — hidden for exchange ── */}
 {/* ── Saturday picker — only for exchange ── */}
 {form.leave_type === 'exchange' && (
-  <div className="md:col-span-2 space-y-1.5">
-    <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
-      Select Saturday to Exchange <span className="text-red-500">*</span>
-    </label>
+  <div className="md:col-span-2 space-y-4">
 
-    {saturdaysLoading ? (
-      <p className="text-xs font-bold text-slate-400 animate-pulse uppercase tracking-widest">
-        Loading available Saturdays...
-      </p>
-    ) : saturdays.length === 0 ? (
-      <div className="bg-amber-50 border border-amber-100 rounded-2xl px-5 py-3">
-        <p className="text-xs font-black text-amber-600 uppercase tracking-widest">
-          No worked Saturdays available. Ask admin to mark your worked Saturdays first.
+    {/* ── Section A: Admin-marked Saturdays ── */}
+    <div className="space-y-2">
+      <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
+        Option 1 — Select Admin-Marked Saturday
+      </label>
+
+      {saturdaysLoading ? (
+        <p className="text-xs font-bold text-slate-400 animate-pulse uppercase tracking-widest">
+          Loading available Saturdays...
         </p>
-      </div>
-    ) : (
-      <div className="flex flex-wrap gap-2">
-        {saturdays.map((s) => (
-          <button
-            key={s.id}
-            type="button"
-            onClick={() => setForm((prev) => ({ ...prev, worked_saturday_id: s.id }))}
-            className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-              form.worked_saturday_id === s.id
-                ? 'bg-[#132ea7] text-white shadow-lg shadow-[#132ea7]/20'
-                : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
-            }`}
-          >
-            {formatDate(s.saturday_date)}
-          </button>
-        ))}
-      </div>
-    )}
+      ) : saturdays.length === 0 ? (
+        <div className="bg-slate-50 border border-slate-100 rounded-2xl px-5 py-3">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+            No admin-marked Saturdays available.
+          </p>
+        </div>
+      ) : (
+        <div className="flex flex-wrap gap-2">
+          {saturdays.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => setForm((prev) => ({
+                ...prev,
+                worked_saturday_id: prev.worked_saturday_id === s.id ? '' : s.id,
+                // clear self-declared if picking admin saturday
+                exchange_with_date: '',
+                exchange_for_date:  '',
+              }))}
+              className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                form.worked_saturday_id === s.id
+                  ? 'bg-[#132ea7] text-white shadow-lg shadow-[#132ea7]/20'
+                  : 'bg-slate-100 text-slate-400 hover:bg-slate-200'
+              }`}
+            >
+              {formatDate(s.saturday_date)}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
 
-    {fieldErrors.worked_saturday_id && (
-      <p className="text-red-500 text-[10px] font-bold uppercase ml-1 mt-1">
-        {fieldErrors.worked_saturday_id}
+    {/* ── Divider ── */}
+    <div className="flex items-center gap-3">
+      <div className="flex-1 h-px bg-slate-100" />
+      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">or</span>
+      <div className="flex-1 h-px bg-slate-100" />
+    </div>
+
+    {/* ── Section B: Self-declared dates ── */}
+    <div className="space-y-3">
+      <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest block ml-1">
+        Option 2 — Enter Exchange Dates Manually
+      </label>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="space-y-1.5">
+          <Input
+            label="Exchange With (day you're working)"
+            name="exchange_with_date"
+            type="date"
+            value={form.exchange_with_date}
+            onChange={(e) => setForm((prev) => ({
+              ...prev,
+              exchange_with_date: e.target.value,
+              // clear admin saturday if using self-declared
+              worked_saturday_id: '',
+            }))}
+            error={form.exchange_with_date && form.exchange_for_date && form.exchange_with_date === form.exchange_for_date
+              ? 'Cannot be same as Exchange For date.'
+              : ''}
+          />
+          <p className="text-[10px] font-bold text-slate-400 ml-1">
+            The date you are working instead (any day).
+          </p>
+        </div>
+
+        <div className="space-y-1.5">
+          <Input
+            label="Exchange For (day you want off)"
+            name="exchange_for_date"
+            type="date"
+            value={form.exchange_for_date}
+            onChange={(e) => setForm((prev) => ({
+              ...prev,
+              exchange_for_date:  e.target.value,
+              // clear admin saturday if using self-declared
+              worked_saturday_id: '',
+            }))}
+            error={form.exchange_with_date && form.exchange_for_date && form.exchange_with_date === form.exchange_for_date
+              ? 'Cannot be same as Exchange With date.'
+              : ''}
+          />
+          <p className="text-[10px] font-bold text-slate-400 ml-1">
+            The date you want to take off in exchange.
+          </p>
+        </div>
+      </div>
+
+      {/* Preview of what they're exchanging */}
+      {form.exchange_with_date && form.exchange_for_date && form.exchange_with_date !== form.exchange_for_date && (
+        <div className="bg-[#132ea7]/5 border border-[#132ea7]/10 rounded-2xl px-5 py-3">
+          <p className="text-xs font-black text-[#132ea7] uppercase tracking-widest">
+            Working on {formatDate(form.exchange_with_date)} → Taking off on {formatDate(form.exchange_for_date)}
+          </p>
+        </div>
+      )}
+    </div>
+
+    {/* ── Combined error ── */}
+    {fieldErrors.exchange && (
+      <p className="text-red-500 text-[10px] font-bold uppercase ml-1">
+        {fieldErrors.exchange}
       </p>
     )}
   </div>
@@ -1500,15 +1614,15 @@ const closeForm = () => {
 
 
           {/* Notice period info banner */}
-          {form.reason_type !== "emergency" && (
-            <div className="bg-[#132ea7]/5 border border-[#132ea7]/10 rounded-2xl px-5 py-3">
-              <p className="text-xs font-black text-[#132ea7] uppercase tracking-widest">
-                {form.duration === "full_day"
-                  ? "Full day leave must be requested at least 36 hours before 9 AM of the leave date."
-                  : "Half day leave must be requested at least 16 hours before 9 AM of the leave date."}
-              </p>
-            </div>
-          )}
+        {form.reason_type !== "emergency" && form.leave_type !== "exchange" && (
+  <div className="bg-[#132ea7]/5 border border-[#132ea7]/10 rounded-2xl px-5 py-3">
+    <p className="text-xs font-black text-[#132ea7] uppercase tracking-widest">
+      {leaveBlocks[0]?.duration === "full_day"
+        ? "Full day leave must be requested at least 36 hours before 9 AM of the leave date."
+        : "Half day leave must be requested at least 16 hours before 9 AM of the leave date."}
+    </p>
+  </div>
+)}
 
           <div className="flex gap-4 pt-5 border-t border-slate-50">
             <Button
@@ -1579,8 +1693,12 @@ const closeForm = () => {
                   label: "Duration",
                   value: DURATION_LABELS[viewTarget.duration],
                 },
-                { label: "From", value: formatDate(viewTarget.start_date) },
-                { label: "To", value: formatDate(viewTarget.end_date) },
+{ label: "From", value: formatDate(viewTarget.start_date) },
+{ label: "To",   value: formatDate(viewTarget.end_date) },
+...(viewTarget.leave_type === 'exchange' && viewTarget.exchange_with_date ? [
+  { label: "Working On",  value: formatDate(viewTarget.exchange_with_date) },
+  { label: "Taking Off",  value: formatDate(viewTarget.start_date) },
+] : []),
                 { label: "Requested", value: formatDate(viewTarget.createdAt) },
                 {
                   label: "Approved By",

@@ -79,6 +79,12 @@ export const AuthProvider = ({ children }) => {
   const isAdmin = user?.is_admin === true;
   const isAuthenticated = !!token && !!user;
 
+  const updateStoredUser = useCallback((updatedUser) => {
+  const merged = { ...user, ...updatedUser };
+  localStorage.setItem("user", JSON.stringify(merged));
+  setUser(merged);
+}, [user]);
+
   const value = useMemo(() => ({
     user,
     token,
@@ -88,7 +94,9 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     can,
-  }), [user, token, loading, isAdmin, isAuthenticated, login, logout, can]);
+      setUser,           // ← add this
+  updateStoredUser,
+  }), [user, token, loading, isAdmin, isAuthenticated, login, logout, can, updateStoredUser]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

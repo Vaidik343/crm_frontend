@@ -214,11 +214,11 @@ const Events = () => {
                     className="flex-1 h-9 rounded-xl bg-slate-50 text-slate-600 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-slate-100 transition-all border border-slate-200/60">
                     <MdVisibility size={15} /> View
                   </button>
-                  <button 
+                  {/* <button 
                     onClick={() => handleExport(event.id, event.display_id)}
                     className="flex-1 h-9 rounded-xl bg-emerald-50 text-emerald-700 font-bold flex items-center justify-center gap-1.5 text-xs hover:bg-emerald-100 transition-all border border-emerald-200/50">
                     <MdDownload size={15} /> PNG
-                  </button>
+                  </button> */}
                 </div>
 
               </div>
